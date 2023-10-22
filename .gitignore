@@ -13,3 +13,7 @@ node_modules
 
 # local env files
 .env*.local
+
+*.venv
+
+*__pycache__
