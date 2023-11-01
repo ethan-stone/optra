@@ -18,7 +18,7 @@ Managed machine-to-machine JWTs
 - POST /clients.verifyClient
 - POST /oauth/token
 # Data Model
-[﻿View on Eraser](https://app.eraser.io/workspace/iM0oefDcpBUj4W1UKNPV?elements=2sDYCAhYaqJhx3b8LY-eeg) 
+![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---6HnoS3EDbCOpUWwxGINFg---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
 
 
 
