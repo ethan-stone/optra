@@ -18,7 +18,7 @@ Managed machine-to-machine JWTs
 - POST /clients.verifyClient
 - POST /oauth/token
 # Data Model 
-![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---hosWQzOyfKRBcxeQ1mUyz---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
+![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---28wfZLysclYWvOaFqA3Ix---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
 
 # Client Types
 1. Internal Client
