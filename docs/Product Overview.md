@@ -17,9 +17,16 @@ Managed machine-to-machine JWTs
 - POST /clients.createClient
 - POST /clients.verifyClient
 - POST /oauth/token
-# Data Model
-![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---5jEi7D7ak03RnGltp1TZI---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
+# Data Model 
+![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---tTygIVEaq-OXZMBQ4lS6h---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
 
+# Client Types
+1. Internal Client
+    1. This is a static client that belongs to an internal organization. It allows the creation of workspaces and root clients.
+2. Root Clients
+    1. These are keys that belong to the workspaces of users of Optra. They can create APIs and clients for those workspaces only.
+3. Basic Clients
+    1. These are clients that belong to users of the APIs that are managed by Optra. They can't create anything and can only be verified. 
 
 
 
