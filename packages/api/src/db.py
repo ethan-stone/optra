@@ -28,7 +28,7 @@ class Client(Base):
 
 
 class Db(Protocol):
-    def get_client(self, client_id: str) -> (Client | None):
+    def get_client(self, client_id: str) -> Client | None:
         ...
 
     def create_client(self, name: str) -> Client:
@@ -39,15 +39,17 @@ class SqlAlchameyDb:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_client(self, client_id: str) -> (Client | None):
+    def get_client(self, client_id: str) -> Client | None:
         return self.session.query(Client).filter(Client.id == client_id).first()
 
-    def create_client(self, client: ClientCreate) -> (Client | None):
+    def create_client(self, client: ClientCreate) -> Client | None:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
         db_client = Client(
-            id=client_id, secret=client_secret, name=client.name,
+            id=client_id,
+            secret=client_secret,
+            name=client.name,
         )
         self.session.add(db_client)
         self.session.commit()
