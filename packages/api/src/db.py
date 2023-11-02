@@ -1,11 +1,12 @@
+import datetime
+import uuid
 from typing import Protocol
 
-from sqlalchemy import create_engine, Column, String, DateTime
+from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-import datetime
-from .schemas import ClientCreate
-import uuid
+from sqlalchemy.orm import Session, sessionmaker
+
+from .schemas import Client, ClientCreate
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
@@ -18,13 +19,16 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-class Client(Base):
+class DbClient(Base):
     __tablename__ = "clients"
 
     id = Column(String, primary_key=True, index=True)
-    secret = Column(String, unique=True, index=True)
-    name = Column(String)
-    created_at = Column(DateTime, default=datetime.datetime.now)
+    secret = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    rate_limit_bucket_size = Column(Integer)
+    rate_limit_refill_amount = Column(Integer)
+    rate_limit_refill_interval = Column(Integer)
+    created_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
 
 
 class Db(Protocol):
@@ -39,14 +43,15 @@ class SqlAlchameyDb:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_client(self, client_id: str) -> Client | None:
-        return self.session.query(Client).filter(Client.id == client_id).first()
+    def get_client(self, client_id: str) -> DbClient | None:
+        client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
+        return Client(**client.__dict__) if client else None
 
-    def create_client(self, client: ClientCreate) -> Client | None:
+    def create_client(self, client: ClientCreate) -> DbClient | None:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
-        db_client = Client(
+        db_client = DbClient(
             id=client_id,
             secret=client_secret,
             name=client.name,
@@ -54,7 +59,7 @@ class SqlAlchameyDb:
         self.session.add(db_client)
         self.session.commit()
         self.session.refresh(db_client)
-        return db_client
+        return Client(**db_client.__dict__)
 
 
 def get_db() -> Db:

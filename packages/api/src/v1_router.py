@@ -1,8 +1,10 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Body, Depends
 from pydantic import BaseModel
-from typing import Annotated
+
 from .db import Db, get_db
-from .schemas import ClientCreate, Client
+from .schemas import Client, ClientCreate
 
 v1 = APIRouter(prefix="/v1")
 
