@@ -30,7 +30,7 @@ class TokenAuthorizeError(Exception):
 class InternalTokenAuthorizer:
     secret: str
 
-    def authorizer(self, token: str) -> JwtPayload:
+    def authorize(self, token: str) -> JwtPayload:
         try:
             payload_dict = jwt.decode(token, self.secret, algorithms=["HS256"])
 
@@ -97,7 +97,7 @@ class OAuth2ClientCredentialsBearer(OAuth2):
         return param
 
 
-oauth2_scheme = OAuth2ClientCredentialsBearer(tokenUrl="oauth/token")
+oauth2_client_credentials_scheme = OAuth2ClientCredentialsBearer(tokenUrl="oauth/token")
 
 # TODO: accept client credentials params in form and body
 # https://github.com/tiangolo/fastapi/discussions/7846#discussioncomment-5144696
