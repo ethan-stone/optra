@@ -65,13 +65,6 @@ def oauth_token(
     body: Annotated[OAuthTokenParams, Body()] = None,
     authorization: Annotated[str, Header()] = None,
 ):
-    if (
-        body is None
-        and (client_id is None or client_secret is None or grant_type is None)
-        and authorization is None
-    ):
-        raise HTTPException(status_code=400, detail="Invalid request")
-
     client_id_parsed = client_id
     client_secret_parsed = client_secret
     grant_type_parsed = grant_type
