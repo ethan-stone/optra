@@ -16,6 +16,10 @@ class Client(BaseModel):
         from_attributes = True
 
 
+class ClientCreateResult(Client):
+    secret: str
+
+
 class ClientCreate(BaseModel):
     name: str
 
