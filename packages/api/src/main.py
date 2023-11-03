@@ -1,7 +1,7 @@
 import base64
 import datetime
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, List
 
 import jwt
 from fastapi import Body, FastAPI, Form, Header, HTTPException
@@ -65,20 +65,29 @@ def oauth_token(
     body: Annotated[OAuthTokenParams, Body()] = None,
     authorization: Annotated[str, Header()] = None,
 ):
-    client_id_parsed = client_id
-    client_secret_parsed = client_secret
-    grant_type_parsed = grant_type
+    client_ids: List[str | None] = list()
+    client_secrets: List[str | None] = list()
+    grant_types: List[str | None] = list()
+
+    client_ids.append(client_id)
+    client_secrets.append(client_secret)
+    grant_types.append(grant_type)
 
     if authorization is not None:
         basic_auth_header = parse_basic_auth_header(authorization)
 
-        client_id_parsed = basic_auth_header.client_id
-        client_secret_parsed = basic_auth_header.cliet_secret
+        if basic_auth_header is not None:
+            client_ids.append(basic_auth_header.client_id)
+            client_secrets.append(basic_auth_header.cliet_secret)
 
     if body is not None:
-        client_id_parsed = body.client_id
-        client_secret_parsed = body.client_secret
-        grant_type_parsed = body.grant_type
+        client_ids.append(body.client_id)
+        client_secrets.append(body.client_secret)
+        grant_types.append(body.grant_type)
+
+    client_id_parsed = next((v for v in client_ids if v is not None), None)
+    client_secret_parsed = next((v for v in client_secrets if v is not None), None)
+    grant_type_parsed = next((v for v in grant_types if v is not None), None)
 
     if (
         client_id_parsed is None
