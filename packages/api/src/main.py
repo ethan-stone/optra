@@ -65,6 +65,11 @@ def oauth_token(
     body: Annotated[OAuthTokenParams, Body()] = None,
     authorization: Annotated[str, Header()] = None,
 ):
+    """
+    Generate an access token for a client. This supports the client credentials flow
+    with the client_id, client_secret, and grant_type parameters being sent in a combination of
+    the request body, authorization header, and form data.
+    """
     client_ids: List[str | None] = list()
     client_secrets: List[str | None] = list()
     grant_types: List[str | None] = list()
