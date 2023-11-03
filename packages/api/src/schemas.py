@@ -26,3 +26,9 @@ class ClientCreateParams(BaseModel):
 
 class VerifyClientParams(BaseModel):
     token: str
+
+
+class JwtPayload(BaseModel):
+    sub: str
+    iat: datetime.datetime
+    exp: datetime.datetime

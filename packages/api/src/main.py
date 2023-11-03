@@ -1,11 +1,15 @@
-from enum import Enum
-from fastapi import FastAPI, Body
-from pydantic import BaseModel
-from .v1_router import v1
-from typing import Annotated
-import jwt
 import datetime
+from enum import Enum
+from typing import Annotated
+
+import jwt
+from fastapi import Body, FastAPI
+from pydantic import BaseModel
+
 from . import db
+from .authorizer import secret
+from .schemas import JwtPayload
+from .v1_router import v1
 
 db.Base.metadata.create_all(bind=db.engine)
 
@@ -24,21 +28,16 @@ class OAuthTokenParams(BaseModel):
     grant_type: GrantTypeEnum
 
 
-secret = "iv20vbspbbe9bxjcaosivbfjxb9834"
-
-
 @app.post("/oauth/token")
 def oauth_token(body: Annotated[OAuthTokenParams, Body()]):
     now = datetime.datetime.now()
 
-    payload = {
-        "sub": body.client_id,
-        "iat": now,
-        "exp": now + datetime.timedelta(days=1),
-    }
+    payload = JwtPayload(
+        sub=body.client_id, iat=now, exp=now + datetime.timedelta(days=1)
+    )
 
     token = jwt.encode(
-        payload,
+        payload.model_dump(),
         secret,
         algorithm="HS256",
     )
