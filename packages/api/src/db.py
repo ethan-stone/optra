@@ -6,7 +6,7 @@ from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
-from .schemas import Client, ClientCreate, ClientCreateResult
+from .schemas import Client, ClientCreateParams, ClientCreateResult
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
@@ -47,7 +47,7 @@ class SqlAlchameyDb:
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return Client(**client.__dict__) if client else None
 
-    def create_client(self, client: ClientCreate) -> ClientCreateResult | None:
+    def create_client(self, client: ClientCreateParams) -> ClientCreateResult | None:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 

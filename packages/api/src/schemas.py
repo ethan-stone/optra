@@ -20,9 +20,9 @@ class ClientCreateResult(Client):
     secret: str
 
 
-class ClientCreate(BaseModel):
+class ClientCreateParams(BaseModel):
     name: str
 
 
-class VerifyClient(BaseModel):
+class VerifyClientParams(BaseModel):
     token: str
