@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import uuid
 from typing import Iterator, Protocol
 
@@ -47,19 +48,35 @@ class SqlAlchameyDb:
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return Client(**client.__dict__) if client else None
 
+    def get_client_secret(self, client_id: str) -> str | None:
+        client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
+        return client.secret if client else None
+
     def create_client(self, client: ClientCreateParams) -> ClientCreateResult | None:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
+        hash = hashlib.sha256()
+        hash.update(client_secret.encode())
+        hashed_secret = hash.hexdigest()
+
+        print(hashed_secret)
+
         db_client = DbClient(
             id=client_id,
-            secret=client_secret,
+            secret=hashed_secret,
             name=client.name,
         )
         self.session.add(db_client)
         self.session.commit()
         self.session.refresh(db_client)
-        return ClientCreateResult(**db_client.__dict__)
+
+        client_dict = db_client.__dict__
+
+        # when creating a client, we don't want to return the hashed secret
+        client_dict["secret"] = client_secret
+
+        return ClientCreateResult(**client_dict)
 
 
 def get_db() -> Iterator[Db]:

@@ -1,18 +1,19 @@
 import base64
 import datetime
+import hashlib
 from enum import Enum
-from typing import List
+from typing import Annotated, List
 
 import jwt
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
-from . import db
 from .authorizer import secret
+from .db import Base, Db, engine, get_db
 from .schemas import JwtPayload
 from .v1_router import v1
 
-db.Base.metadata.create_all(bind=db.engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -65,9 +66,7 @@ class TokenResponse(BaseModel):
 
 
 @app.post("/oauth/token", response_model=TokenResponse)
-async def oauth_token(
-    request: Request,
-):
+async def oauth_token(request: Request, db: Annotated[Db, Depends(get_db)]):
     """
     Generate an access token for a client. This supports the client credentials flow
     with the client_id, client_secret, and grant_type parameters being sent in a combination of
@@ -125,9 +124,26 @@ async def oauth_token(
     ):
         raise HTTPException(status_code=400, detail="Invalid request")
 
+    client = db.get_client(client_id_parsed)
+
+    if client is None:
+        raise HTTPException(status_code=400, detail="Invalid client")
+
+    client_secret = db.get_client_secret(client_id_parsed)
+
+    if client_secret is None:
+        raise HTTPException(status_code=400, detail="Invalid client")
+
+    hash = hashlib.sha256()
+    hash.update(client_secret_parsed.encode())
+    hashed_secret = hash.hexdigest()
+
+    if client_secret != hashed_secret:
+        return HTTPException(status_code=400, detail="Invalid client")
+
     now = datetime.datetime.now()
 
-    payload = JwtPayload(sub="", iat=now, exp=now + datetime.timedelta(days=1))
+    payload = JwtPayload(sub=client.id, iat=now, exp=now + datetime.timedelta(days=1))
 
     token = jwt.encode(
         payload.model_dump(),
