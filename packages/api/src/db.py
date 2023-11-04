@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import Protocol
+from typing import Iterator, Protocol
 
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -35,7 +35,7 @@ class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
 
-    def create_client(self, name: str) -> ClientCreateResult:
+    def create_client(self, client: ClientCreateParams) -> ClientCreateResult:
         ...
 
 
@@ -62,7 +62,7 @@ class SqlAlchameyDb:
         return ClientCreateResult(**db_client.__dict__)
 
 
-def get_db() -> Db:
+def get_db() -> Iterator[Db]:
     session = SessionLocal()
     db = SqlAlchameyDb(session)
 

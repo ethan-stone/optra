@@ -11,8 +11,6 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 from .environment import env
 from .schemas import JwtPayload
 
-# TODO: setup env variables
-
 secret = env.jwt_secret
 
 internal_client_id = env.internal_client_id
