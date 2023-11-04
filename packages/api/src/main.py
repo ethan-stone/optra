@@ -1,7 +1,7 @@
 import base64
 import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 import jwt
 from fastapi import FastAPI, HTTPException, Request
@@ -24,8 +24,8 @@ class GrantTypeEnum(str, Enum):
 
 
 class OAuthTokenParams(BaseModel):
-    client_id: Optional[str]
-    client_secret: Optional[str]
+    client_id: str | None
+    client_secret: str | None
     grant_type: GrantTypeEnum
 
 
@@ -57,7 +57,14 @@ def parse_basic_auth_header(header: str) -> BasicAuthHeader | None:
     )
 
 
-@app.post("/oauth/token")
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+    scope: str | None
+
+
+@app.post("/oauth/token", response_model=TokenResponse)
 async def oauth_token(
     request: Request,
 ):
@@ -67,7 +74,6 @@ async def oauth_token(
     the request body, authorization header, and form data.
     """
     content_type = request.headers.get("Content-Type")
-    print(content_type)
 
     client_ids: List[str | None] = []
     client_secrets: List[str | None] = []
@@ -129,4 +135,9 @@ async def oauth_token(
         algorithm="HS256",
     )
 
-    return {"access_token": token, "token_type": "bearer"}
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        expires_in=datetime.timedelta(days=1).total_seconds(),
+        scope=None,
+    )
