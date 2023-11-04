@@ -8,13 +8,14 @@ from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 from starlette.status import HTTP_401_UNAUTHORIZED
 
+from .environment import env
 from .schemas import JwtPayload
 
 # TODO: setup env variables
 
-secret = ""
+secret = env.jwt_secret
 
-internal_client_id = "abc"
+internal_client_id = env.internal_client_id
 
 
 class TokenAuthorizer(Protocol):
@@ -98,7 +99,3 @@ class OAuth2ClientCredentialsBearer(OAuth2):
 
 
 oauth2_client_credentials_scheme = OAuth2ClientCredentialsBearer(tokenUrl="oauth/token")
-
-# TODO: accept client credentials params in form and body
-# https://github.com/tiangolo/fastapi/discussions/7846#discussioncomment-5144696
-# https://developer.okta.com/blog/2018/06/06/node-api-oauth-client-credentials
