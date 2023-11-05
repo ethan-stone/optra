@@ -1,8 +1,16 @@
-from ..db import get_db
-from ..schemas import ClientCreateParams
+from ..db import Db, get_db
+from ..schemas import ClientCreateParams, ClientCreateResult
 
-db = next(get_db())
 
-result = db.create_client(ClientCreateParams(name="Internal Client"))
+def bootstrap(db: Db) -> ClientCreateResult:
+    result = db.create_client(ClientCreateParams(name="Internal Client"))
 
-print(result.model_dump())
+    return result
+
+
+if __name__ == "__main__":
+    db = next(get_db())
+
+    result = bootstrap(db)
+
+    print(result.model_dump())

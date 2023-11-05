@@ -1,7 +1,7 @@
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class Client(BaseModel):
@@ -12,8 +12,7 @@ class Client(BaseModel):
     rate_limit_refill_interval: Optional[int]
     created_at: datetime.datetime
 
-    class Config:
-        from_attributes = True
+    model_config: ConfigDict = ConfigDict(from_attributes=True)
 
 
 class ClientCreateResult(Client):

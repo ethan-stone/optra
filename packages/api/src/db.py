@@ -4,16 +4,13 @@ import uuid
 from typing import Iterator, Protocol
 
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .schemas import Client, ClientCreateParams, ClientCreateResult
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
+DATABASE_URL = "sqlite:///./sql_app.db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -59,8 +56,6 @@ class SqlAlchameyDb:
         hash = hashlib.sha256()
         hash.update(client_secret.encode())
         hashed_secret = hash.hexdigest()
-
-        print(hashed_secret)
 
         db_client = DbClient(
             id=client_id,

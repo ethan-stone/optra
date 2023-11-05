@@ -139,7 +139,7 @@ async def oauth_token(request: Request, db: Annotated[Db, Depends(get_db)]):
     hashed_secret = hash.hexdigest()
 
     if client_secret != hashed_secret:
-        return HTTPException(status_code=400, detail="Invalid client")
+        raise HTTPException(status_code=400, detail="Invalid client")
 
     now = datetime.datetime.now()
 
