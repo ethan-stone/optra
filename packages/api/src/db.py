@@ -32,7 +32,7 @@ class DbClient(Base):
     rate_limit_bucket_size = Column(Integer)
     rate_limit_refill_amount = Column(Integer)
     rate_limit_refill_interval = Column(Integer)
-    created_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
 class DbWorkspace(Base):
@@ -40,8 +40,8 @@ class DbWorkspace(Base):
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
-    updated_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
 class Db(Protocol):
