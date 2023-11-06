@@ -29,8 +29,6 @@ def test_should_reject_if_invalid_client(setup: SetupResult):
 
     token = TokenResponse(**token_response.json())
 
-    print(token)
-
     data = {
         "name": "test",
     }
