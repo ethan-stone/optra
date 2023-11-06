@@ -42,5 +42,7 @@ def test_should_create_client(setup: SetupResult):
     }
 
     response = client.post("/v1/internal.createWorkspace", json=data, headers=headers)
+    response_json = response.json()
 
     assert response.status_code == 200
+    assert response_json["name"] == "test"

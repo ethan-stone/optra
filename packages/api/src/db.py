@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .schemas import (
     Client,
-    ClientCreateParams,
     ClientCreateResult,
+    RootClientCreateParams,
     WorkspaceCreateParams,
     WorkspaceCreateResult,
 )
@@ -50,7 +50,7 @@ class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
 
-    def create_client(self, client: ClientCreateParams) -> ClientCreateResult:
+    def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         ...
 
     def create_workspace(self, client: WorkspaceCreateParams) -> WorkspaceCreateResult:
@@ -69,7 +69,7 @@ class SqlAlchameyDb:
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return client.secret if client else None
 
-    def create_client(self, client: ClientCreateParams) -> ClientCreateResult:
+    def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
@@ -82,6 +82,7 @@ class SqlAlchameyDb:
             secret=hashed_secret,
             name=client.name,
             workspace_id=client.workspace_id,
+            for_workspace_id=client.for_workspace_id,
         )
 
         self.session.add(db_client)

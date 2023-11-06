@@ -21,10 +21,13 @@ class ClientCreateResult(Client):
     secret: str
 
 
-class ClientCreateParams(BaseModel):
+class BasicCreateClientParams(BaseModel):
     name: str
     workspace_id: str
-    for_workspace_id: Optional[str] = None
+
+
+class RootClientCreateParams(BasicCreateClientParams):
+    for_workspace_id: str
 
 
 class VerifyClientParams(BaseModel):

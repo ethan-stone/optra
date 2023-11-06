@@ -1,7 +1,7 @@
 from ..db import Base, Db, engine, get_db
 from ..schemas import (
-    ClientCreateParams,
     ClientCreateResult,
+    RootClientCreateParams,
     WorkspaceCreateParams,
     WorkspaceCreateResult,
 )
@@ -14,8 +14,12 @@ def bootstrap(db: Db) -> tuple[WorkspaceCreateResult, ClientCreateResult]:
         WorkspaceCreateParams(name="Internal Workspace")
     )
 
-    internal_client = db.create_client(
-        ClientCreateParams(name="Internal Client", workspace_id=internal_workspace.id)
+    internal_client = db.create_root_client(
+        RootClientCreateParams(
+            name="Internal Client",
+            workspace_id=internal_workspace.id,
+            for_workspace_id=internal_workspace.id,
+        )
     )
 
     return internal_workspace, internal_client

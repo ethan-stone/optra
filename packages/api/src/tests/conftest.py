@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from ..db import Base, SqlAlchameyDb, get_db
 from ..environment import Env, get_env
 from ..main import app
-from ..schemas import ClientCreateParams, ClientCreateResult, WorkspaceCreateResult
+from ..schemas import ClientCreateResult, RootClientCreateParams, WorkspaceCreateResult
 from ..scripts.bootstrap import bootstrap
 
 DATABASE_URL = "sqlite:///:memory:"
@@ -52,8 +52,12 @@ def setup():
 
     internal_workspace, internal_client = bootstrap(db)
 
-    other_client = db.create_client(
-        ClientCreateParams(name="test", workspace_id=internal_workspace.id)
+    other_client = db.create_root_client(
+        RootClientCreateParams(
+            name="test",
+            workspace_id=internal_workspace.id,
+            for_workspace_id=internal_workspace.id,
+        )
     )
 
     def override_get_env():
