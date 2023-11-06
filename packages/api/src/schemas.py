@@ -32,6 +32,11 @@ class RootClientCreateParams(BasicCreateClientParams):
     for_workspace_id: str
 
 
+class RootClientCreateReqBody(BaseModel):
+    for_workspace_id: str
+    name: str
+
+
 class VerifyClientParams(BaseModel):
     token: str
 
@@ -68,6 +73,10 @@ class Api(BaseModel):
 class ApiCreateParams(BaseModel):
     name: str
     workspace_id: str
+
+
+class ApiCreateReqBody(BaseModel):
+    name: str
 
 
 class ApiCreateResult(Api):

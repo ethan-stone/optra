@@ -1,0 +1,21 @@
+meta {
+  name: Create Api
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/v1/apis.createApi
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwt}}
+}
+
+body:json {
+  {
+    "name": "test api"
+  }
+}

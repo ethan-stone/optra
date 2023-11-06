@@ -7,6 +7,7 @@ from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .schemas import (
+    Api,
     ApiCreateParams,
     ApiCreateResult,
     Client,
@@ -62,6 +63,9 @@ class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
 
+    def get_client_secret(self, client_id: str) -> str | None:
+        ...
+
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         ...
 
@@ -69,6 +73,9 @@ class Db(Protocol):
         ...
 
     def create_api(self, client: ApiCreateParams) -> ApiCreateResult:
+        ...
+
+    def get_api(self, api_id: str) -> Api | None:
         ...
 
 
@@ -140,6 +147,10 @@ class SqlAlchameyDb:
         self.session.refresh(db_api)
 
         return ApiCreateResult(**db_api.__dict__)
+
+    def get_api(self, api_id: str) -> Api | None:
+        api = self.session.query(DbApi).filter(DbApi.id == api_id).first()
+        return Api(**api.__dict__) if api else None
 
 
 def get_db() -> Iterator[Db]:

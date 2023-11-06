@@ -8,6 +8,7 @@ from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 from starlette.status import HTTP_401_UNAUTHORIZED
 
+from .db import Db, get_db
 from .environment import Env, get_env
 from .schemas import JwtPayload
 
@@ -102,6 +103,34 @@ def internal_authorizer(
         )
 
         payload = authorizer.authorize(token)
+
+        return payload
+
+    except TokenAuthorizeError as token_authorize_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Failed to authorize token",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from token_authorize_error
+
+
+def root_authorizer(
+    token: Annotated[str, Depends(oauth2_client_credentials_scheme)],
+    env: Annotated[Env, Depends(get_env)],
+    db: Annotated[Db, Depends(get_db)],
+):
+    try:
+        payload_dict = jwt.decode(token, env.jwt_secret, algorithms=["HS256"])
+
+        payload = JwtPayload(**payload_dict)
+
+        client = db.get_client(payload.sub)
+
+        if not client:
+            raise TokenAuthorizeError("Invalid client")
+
+        if client.for_workspace_id is None:
+            raise TokenAuthorizeError("Invalid client")
 
         return payload
 

@@ -68,7 +68,13 @@ def setup():
     )
 
     def override_get_env():
-        return Env(jwt_secret="jwt_secret", internal_client_id=internal_client.id)
+        return Env(
+            jwt_secret="jwt_secret",
+            internal_client_id=internal_client.id,
+            internal_client_secret=internal_client.secret,
+            internal_api_id=internal_api.id,
+            internal_workspace_id=internal_workspace.id,
+        )
 
     app.dependency_overrides[get_env] = override_get_env
 
