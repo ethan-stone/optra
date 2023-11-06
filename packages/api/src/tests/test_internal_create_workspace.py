@@ -24,7 +24,7 @@ def test_should_reject_if_invalid_body(setup: SetupResult):
     assert response.status_code == 422
 
 
-def test_should_create_client(setup: SetupResult):
+def test_should_create_workspace(setup: SetupResult):
     data = {
         "grant_type": "client_credentials",
         "client_id": setup.internal_client.id,

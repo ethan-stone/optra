@@ -9,6 +9,7 @@ class Client(BaseModel):
     name: str
     workspace_id: str
     for_workspace_id: Optional[str] = None
+    api_id: str
     rate_limit_bucket_size: Optional[int] = None
     rate_limit_refill_amount: Optional[int] = None
     rate_limit_refill_interval: Optional[int] = None
@@ -24,6 +25,7 @@ class ClientCreateResult(Client):
 class BasicCreateClientParams(BaseModel):
     name: str
     workspace_id: str
+    api_id: str
 
 
 class RootClientCreateParams(BasicCreateClientParams):
@@ -52,4 +54,21 @@ class WorkspaceCreateParams(BaseModel):
 
 
 class WorkspaceCreateResult(Workspace):
+    ...
+
+
+class Api(BaseModel):
+    id: str
+    name: str
+    workspace_id: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+
+class ApiCreateParams(BaseModel):
+    name: str
+    workspace_id: str
+
+
+class ApiCreateResult(Api):
     ...

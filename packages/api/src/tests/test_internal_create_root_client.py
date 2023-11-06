@@ -77,6 +77,7 @@ def test_should_create_client(setup: SetupResult):
         "name": "test",
         "workspace_id": setup.internal_workspace.id,
         "for_workspace_id": setup.internal_workspace.id,
+        "api_id": setup.internal_api.id,
     }
 
     headers = {
@@ -90,3 +91,4 @@ def test_should_create_client(setup: SetupResult):
     assert response_json["name"] == "test"
     assert response_json["workspace_id"] == setup.internal_workspace.id
     assert response_json["for_workspace_id"] == setup.internal_workspace.id
+    assert response_json["api_id"] == setup.internal_api.id

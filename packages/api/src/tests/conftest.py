@@ -7,7 +7,12 @@ from sqlalchemy.orm import sessionmaker
 from ..db import Base, SqlAlchameyDb, get_db
 from ..environment import Env, get_env
 from ..main import app
-from ..schemas import ClientCreateResult, RootClientCreateParams, WorkspaceCreateResult
+from ..schemas import (
+    ApiCreateResult,
+    ClientCreateResult,
+    RootClientCreateParams,
+    WorkspaceCreateResult,
+)
 from ..scripts.bootstrap import bootstrap
 
 DATABASE_URL = "sqlite:///:memory:"
@@ -39,9 +44,10 @@ app.dependency_overrides[get_db] = override_get_db
 
 
 class SetupResult(BaseModel):
+    internal_workspace: WorkspaceCreateResult
+    internal_api: ApiCreateResult
     internal_client: ClientCreateResult
     root_client: ClientCreateResult
-    internal_workspace: WorkspaceCreateResult
 
 
 @pytest.fixture
@@ -50,13 +56,14 @@ def setup():
 
     db = next(override_get_db())
 
-    internal_workspace, internal_client = bootstrap(db)
+    internal_workspace, internal_api, internal_client = bootstrap(db)
 
     other_client = db.create_root_client(
         RootClientCreateParams(
             name="test",
             workspace_id=internal_workspace.id,
             for_workspace_id=internal_workspace.id,
+            api_id=internal_api.id,
         )
     )
 
@@ -66,9 +73,10 @@ def setup():
     app.dependency_overrides[get_env] = override_get_env
 
     yield SetupResult(
+        internal_workspace=internal_workspace,
+        internal_api=internal_api,
         internal_client=internal_client,
         root_client=other_client,
-        internal_workspace=internal_workspace,
     )
 
 

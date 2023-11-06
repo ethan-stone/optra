@@ -7,6 +7,8 @@ from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from .schemas import (
+    ApiCreateParams,
+    ApiCreateResult,
     Client,
     ClientCreateResult,
     RootClientCreateParams,
@@ -31,6 +33,7 @@ class DbClient(Base):
     name = Column(String, nullable=False)
     workspace_id = Column(String, index=True, nullable=False)
     for_workspace_id = Column(String, index=True)
+    api_id = Column(String, index=True, nullable=False)
     rate_limit_bucket_size = Column(Integer)
     rate_limit_refill_amount = Column(Integer)
     rate_limit_refill_interval = Column(Integer)
@@ -46,6 +49,15 @@ class DbWorkspace(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
+class DbApi(Base):
+    __tablename__ = "apis"
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, primary_key=True, index=True)
+    workspace_id = Column(String, primary_key=True, index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+
 class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
@@ -54,6 +66,9 @@ class Db(Protocol):
         ...
 
     def create_workspace(self, client: WorkspaceCreateParams) -> WorkspaceCreateResult:
+        ...
+
+    def create_api(self, client: ApiCreateParams) -> ApiCreateResult:
         ...
 
 
@@ -83,6 +98,7 @@ class SqlAlchameyDb:
             name=client.name,
             workspace_id=client.workspace_id,
             for_workspace_id=client.for_workspace_id,
+            api_id=client.api_id,
         )
 
         self.session.add(db_client)
@@ -110,6 +126,20 @@ class SqlAlchameyDb:
         self.session.refresh(db_workspace)
 
         return WorkspaceCreateResult(**db_workspace.__dict__)
+
+    def create_api(self, api: ApiCreateParams) -> ApiCreateResult:
+        api_id = uuid.uuid4().hex
+
+        db_api = DbApi(
+            id=api_id,
+            name=api.name,
+            workspace_id=api.workspace_id,
+        )
+        self.session.add(db_api)
+        self.session.commit()
+        self.session.refresh(db_api)
+
+        return ApiCreateResult(**db_api.__dict__)
 
 
 def get_db() -> Iterator[Db]:
