@@ -51,12 +51,6 @@ class BasicTokenAuthorizer:
         return token == "basic_token"
 
 
-def get_internal_authorizer(env: Annotated[Env, Depends(get_env)]):
-    return InternalTokenAuthorizer(
-        secret=env.jwt_secret, internal_client_id=env.internal_client_id
-    )
-
-
 class OAuth2ClientCredentialsBearer(OAuth2):
     def __init__(
         self,
@@ -96,3 +90,24 @@ class OAuth2ClientCredentialsBearer(OAuth2):
 
 
 oauth2_client_credentials_scheme = OAuth2ClientCredentialsBearer(tokenUrl="oauth/token")
+
+
+def internal_authorizer(
+    token: Annotated[str, Depends(oauth2_client_credentials_scheme)],
+    env: Annotated[Env, Depends(get_env)],
+) -> JwtPayload:
+    try:
+        authorizer = InternalTokenAuthorizer(
+            secret=env.jwt_secret, internal_client_id=env.internal_client_id
+        )
+
+        payload = authorizer.authorize(token)
+
+        return payload
+
+    except TokenAuthorizeError as token_authorize_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Failed to authorize token",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from token_authorize_error

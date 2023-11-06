@@ -7,15 +7,15 @@ meta {
 post {
   url: {{base_url}}/v1/internal.createRootClient
   body: json
-  auth: none
+  auth: bearer
 }
 
 auth:bearer {
-  token: wef
+  token: {{jwt}}
 }
 
 body:json {
   {
-    "name": "wefwef"
+    "name": "test client"
   }
 }
