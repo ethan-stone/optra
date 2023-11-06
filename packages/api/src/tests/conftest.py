@@ -34,12 +34,7 @@ def override_get_db():
         session.close()
 
 
-def override_get_env():
-    return Env(jwt_secret="jwt_secret", internal_client_id="internal_client_id")
-
-
 app.dependency_overrides[get_db] = override_get_db
-app.dependency_overrides[get_env] = override_get_env
 
 SetupResult = tuple[ClientCreateResult, ClientCreateResult]
 
@@ -53,6 +48,11 @@ def setup():
     internal_client = bootstrap(db)
 
     other_client = db.create_client(ClientCreateParams(name="test"))
+
+    def override_get_env():
+        return Env(jwt_secret="jwt_secret", internal_client_id=internal_client.id)
+
+    app.dependency_overrides[get_env] = override_get_env
 
     yield internal_client, other_client
 
