@@ -27,8 +27,10 @@ class DbClient(Base):
     __tablename__ = "clients"
 
     id = Column(String, primary_key=True, index=True)
-    secret = Column(String, unique=True, index=True, nullable=False)
+    secret = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
+    workspace_id = Column(String, index=True, nullable=False)
+    for_workspace_id = Column(String, index=True)
     rate_limit_bucket_size = Column(Integer)
     rate_limit_refill_amount = Column(Integer)
     rate_limit_refill_interval = Column(Integer)
@@ -79,7 +81,9 @@ class SqlAlchameyDb:
             id=client_id,
             secret=hashed_secret,
             name=client.name,
+            workspace_id=client.workspace_id,
         )
+
         self.session.add(db_client)
         self.session.commit()
         self.session.refresh(db_client)

@@ -1,16 +1,30 @@
-from ..db import Db, get_db
-from ..schemas import ClientCreateParams, ClientCreateResult
+from ..db import Base, Db, engine, get_db
+from ..schemas import (
+    ClientCreateParams,
+    ClientCreateResult,
+    WorkspaceCreateParams,
+    WorkspaceCreateResult,
+)
 
 
-def bootstrap(db: Db) -> ClientCreateResult:
-    result = db.create_client(ClientCreateParams(name="Internal Client"))
+def bootstrap(db: Db) -> tuple[WorkspaceCreateResult, ClientCreateResult]:
+    Base.metadata.create_all(bind=engine)
 
-    return result
+    internal_workspace = db.create_workspace(
+        WorkspaceCreateParams(name="Internal Workspace")
+    )
+
+    internal_client = db.create_client(
+        ClientCreateParams(name="Internal Client", workspace_id=internal_workspace.id)
+    )
+
+    return internal_workspace, internal_client
 
 
 if __name__ == "__main__":
     db = next(get_db())
 
-    result = bootstrap(db)
+    internal_workspace, internal_client = bootstrap(db)
 
-    print(result.model_dump())
+    print(internal_workspace.model_dump())
+    print(internal_client.model_dump())

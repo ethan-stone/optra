@@ -4,12 +4,10 @@ from .conftest import SetupResult, client
 
 
 def test_works_with_form_only(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": internal_client.id,
-        "client_secret": internal_client.secret,
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
     }
 
     response = client.post("/oauth/token", data=data)
@@ -18,12 +16,10 @@ def test_works_with_form_only(setup: SetupResult):
 
 
 def test_works_with_json_only(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": internal_client.id,
-        "client_secret": internal_client.secret,
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
     }
 
     response = client.post("/oauth/token", json=data)
@@ -32,14 +28,12 @@ def test_works_with_json_only(setup: SetupResult):
 
 
 def test_works_with_part_form_part_basic_auth(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
     }
 
     b64_part = base64.b64encode(
-        (internal_client.id + ":" + internal_client.secret).encode()
+        (setup.internal_client.id + ":" + setup.internal_client.secret).encode()
     ).decode("utf-8")
 
     headers = {
@@ -52,14 +46,12 @@ def test_works_with_part_form_part_basic_auth(setup: SetupResult):
 
 
 def test_works_with_part_json_part_basic_auth(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
     }
 
     b64_part = base64.b64encode(
-        (internal_client.id + ":" + internal_client.secret).encode()
+        (setup.internal_client.id + ":" + setup.internal_client.secret).encode()
     ).decode("utf-8")
 
     headers = {
@@ -100,14 +92,12 @@ def test_responds_bad_request_if_wrong_client_id():
 
 
 def test_responds_bad_request_if_incorrect_param(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
     }
 
     b64_part = base64.b64encode(
-        (internal_client.id + ":" + "wrong client secret").encode()
+        (setup.internal_client.id + ":" + "wrong client secret").encode()
     ).decode("utf-8")
 
     headers = {

@@ -1,12 +1,13 @@
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import BaseModel
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from ..db import Base, SqlAlchameyDb, get_db
 from ..environment import Env, get_env
 from ..main import app
-from ..schemas import ClientCreateParams, ClientCreateResult
+from ..schemas import ClientCreateParams, ClientCreateResult, WorkspaceCreateResult
 from ..scripts.bootstrap import bootstrap
 
 DATABASE_URL = "sqlite:///:memory:"
@@ -36,7 +37,11 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-SetupResult = tuple[ClientCreateResult, ClientCreateResult]
+
+class SetupResult(BaseModel):
+    internal_client: ClientCreateResult
+    root_client: ClientCreateResult
+    internal_workspace: WorkspaceCreateResult
 
 
 @pytest.fixture
@@ -45,16 +50,22 @@ def setup():
 
     db = next(override_get_db())
 
-    internal_client = bootstrap(db)
+    internal_workspace, internal_client = bootstrap(db)
 
-    other_client = db.create_client(ClientCreateParams(name="test"))
+    other_client = db.create_client(
+        ClientCreateParams(name="test", workspace_id=internal_workspace.id)
+    )
 
     def override_get_env():
         return Env(jwt_secret="jwt_secret", internal_client_id=internal_client.id)
 
     app.dependency_overrides[get_env] = override_get_env
 
-    yield internal_client, other_client
+    yield SetupResult(
+        internal_client=internal_client,
+        root_client=other_client,
+        internal_workspace=internal_workspace,
+    )
 
 
 def teardown():

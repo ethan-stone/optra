@@ -17,12 +17,10 @@ def test_should_reject_if_invalid_jwt():
 
 
 def test_should_reject_if_invalid_client(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": other_client.id,
-        "client_secret": other_client.secret,
+        "client_id": setup.root_client.id,
+        "client_secret": setup.root_client.secret,
     }
 
     token_response = client.post("/oauth/token", json=data)
@@ -43,12 +41,10 @@ def test_should_reject_if_invalid_client(setup: SetupResult):
 
 
 def test_should_reject_if_invalid_body(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": internal_client.id,
-        "client_secret": internal_client.secret,
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
     }
 
     token_response = client.post("/oauth/token", json=data)
@@ -67,19 +63,17 @@ def test_should_reject_if_invalid_body(setup: SetupResult):
 
 
 def test_should_create_client(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": internal_client.id,
-        "client_secret": internal_client.secret,
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
     }
 
     token_response = client.post("/oauth/token", json=data)
 
     token = TokenResponse(**token_response.json())
 
-    data = {"name": "test"}
+    data = {"name": "test", "workspace_id": setup.internal_workspace.id}
 
     headers = {
         "Authorization": f"Bearer {token.access_token}",

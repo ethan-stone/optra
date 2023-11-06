@@ -3,12 +3,10 @@ from .conftest import SetupResult, client
 
 
 def test_should_reject_if_invalid_body(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": internal_client.id,
-        "client_secret": internal_client.secret,
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
     }
 
     token_response = client.post("/oauth/token", json=data)
@@ -27,12 +25,10 @@ def test_should_reject_if_invalid_body(setup: SetupResult):
 
 
 def test_should_create_client(setup: SetupResult):
-    internal_client, other_client = setup
-
     data = {
         "grant_type": "client_credentials",
-        "client_id": internal_client.id,
-        "client_secret": internal_client.secret,
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
     }
 
     token_response = client.post("/oauth/token", json=data)

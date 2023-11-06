@@ -7,9 +7,11 @@ from pydantic import BaseModel, ConfigDict
 class Client(BaseModel):
     id: str
     name: str
-    rate_limit_bucket_size: Optional[int]
-    rate_limit_refill_amount: Optional[int]
-    rate_limit_refill_interval: Optional[int]
+    workspace_id: str
+    for_workspace_id: Optional[str] = None
+    rate_limit_bucket_size: Optional[int] = None
+    rate_limit_refill_amount: Optional[int] = None
+    rate_limit_refill_interval: Optional[int] = None
     created_at: datetime.datetime
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
@@ -21,6 +23,8 @@ class ClientCreateResult(Client):
 
 class ClientCreateParams(BaseModel):
     name: str
+    workspace_id: str
+    for_workspace_id: Optional[str] = None
 
 
 class VerifyClientParams(BaseModel):
