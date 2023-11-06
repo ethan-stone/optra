@@ -6,7 +6,13 @@ from typing import Iterator, Protocol
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-from .schemas import Client, ClientCreateParams, ClientCreateResult
+from .schemas import (
+    Client,
+    ClientCreateParams,
+    ClientCreateResult,
+    WorkspaceCreateParams,
+    WorkspaceCreateResult,
+)
 
 DATABASE_URL = "sqlite:///./sql_app.db"
 
@@ -29,11 +35,23 @@ class DbClient(Base):
     created_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
 
 
+class DbWorkspace(Base):
+    __tablename__ = "workspaces"
+
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.now, nullable=False)
+
+
 class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
 
     def create_client(self, client: ClientCreateParams) -> ClientCreateResult:
+        ...
+
+    def create_workspace(self, client: WorkspaceCreateParams) -> WorkspaceCreateResult:
         ...
 
 
@@ -49,7 +67,7 @@ class SqlAlchameyDb:
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return client.secret if client else None
 
-    def create_client(self, client: ClientCreateParams) -> ClientCreateResult | None:
+    def create_client(self, client: ClientCreateParams) -> ClientCreateResult:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
 
@@ -72,6 +90,21 @@ class SqlAlchameyDb:
         client_dict["secret"] = client_secret
 
         return ClientCreateResult(**client_dict)
+
+    def create_workspace(
+        self, workspace: WorkspaceCreateParams
+    ) -> WorkspaceCreateResult:
+        workspace_id = uuid.uuid4().hex
+
+        db_workspace = DbWorkspace(
+            id=workspace_id,
+            name=workspace.name,
+        )
+        self.session.add(db_workspace)
+        self.session.commit()
+        self.session.refresh(db_workspace)
+
+        return WorkspaceCreateResult(**db_workspace.__dict__)
 
 
 def get_db() -> Iterator[Db]:

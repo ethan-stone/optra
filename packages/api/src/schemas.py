@@ -31,3 +31,18 @@ class JwtPayload(BaseModel):
     sub: str
     iat: datetime.datetime
     exp: datetime.datetime
+
+
+class Workspace(BaseModel):
+    id: str
+    name: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+
+class WorkspaceCreateParams(BaseModel):
+    name: str
+
+
+class WorkspaceCreateResult(Workspace):
+    ...

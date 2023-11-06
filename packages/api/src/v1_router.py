@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from .authorizer import JwtPayload, internal_authorizer
 from .db import Db, get_db
-from .schemas import ClientCreateParams, ClientCreateResult
+from .schemas import ClientCreateParams, ClientCreateResult, WorkspaceCreateParams
 
 v1 = APIRouter(prefix="/v1")
 
@@ -23,3 +23,14 @@ def create_root_client(
     client = db.create_client(client_params)
 
     return client
+
+
+@v1.post("/internal.createWorkspace")
+def create_workspace(
+    workspace_params: Annotated[WorkspaceCreateParams, Body()],
+    db: Annotated[Db, Depends(get_db)],
+    _: Annotated[JwtPayload, Depends(internal_authorizer)],
+):
+    workspace = db.create_workspace(workspace_params)
+
+    return workspace
