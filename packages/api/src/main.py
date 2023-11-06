@@ -8,8 +8,8 @@ import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
-from .authorizer import secret
 from .db import Base, Db, engine, get_db
+from .environment import Env, get_env
 from .schemas import JwtPayload
 from .v1_router import v1
 
@@ -66,7 +66,11 @@ class TokenResponse(BaseModel):
 
 
 @app.post("/oauth/token", response_model=TokenResponse)
-async def oauth_token(request: Request, db: Annotated[Db, Depends(get_db)]):
+async def oauth_token(
+    request: Request,
+    db: Annotated[Db, Depends(get_db)],
+    env: Annotated[Env, Depends(get_env)],
+):
     """
     Generate an access token for a client. This supports the client credentials flow
     with the client_id, client_secret, and grant_type parameters being sent in a combination of
@@ -147,7 +151,7 @@ async def oauth_token(request: Request, db: Annotated[Db, Depends(get_db)]):
 
     token = jwt.encode(
         payload.model_dump(),
-        secret,
+        env.jwt_secret,
         algorithm="HS256",
     )
 

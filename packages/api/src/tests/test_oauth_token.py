@@ -6,6 +6,7 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from ..db import Base, SqlAlchameyDb, get_db
+from ..environment import Env, get_env
 from ..main import app
 from ..schemas import ClientCreateResult
 from ..scripts.bootstrap import bootstrap
@@ -35,8 +36,12 @@ def override_get_db():
         session.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
+def override_get_env():
+    return Env(jwt_secret="jwt_secret", internal_client_id="internal_client_id")
 
+
+app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[get_env] = override_get_env
 
 SetupResult = ClientCreateResult
 

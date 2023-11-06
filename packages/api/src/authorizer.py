@@ -1,19 +1,15 @@
 from dataclasses import dataclass
-from typing import Dict, Optional, Protocol
+from typing import Annotated, Dict, Optional, Protocol
 
 import jwt
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from .environment import env
+from .environment import Env, get_env
 from .schemas import JwtPayload
-
-secret = env.jwt_secret
-
-internal_client_id = env.internal_client_id
 
 
 class TokenAuthorizer(Protocol):
@@ -28,6 +24,7 @@ class TokenAuthorizeError(Exception):
 @dataclass
 class InternalTokenAuthorizer:
     secret: str
+    internal_client_id: str
 
     def authorize(self, token: str) -> JwtPayload:
         try:
@@ -35,7 +32,7 @@ class InternalTokenAuthorizer:
 
             payload = JwtPayload(**payload_dict)
 
-            if payload.sub != internal_client_id:
+            if payload.sub != self.internal_client_id:
                 raise TokenAuthorizeError("Invalid client")
 
             return payload
@@ -54,8 +51,10 @@ class BasicTokenAuthorizer:
         return token == "basic_token"
 
 
-def get_internal_authorizer():
-    return InternalTokenAuthorizer(secret)
+def get_internal_authorizer(env: Annotated[Env, Depends(get_env)]):
+    return InternalTokenAuthorizer(
+        secret=env.jwt_secret, internal_client_id=env.internal_client_id
+    )
 
 
 class OAuth2ClientCredentialsBearer(OAuth2):
