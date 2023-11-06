@@ -8,9 +8,12 @@ from ..db import Base, SqlAlchameyDb, get_db
 from ..environment import Env, get_env
 from ..main import app
 from ..schemas import (
+    ApiCreateParams,
     ApiCreateResult,
+    BasicCreateClientParams,
     ClientCreateResult,
     RootClientCreateParams,
+    WorkspaceCreateParams,
     WorkspaceCreateResult,
 )
 from ..scripts.bootstrap import bootstrap
@@ -47,7 +50,10 @@ class SetupResult(BaseModel):
     internal_workspace: WorkspaceCreateResult
     internal_api: ApiCreateResult
     internal_client: ClientCreateResult
+    root_workspace: WorkspaceCreateResult
+    root_api: ApiCreateResult
     root_client: ClientCreateResult
+    basic_client: ClientCreateResult
 
 
 @pytest.fixture
@@ -58,12 +64,33 @@ def setup():
 
     internal_workspace, internal_api, internal_client = bootstrap(db)
 
-    other_client = db.create_root_client(
+    root_workspace = db.create_workspace(
+        WorkspaceCreateParams(
+            name="root workspace",
+        )
+    )
+
+    root_client = db.create_root_client(
         RootClientCreateParams(
-            name="test",
+            name="root client",
             workspace_id=internal_workspace.id,
-            for_workspace_id=internal_workspace.id,
+            for_workspace_id=root_workspace.id,
             api_id=internal_api.id,
+        )
+    )
+
+    root_api = db.create_api(
+        ApiCreateParams(
+            name="root api",
+            workspace_id=root_workspace.id,
+        )
+    )
+
+    basic_client = db.create_basic_client(
+        BasicCreateClientParams(
+            name="test",
+            workspace_id=root_workspace.id,
+            api_id=root_api.id,
         )
     )
 
@@ -82,7 +109,10 @@ def setup():
         internal_workspace=internal_workspace,
         internal_api=internal_api,
         internal_client=internal_client,
-        root_client=other_client,
+        root_client=root_client,
+        root_workspace=root_workspace,
+        root_api=root_api,
+        basic_client=basic_client,
     )
 
 

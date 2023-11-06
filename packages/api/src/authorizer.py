@@ -38,7 +38,7 @@ class InternalTokenAuthorizer:
 
             return payload
 
-        except jwt.exceptions.PyJWKError as pyjwt_error:
+        except jwt.exceptions.PyJWTError as pyjwt_error:
             raise TokenAuthorizeError("Failed to authorize token") from pyjwt_error
 
 
@@ -127,12 +127,27 @@ def root_authorizer(
         client = db.get_client(payload.sub)
 
         if not client:
-            raise TokenAuthorizeError("Invalid client")
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Failed to authorize token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
         if client.for_workspace_id is None:
-            raise TokenAuthorizeError("Invalid client")
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Failed to authorize token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
         return payload
+
+    except jwt.exceptions.PyJWTError as pyjwt_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Failed to authorize token",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from pyjwt_error
 
     except TokenAuthorizeError as token_authorize_error:
         raise HTTPException(

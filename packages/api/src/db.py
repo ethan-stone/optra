@@ -10,6 +10,7 @@ from .schemas import (
     Api,
     ApiCreateParams,
     ApiCreateResult,
+    BasicCreateClientParams,
     Client,
     ClientCreateResult,
     RootClientCreateParams,
@@ -69,6 +70,11 @@ class Db(Protocol):
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         ...
 
+    def create_basic_client(
+        self, client: BasicCreateClientParams
+    ) -> ClientCreateResult:
+        ...
+
     def create_workspace(self, client: WorkspaceCreateParams) -> WorkspaceCreateResult:
         ...
 
@@ -105,6 +111,35 @@ class SqlAlchameyDb:
             name=client.name,
             workspace_id=client.workspace_id,
             for_workspace_id=client.for_workspace_id,
+            api_id=client.api_id,
+        )
+
+        self.session.add(db_client)
+        self.session.commit()
+        self.session.refresh(db_client)
+
+        client_dict = db_client.__dict__
+
+        # when creating a client, we don't want to return the hashed secret
+        client_dict["secret"] = client_secret
+
+        return ClientCreateResult(**client_dict)
+
+    def create_basic_client(
+        self, client: BasicCreateClientParams
+    ) -> ClientCreateResult:
+        client_id = uuid.uuid4().hex
+        client_secret = uuid.uuid4().hex
+
+        hash = hashlib.sha256()
+        hash.update(client_secret.encode())
+        hashed_secret = hash.hexdigest()
+
+        db_client = DbClient(
+            id=client_id,
+            secret=hashed_secret,
+            name=client.name,
+            workspace_id=client.workspace_id,
             api_id=client.api_id,
         )
 
