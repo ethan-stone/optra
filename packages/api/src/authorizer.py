@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Annotated, Dict, Optional, Protocol
 
 import jwt
@@ -155,3 +156,45 @@ def root_authorizer(
             detail="Failed to authorize token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from token_authorize_error
+
+
+class InvalidReasons(str, Enum):
+    EXPIRED = "EXPIRED"
+    INVALID_SIGNATURE = "INVALID_SIGNATURE"
+    BAD_JWT = "BAD_JWT"
+    NOT_FOUND = "NOT_FOUND"
+
+
+@dataclass
+class BasicAuthorizerResult:
+    valid: bool
+    reason: Optional[InvalidReasons] = None
+
+
+def basic_authorizer(
+    token: Annotated[str, Depends(oauth2_client_credentials_scheme)],
+    env: Annotated[Env, Depends(get_env)],
+    db: Annotated[Db, Depends(get_db)],
+):
+    try:
+        payload_dict = jwt.decode(token, env.jwt_secret, algorithms=["HS256"])
+
+        payload = JwtPayload(**payload_dict)
+
+        client = db.get_client(payload.sub)
+
+        if not client:
+            return BasicAuthorizerResult(valid=False, reason=InvalidReasons.NOT_FOUND)
+
+        return BasicAuthorizerResult(valid=True)
+
+    except jwt.exceptions.ExpiredSignatureError:
+        return BasicAuthorizerResult(valid=False, reason=InvalidReasons.EXPIRED)
+
+    except jwt.exceptions.InvalidSignatureError:
+        return BasicAuthorizerResult(
+            valid=False, reason=InvalidReasons.INVALID_SIGNATURE
+        )
+
+    except jwt.exceptions.PyJWTError:
+        return BasicAuthorizerResult(valid=False, reason=InvalidReasons.BAD_JWT)

@@ -4,7 +4,12 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
-from .authorizer import JwtPayload, internal_authorizer, root_authorizer
+from .authorizer import (
+    JwtPayload,
+    basic_authorizer,
+    internal_authorizer,
+    root_authorizer,
+)
 from .db import Db, get_db
 from .environment import Env, get_env
 from .schemas import (
@@ -110,3 +115,10 @@ def create_basic_client(
     )
 
     return basic_client
+
+
+@v1.post("/clients.verifyClient")
+def verify_client(
+    authorize_result: Annotated[JwtPayload, Depends(basic_authorizer)],
+):
+    return authorize_result
