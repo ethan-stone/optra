@@ -10,10 +10,11 @@ from .schemas import (
     Api,
     ApiCreateParams,
     ApiCreateResult,
-    BasicCreateClientParams,
+    BasicClientCreateParams,
     Client,
     ClientCreateResult,
     RootClientCreateParams,
+    Workspace,
     WorkspaceCreateParams,
     WorkspaceCreateResult,
 )
@@ -71,11 +72,14 @@ class Db(Protocol):
         ...
 
     def create_basic_client(
-        self, client: BasicCreateClientParams
+        self, client: BasicClientCreateParams
     ) -> ClientCreateResult:
         ...
 
     def create_workspace(self, client: WorkspaceCreateParams) -> WorkspaceCreateResult:
+        ...
+
+    def get_workspace(self, workspace_id: str) -> Workspace | None:
         ...
 
     def create_api(self, client: ApiCreateParams) -> ApiCreateResult:
@@ -126,7 +130,7 @@ class SqlAlchameyDb:
         return ClientCreateResult(**client_dict)
 
     def create_basic_client(
-        self, client: BasicCreateClientParams
+        self, client: BasicClientCreateParams
     ) -> ClientCreateResult:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
@@ -168,6 +172,14 @@ class SqlAlchameyDb:
         self.session.refresh(db_workspace)
 
         return WorkspaceCreateResult(**db_workspace.__dict__)
+
+    def get_workspace(self, workspace_id: str) -> Workspace | None:
+        workspace = (
+            self.session.query(DbWorkspace)
+            .filter(DbWorkspace.id == workspace_id)
+            .first()
+        )
+        return Workspace(**workspace.__dict__) if workspace else None
 
     def create_api(self, api: ApiCreateParams) -> ApiCreateResult:
         api_id = uuid.uuid4().hex

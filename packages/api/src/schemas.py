@@ -22,13 +22,18 @@ class ClientCreateResult(Client):
     secret: str
 
 
-class BasicCreateClientParams(BaseModel):
+class BasicClientCreateParams(BaseModel):
     name: str
     workspace_id: str
     api_id: str
 
 
-class RootClientCreateParams(BasicCreateClientParams):
+class BasicClientCreateReqBody(BaseModel):
+    name: str
+    api_id: str
+
+
+class RootClientCreateParams(BasicClientCreateParams):
     for_workspace_id: str
 
 

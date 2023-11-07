@@ -1,0 +1,22 @@
+meta {
+  name: Create Basic Client
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/v1/clients.createClient
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwt}}
+}
+
+body:json {
+  {
+    "api_id": "1ffd891b536c4f5e9faf502f6e5b7a6e",
+    "name": "basic client"
+  }
+}

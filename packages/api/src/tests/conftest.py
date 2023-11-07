@@ -10,7 +10,7 @@ from ..main import app
 from ..schemas import (
     ApiCreateParams,
     ApiCreateResult,
-    BasicCreateClientParams,
+    BasicClientCreateParams,
     ClientCreateResult,
     RootClientCreateParams,
     WorkspaceCreateParams,
@@ -87,7 +87,7 @@ def setup():
     )
 
     basic_client = db.create_basic_client(
-        BasicCreateClientParams(
+        BasicClientCreateParams(
             name="test",
             workspace_id=root_workspace.id,
             api_id=root_api.id,
