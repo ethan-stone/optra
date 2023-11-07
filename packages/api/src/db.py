@@ -3,6 +3,7 @@ import hashlib
 import uuid
 from typing import Iterator, Protocol
 
+from loguru import logger
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
@@ -94,6 +95,7 @@ class SqlAlchameyDb:
         self.session = session
 
     def get_client(self, client_id: str) -> DbClient | None:
+        logger.info("inside get_client")
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return Client(**client.__dict__) if client else None
 

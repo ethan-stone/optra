@@ -1,21 +1,89 @@
 import base64
 import datetime
 import hashlib
+import json
+import sys
 from enum import Enum
 from typing import Annotated, List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request
+from loguru import logger
 from pydantic import BaseModel
 
 from .db import Base, Db, engine, get_db
 from .environment import Env, get_env
 from .schemas import JwtPayload
+from .uid import uid
 from .v1_router import v1
+
+
+def serialize(record):
+    subset = {
+        "timestamp": record["time"].timestamp(),
+        "message": record["message"],
+        "level": record["level"].name,
+        "function": record["function"],
+        "name": record["name"],
+        "app": "api",
+        "request_id": record["extra"]["request_id"],
+    }
+    return json.dumps(subset)
+
+
+def formatter(record):
+    subset = {
+        "timestamp": int(record["time"].timestamp() * 1000),
+        "message": record["message"],
+        "level": record["level"].name,
+        "function": record["function"],
+        "name": record["name"],
+        "app": "api",
+        "request": {
+            "id": record["extra"]["request_id"],
+            "path": record["extra"]["path"],
+            "method": record["extra"]["method"],
+            "status_code": record["extra"].get("status_code"),
+            "duration": record["extra"].get("duration"),
+        },
+    }
+
+    record["extra"]["serialized"] = json.dumps(subset)
+    return "{extra[serialized]}\n"
+
+
+logger.remove(0)
+logger.add(sys.stdout, format=formatter)
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def logger_middleware(request: Request, call_next):
+    request_id = uid(prefix="req", random_length=6)
+
+    with logger.contextualize(
+        request_id=request_id,
+        path=request.url.path,
+        method=request.method,
+    ):
+        start_timestamp = int(datetime.datetime.now().timestamp() * 1000)
+
+        logger.info("begin request")
+
+        response = await call_next(request)
+
+        end_timestamp = int(datetime.datetime.now().timestamp() * 1000)
+
+        logger.bind(
+            status_code=response.status_code,
+            duration=end_timestamp - start_timestamp,
+        ).info("end request")
+
+        return response
+
 
 app.include_router(v1)
 
@@ -71,6 +139,7 @@ async def oauth_token(
     db: Annotated[Db, Depends(get_db)],
     env: Annotated[Env, Depends(get_env)],
 ):
+    logger.info("oauth_token")
     """
     Generate an access token for a client. This supports the client credentials flow
     with the client_id, client_secret, and grant_type parameters being sent in a combination of
