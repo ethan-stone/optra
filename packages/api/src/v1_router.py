@@ -117,8 +117,8 @@ def create_basic_client(
     return basic_client
 
 
-@v1.post("/clients.verifyClient")
-def verify_client(
+@v1.post("/tokens.verifyToken")
+def verify_token(
     authorize_result: Annotated[JwtPayload, Depends(basic_authorizer)],
 ):
     return authorize_result
