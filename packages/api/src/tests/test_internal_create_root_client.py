@@ -8,7 +8,7 @@ def test_should_reject_if_invalid_jwt():
     }
 
     headers = {
-        "Authoriation": "Bearer wef",
+        "Authorization": "Bearer wef",
     }
 
     response = client.post("/v1/internal.createRootClient", json=data, headers=headers)
