@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
 from .authorizer import (
+    BasicAuthorizerResult,
     JwtPayload,
     basic_authorizer,
     internal_authorizer,
@@ -15,12 +16,14 @@ from .environment import Env, get_env
 from .schemas import (
     ApiCreateParams,
     ApiCreateReqBody,
+    ApiCreateResult,
     BasicClientCreateParams,
     BasicClientCreateReqBody,
     ClientCreateResult,
     RootClientCreateParams,
     RootClientCreateReqBody,
     WorkspaceCreateParams,
+    WorkspaceCreateResult,
 )
 
 v1 = APIRouter(prefix="/v1")
@@ -56,7 +59,7 @@ def create_root_client(
     return client
 
 
-@v1.post("/internal.createWorkspace")
+@v1.post("/internal.createWorkspace", response_model=WorkspaceCreateResult)
 def create_workspace(
     workspace_params: Annotated[WorkspaceCreateParams, Body()],
     db: Annotated[Db, Depends(get_db)],
@@ -67,7 +70,7 @@ def create_workspace(
     return workspace
 
 
-@v1.post("/apis.createApi")
+@v1.post("/apis.createApi", response_model=ApiCreateResult)
 def create_api(
     api_params: Annotated[ApiCreateReqBody, Body()],
     db: Annotated[Db, Depends(get_db)],
@@ -89,7 +92,7 @@ def create_api(
     return api
 
 
-@v1.post("/clients.createClient")
+@v1.post("/clients.createClient", response_model=ClientCreateResult)
 def create_basic_client(
     client_params: Annotated[BasicClientCreateReqBody, Body()],
     db: Annotated[Db, Depends(get_db)],
@@ -117,8 +120,8 @@ def create_basic_client(
     return basic_client
 
 
-@v1.post("/tokens.verifyToken")
+@v1.post("/tokens.verifyToken", response_model=BasicAuthorizerResult)
 def verify_token(
-    authorize_result: Annotated[JwtPayload, Depends(basic_authorizer)],
+    authorize_result: Annotated[BasicAuthorizerResult, Depends(basic_authorizer)],
 ):
     return authorize_result
