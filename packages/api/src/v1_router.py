@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, HTTPException
+from loguru import logger
 from pydantic import BaseModel
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -47,6 +48,8 @@ def create_root_client(
             status_code=HTTP_400_BAD_REQUEST, detail="workspace not found"
         )
 
+    logger.info(f"fetched workspace {workspace}")
+
     client = db.create_root_client(
         RootClientCreateParams(
             api_id=env.internal_api_id,
@@ -55,6 +58,8 @@ def create_root_client(
             name=client_params.name,
         )
     )
+
+    logger.info(f"created root client {client.id}")
 
     return client
 
@@ -66,6 +71,8 @@ def create_workspace(
     _: Annotated[JwtPayload, Depends(internal_authorizer)],
 ):
     workspace = db.create_workspace(workspace_params)
+
+    logger.info(f"created workspace {workspace.id}")
 
     return workspace
 
@@ -82,12 +89,16 @@ def create_api(
         print("Somehow jwt sub is not a client that exists")
         raise HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR)
 
+    logger.info(f"fetched client {client.id}")
+
     api = db.create_api(
         ApiCreateParams(
             name=api_params.name,
             workspace_id=client.for_workspace_id,
         )
     )
+
+    logger.info(f"created api {api.id}")
 
     return api
 
@@ -104,6 +115,8 @@ def create_basic_client(
         print("Somehow jwt sub is not a client that exists")
         raise HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR)
 
+    logger.info(f"fetched client {root_client.id}")
+
     api = db.get_api(client_params.api_id)
 
     if api is None or api.workspace_id != root_client.for_workspace_id:
@@ -117,6 +130,8 @@ def create_basic_client(
         )
     )
 
+    logger.info(f"created basic client {basic_client.id}")
+
     return basic_client
 
 
@@ -124,4 +139,6 @@ def create_basic_client(
 def verify_token(
     authorize_result: Annotated[BasicAuthorizerResult, Depends(basic_authorizer)],
 ):
+    logger.info("token verified")
+
     return authorize_result

@@ -12,23 +12,10 @@ from loguru import logger
 from pydantic import BaseModel
 
 from .db import Base, Db, engine, get_db
-from .environment import Env, get_env
+from .environment import Env, env, get_env
 from .schemas import JwtPayload
 from .uid import uid
 from .v1_router import v1
-
-
-def serialize(record):
-    subset = {
-        "timestamp": record["time"].timestamp(),
-        "message": record["message"],
-        "level": record["level"].name,
-        "function": record["function"],
-        "name": record["name"],
-        "app": "api",
-        "request_id": record["extra"]["request_id"],
-    }
-    return json.dumps(subset)
 
 
 def formatter(record):
@@ -48,7 +35,10 @@ def formatter(record):
         },
     }
 
-    record["extra"]["serialized"] = json.dumps(subset)
+    record["extra"]["serialized"] = (
+        json.dumps(subset) if not env.debug else json.dumps(subset, indent=4)
+    )
+
     return "{extra[serialized]}\n"
 
 
@@ -139,7 +129,6 @@ async def oauth_token(
     db: Annotated[Db, Depends(get_db)],
     env: Annotated[Env, Depends(get_env)],
 ):
-    logger.info("oauth_token")
     """
     Generate an access token for a client. This supports the client credentials flow
     with the client_id, client_secret, and grant_type parameters being sent in a combination of
@@ -197,10 +186,14 @@ async def oauth_token(
     ):
         raise HTTPException(status_code=400, detail="Invalid request")
 
+    logger.info("validated request params")
+
     client = db.get_client(client_id_parsed)
 
     if client is None:
         raise HTTPException(status_code=400, detail="Invalid client")
+
+    logger.info(f"fetched client {client.id}")
 
     client_secret = db.get_client_secret(client_id_parsed)
 
@@ -223,6 +216,8 @@ async def oauth_token(
         env.jwt_secret,
         algorithm="HS256",
     )
+
+    logger.info("generated token")
 
     return TokenResponse(
         access_token=token,

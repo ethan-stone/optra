@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Annotated, Dict, Optional, Protocol
+from typing import Annotated, Dict, Optional
 
 import jwt
 from fastapi import Depends, HTTPException, Request
@@ -14,43 +14,8 @@ from .environment import Env, get_env
 from .schemas import JwtPayload
 
 
-class TokenAuthorizer(Protocol):
-    def authorize(self, token: str) -> JwtPayload:
-        ...
-
-
 class TokenAuthorizeError(Exception):
     pass
-
-
-@dataclass
-class InternalTokenAuthorizer:
-    secret: str
-    internal_client_id: str
-
-    def authorize(self, token: str) -> JwtPayload:
-        try:
-            payload_dict = jwt.decode(token, self.secret, algorithms=["HS256"])
-
-            payload = JwtPayload(**payload_dict)
-
-            if payload.sub != self.internal_client_id:
-                raise TokenAuthorizeError("Invalid client")
-
-            return payload
-
-        except jwt.exceptions.PyJWTError as pyjwt_error:
-            raise TokenAuthorizeError("Failed to authorize token") from pyjwt_error
-
-
-class RootTokenAuthorizer:
-    def authorizer(self, token: str) -> bool:
-        return token == "root_token"
-
-
-class BasicTokenAuthorizer:
-    def authorizer(self, token: str) -> bool:
-        return token == "basic_token"
 
 
 class OAuth2ClientCredentialsBearer(OAuth2):
@@ -99,13 +64,21 @@ def internal_authorizer(
     env: Annotated[Env, Depends(get_env)],
 ) -> JwtPayload:
     try:
-        authorizer = InternalTokenAuthorizer(
-            secret=env.jwt_secret, internal_client_id=env.internal_client_id
-        )
+        payload_dict = jwt.decode(token, env.jwt_secret, algorithms=["HS256"])
 
-        payload = authorizer.authorize(token)
+        payload = JwtPayload(**payload_dict)
+
+        if payload.sub != env.internal_client_id:
+            raise TokenAuthorizeError("Invalid client")
 
         return payload
+
+    except jwt.exceptions.PyJWTError as pyjwt_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Failed to authorize token",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from pyjwt_error
 
     except TokenAuthorizeError as token_authorize_error:
         raise HTTPException(
