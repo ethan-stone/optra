@@ -97,9 +97,14 @@ class LogFlareHandler(Handler):
                 self.buffer = []
 
 
+logflare_handler = LogFlareHandler(
+    env.logflare_api_key, env.logflare_source_id, NOTSET, 1
+)
+
+
 logger.remove(0)
 logger.add(
-    LogFlareHandler(env.logflare_api_key, env.logflare_source_id, NOTSET, 10),
+    logflare_handler,
     format=formatter,
 )
 
@@ -113,6 +118,9 @@ async def lifespan(_: FastAPI):
         task.cancel()
         with suppress(asyncio.CancelledError):
             await task
+
+    # flush any remaining logs before shutdown
+    await logflare_handler.flush()
 
 
 app = FastAPI(lifespan=lifespan)
