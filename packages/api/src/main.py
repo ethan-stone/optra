@@ -80,8 +80,6 @@ class LogFlareHandler(Handler):
         while True:
             await asyncio.sleep(3)
 
-            print("flushing logs")
-
             if (
                 len(self.buffer) > 0 and len(self.buffer) >= 100
             ) or time.monotonic() - self.last_run > self.interval:
