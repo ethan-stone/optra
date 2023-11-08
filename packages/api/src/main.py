@@ -25,7 +25,11 @@ from .v1_router import v1
 def formatter(record):
     subset = {
         "timestamp": int(record["time"].timestamp() * 1000),
-        "message": record["message"],
+        "message": record["level"].name
+        + " "
+        + record["extra"]["request_id"]
+        + " "
+        + record["message"],
         "level": record["level"].name,
         "function": record["function"],
         "name": record["name"],
