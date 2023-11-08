@@ -1,11 +1,15 @@
+import asyncio
 import base64
 import datetime
 import hashlib
 import json
-import sys
+import time
+from contextlib import asynccontextmanager, suppress
 from enum import Enum
+from logging import NOTSET, Handler, LogRecord
 from typing import Annotated, List
 
+import httpx
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request
 from loguru import logger
@@ -42,12 +46,73 @@ def formatter(record):
     return "{extra[serialized]}\n"
 
 
+# todo use ayncio task to send logs periodically and non blocking
+class LogFlareHandler(Handler):
+    api_key: str
+    source: str
+    interval: int
+    last_run: float
+    buffer: list
+    flush_logs_task: asyncio.Task
+
+    def __init__(
+        self, api_key: str, source: str, level: int = NOTSET, interval: int = 1
+    ):
+        Handler.__init__(self, level)
+
+        self.api_key = api_key
+        self.source = source
+        self.interval = interval
+        self.last_run = time.monotonic()
+        self.buffer = []
+        self.flush_logs_task = asyncio.create_task(self.flush())
+
+    def emit(self, record: LogRecord):
+        message = record.getMessage()
+
+        msg_dict = json.loads(message)
+
+        msg = msg_dict.pop("message")
+
+        self.buffer.append({"message": msg, "metadata": msg_dict})
+
+    async def flush(self):
+        while True:
+            await asyncio.sleep(3)
+
+            print("flushing logs")
+
+            if (
+                len(self.buffer) > 0 and len(self.buffer) >= 100
+            ) or time.monotonic() - self.last_run > self.interval:
+                httpx.post(
+                    f"https://api.logflare.app/api/logs?source={self.source}",
+                    json={"batch": self.buffer},
+                    headers={
+                        "X-API-KEY": self.api_key,
+                    },
+                )
+
+
 logger.remove(0)
-logger.add(sys.stdout, format=formatter)
+logger.add(
+    LogFlareHandler(env.logflare_api_key, env.logflare_source_id, NOTSET, 10),
+    format=formatter,
+)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    yield
+    for task in asyncio.all_tasks():
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.middleware("http")
