@@ -4,7 +4,7 @@ import datetime
 import hashlib
 import json
 import time
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 from enum import Enum
 from logging import NOTSET, Handler, LogRecord
 from typing import Annotated, List
@@ -69,7 +69,7 @@ class LogFlareHandler(Handler):
         self.interval = interval
         self.last_run = time.monotonic()
         self.buffer = []
-        self.flush_logs_task = asyncio.create_task(self.flush())
+        self.flush_logs_task = asyncio.create_task(self.run_flush_task())
 
     def emit(self, record: LogRecord):
         message = record.getMessage()
@@ -80,21 +80,26 @@ class LogFlareHandler(Handler):
 
         self.buffer.append({"message": msg, "metadata": msg_dict})
 
-    async def flush(self):
+    def flush(self):
+        httpx.post(
+            f"https://api.logflare.app/api/logs?source={self.source}",
+            json={"batch": self.buffer},
+            headers={
+                "X-API-KEY": self.api_key,
+            },
+        )
+
+        self.buffer = []
+
+    async def run_flush_task(self):
         while True:
             await asyncio.sleep(3)
 
-            if (
-                len(self.buffer) > 0 and len(self.buffer) >= 100
-            ) or time.monotonic() - self.last_run > self.interval:
-                httpx.post(
-                    f"https://api.logflare.app/api/logs?source={self.source}",
-                    json={"batch": self.buffer},
-                    headers={
-                        "X-API-KEY": self.api_key,
-                    },
-                )
-                self.buffer = []
+            if len(self.buffer) > 0 and (
+                len(self.buffer) >= 100
+                or time.monotonic() - self.last_run > self.interval
+            ):
+                await asyncio.to_thread(self.flush)
 
 
 logflare_handler = LogFlareHandler(
@@ -114,13 +119,12 @@ Base.metadata.create_all(bind=engine)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     yield
-    # flush any remaining logs before shutdown
-    await logflare_handler.flush()
+    logflare_handler.flush()
 
-    for task in asyncio.all_tasks():
-        task.cancel()
-        with suppress(asyncio.CancelledError):
-            await task
+    try:
+        logflare_handler.flush_logs_task.cancel()
+    except asyncio.exceptions.CancelledError:
+        pass
 
 
 app = FastAPI(lifespan=lifespan)
