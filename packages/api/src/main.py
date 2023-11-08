@@ -125,7 +125,7 @@ async def logger_middleware(request: Request, call_next):
     ):
         start_timestamp = int(datetime.datetime.now().timestamp() * 1000)
 
-        logger.info("begin request")
+        logger.info(f"begin request {request_id}")
 
         response = await call_next(request)
 
@@ -134,7 +134,7 @@ async def logger_middleware(request: Request, call_next):
         logger.bind(
             status_code=response.status_code,
             duration=end_timestamp - start_timestamp,
-        ).info("end request")
+        ).info(f"end request {request_id}")
 
         return response
 
