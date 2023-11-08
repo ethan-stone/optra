@@ -34,8 +34,8 @@ def formatter(record):
             "id": record["extra"]["request_id"],
             "path": record["extra"]["path"],
             "method": record["extra"]["method"],
-            "status_code": record["extra"].get("status_code"),
-            "duration": record["extra"].get("duration"),
+            "status_code": record["extra"].get("status_code", None),
+            "duration": record["extra"].get("duration", None),
         },
     }
 
@@ -92,6 +92,7 @@ class LogFlareHandler(Handler):
                         "X-API-KEY": self.api_key,
                     },
                 )
+                self.buffer = []
 
 
 logger.remove(0)
