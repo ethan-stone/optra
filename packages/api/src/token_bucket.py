@@ -39,3 +39,12 @@ class TokenBucket:
         self.tokens = min(self.size, self.tokens + new_tokens)
         self.last_refill_time = now
         return new_tokens
+
+
+Buckets = dict[str, TokenBucket]
+
+buckets: Buckets = {}
+
+
+def get_token_buckets() -> Buckets:
+    return buckets

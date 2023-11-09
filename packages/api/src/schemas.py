@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -86,3 +87,16 @@ class ApiCreateReqBody(BaseModel):
 
 class ApiCreateResult(Api):
     ...
+
+
+class InvalidReasons(str, Enum):
+    EXPIRED = "EXPIRED"
+    INVALID_SIGNATURE = "INVALID_SIGNATURE"
+    BAD_JWT = "BAD_JWT"
+    NOT_FOUND = "NOT_FOUND"
+    RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
+
+
+class BasicAuthorizerResult(BaseModel):
+    valid: bool
+    reason: Optional[InvalidReasons] = None

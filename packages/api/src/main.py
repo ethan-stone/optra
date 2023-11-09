@@ -3,6 +3,7 @@ import base64
 import datetime
 import hashlib
 import json
+import sys
 import time
 from contextlib import asynccontextmanager
 from enum import Enum
@@ -102,16 +103,26 @@ class LogFlareHandler(Handler):
                 await asyncio.to_thread(self.flush)
 
 
-logflare_handler = LogFlareHandler(
-    env.logflare_api_key, env.logflare_source_id, NOTSET, 1
-)
+logflare_handler: LogFlareHandler | None = None
 
+if not env.debug:
+    logflare_handler = LogFlareHandler(
+        env.logflare_api_key, env.logflare_source_id, NOTSET, 1
+    )
 
-logger.remove(0)
-logger.add(
-    logflare_handler,
-    format=formatter,
-)
+    logger.remove(0)
+    logger.add(
+        logflare_handler,
+        format=formatter,
+    )
+
+else:
+    logger.remove(0)
+    logger.add(
+        sys.stdout,
+        format=formatter,
+    )
+
 
 Base.metadata.create_all(bind=engine)
 

@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
 from .authorizer import (
-    BasicAuthorizerResult,
     JwtPayload,
     basic_authorizer,
     internal_authorizer,
@@ -18,6 +17,7 @@ from .schemas import (
     ApiCreateParams,
     ApiCreateReqBody,
     ApiCreateResult,
+    BasicAuthorizerResult,
     BasicClientCreateParams,
     BasicClientCreateReqBody,
     ClientCreateResult,
@@ -48,7 +48,7 @@ def create_root_client(
             status_code=HTTP_400_BAD_REQUEST, detail="workspace not found"
         )
 
-    logger.info(f"fetched workspace {workspace}")
+    logger.info(f"fetched workspace {workspace.id}")
 
     client = db.create_root_client(
         RootClientCreateParams(

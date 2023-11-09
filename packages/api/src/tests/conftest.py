@@ -101,6 +101,8 @@ def setup():
             internal_client_secret=internal_client.secret,
             internal_api_id=internal_api.id,
             internal_workspace_id=internal_workspace.id,
+            logflare_api_key="logflare_api_key",
+            logflare_source_id="logflare_source_id",
         )
 
     app.dependency_overrides[get_env] = override_get_env
