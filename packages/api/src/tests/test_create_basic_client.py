@@ -126,6 +126,9 @@ def test_should_create_client(setup: SetupResult):
     data = {
         "name": "test",
         "api_id": setup.root_api.id,
+        "rate_limit_bucket_size": 10,
+        "rate_limit_refill_amount": 2,
+        "rate_limit_refill_interval": 200,
     }
 
     headers = {
@@ -139,3 +142,6 @@ def test_should_create_client(setup: SetupResult):
     assert response_json["name"] == "test"
     assert response_json["workspace_id"] == setup.root_workspace.id
     assert response_json["api_id"] == setup.root_api.id
+    assert response_json["rate_limit_bucket_size"] == 10
+    assert response_json["rate_limit_refill_amount"] == 2
+    assert response_json["rate_limit_refill_interval"] == 200

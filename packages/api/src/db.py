@@ -145,6 +145,9 @@ class SqlAlchameyDb:
             name=client.name,
             workspace_id=client.workspace_id,
             api_id=client.api_id,
+            rate_limit_bucket_size=client.rate_limit_bucket_size,
+            rate_limit_refill_amount=client.rate_limit_refill_amount,
+            rate_limit_refill_interval=client.rate_limit_refill_interval,
         )
 
         self.session.add(db_client)

@@ -11,9 +11,16 @@ class Client(BaseModel):
     workspace_id: str
     for_workspace_id: Optional[str] = None
     api_id: str
+
+    # size of the token bucket
     rate_limit_bucket_size: Optional[int] = None
+
+    # amount of tokens to refill every interval
     rate_limit_refill_amount: Optional[int] = None
+
+    # how often to refill tokens in milliseconds
     rate_limit_refill_interval: Optional[int] = None
+
     created_at: datetime.datetime
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)
@@ -27,11 +34,17 @@ class BasicClientCreateParams(BaseModel):
     name: str
     workspace_id: str
     api_id: str
+    rate_limit_bucket_size: Optional[int] = None
+    rate_limit_refill_amount: Optional[int] = None
+    rate_limit_refill_interval: Optional[int] = None
 
 
 class BasicClientCreateReqBody(BaseModel):
     name: str
     api_id: str
+    rate_limit_bucket_size: Optional[int] = None
+    rate_limit_refill_amount: Optional[int] = None
+    rate_limit_refill_interval: Optional[int] = None
 
 
 class RootClientCreateParams(BasicClientCreateParams):

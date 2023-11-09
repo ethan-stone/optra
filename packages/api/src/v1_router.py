@@ -127,6 +127,9 @@ def create_basic_client(
             api_id=client_params.api_id,
             workspace_id=api.workspace_id,
             name=client_params.name,
+            rate_limit_bucket_size=client_params.rate_limit_bucket_size,
+            rate_limit_refill_amount=client_params.rate_limit_refill_amount,
+            rate_limit_refill_interval=client_params.rate_limit_refill_interval,
         )
     )
 

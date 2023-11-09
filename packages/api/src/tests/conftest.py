@@ -91,6 +91,9 @@ def setup():
             name="test",
             workspace_id=root_workspace.id,
             api_id=root_api.id,
+            rate_limit_bucket_size=10,
+            rate_limit_refill_amount=2,
+            rate_limit_refill_interval=200,
         )
     )
 
