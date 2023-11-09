@@ -142,6 +142,4 @@ def create_basic_client(
 def verify_token(
     authorize_result: Annotated[BasicAuthorizerResult, Depends(basic_authorizer)],
 ):
-    logger.info("token verified")
-
     return authorize_result

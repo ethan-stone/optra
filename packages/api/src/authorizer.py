@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
+from loguru import logger
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from .db import Db, get_db
@@ -163,10 +164,12 @@ def basic_authorizer(
             token_buckets.update({client.id: token_bucket})
 
         if not token_bucket.get_tokens(1):
+            logger.info(f"rate limit exceeded for client {client.id}")
             return BasicAuthorizerResult(
                 valid=False, reason=InvalidReasons.RATE_LIMIT_EXCEEDED
             )
 
+        logger.info(f"token for client {client.id} is valid")
         return BasicAuthorizerResult(valid=True)
 
     except jwt.exceptions.ExpiredSignatureError:

@@ -130,12 +130,14 @@ Base.metadata.create_all(bind=engine)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     yield
-    logflare_handler.flush()
 
-    try:
-        logflare_handler.flush_logs_task.cancel()
-    except asyncio.exceptions.CancelledError:
-        pass
+    if logflare_handler is not None:
+        logflare_handler.flush()
+
+        try:
+            logflare_handler.flush_logs_task.cancel()
+        except asyncio.exceptions.CancelledError:
+            pass
 
 
 app = FastAPI(lifespan=lifespan)

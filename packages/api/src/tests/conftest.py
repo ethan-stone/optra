@@ -17,6 +17,7 @@ from ..schemas import (
     WorkspaceCreateResult,
 )
 from ..scripts.bootstrap import bootstrap
+from ..token_bucket import Buckets, TokenBucket, get_token_buckets
 
 DATABASE_URL = "sqlite:///:memory:"
 
@@ -53,7 +54,9 @@ class SetupResult(BaseModel):
     root_workspace: WorkspaceCreateResult
     root_api: ApiCreateResult
     root_client: ClientCreateResult
-    basic_client: ClientCreateResult
+    basic_client_with_rate_limit_exceeded: ClientCreateResult
+    basic_client_with_rate_limit_not_exceeded: ClientCreateResult
+    basic_client_without_rate_limit: ClientCreateResult
 
 
 @pytest.fixture
@@ -86,7 +89,7 @@ def setup():
         )
     )
 
-    basic_client = db.create_basic_client(
+    basic_client_with_rate_limit_exceeded = db.create_basic_client(
         BasicClientCreateParams(
             name="test",
             workspace_id=root_workspace.id,
@@ -94,6 +97,25 @@ def setup():
             rate_limit_bucket_size=10,
             rate_limit_refill_amount=2,
             rate_limit_refill_interval=200,
+        )
+    )
+
+    basic_client_with_rate_limit_not_exceeded = db.create_basic_client(
+        BasicClientCreateParams(
+            name="test",
+            workspace_id=root_workspace.id,
+            api_id=root_api.id,
+            rate_limit_bucket_size=10,
+            rate_limit_refill_amount=2,
+            rate_limit_refill_interval=200,
+        )
+    )
+
+    basic_client_without_rate_limit = db.create_basic_client(
+        BasicClientCreateParams(
+            name="test",
+            workspace_id=root_workspace.id,
+            api_id=root_api.id,
         )
     )
 
@@ -110,6 +132,14 @@ def setup():
 
     app.dependency_overrides[get_env] = override_get_env
 
+    def override_get_token_buckets() -> Buckets:
+        return {
+            basic_client_with_rate_limit_exceeded.id: TokenBucket(0, 0, 2, 0),
+            basic_client_with_rate_limit_not_exceeded.id: TokenBucket(10, 2, 200, 10),
+        }
+
+    app.dependency_overrides[get_token_buckets] = override_get_token_buckets
+
     yield SetupResult(
         internal_workspace=internal_workspace,
         internal_api=internal_api,
@@ -117,7 +147,9 @@ def setup():
         root_client=root_client,
         root_workspace=root_workspace,
         root_api=root_api,
-        basic_client=basic_client,
+        basic_client_with_rate_limit_exceeded=basic_client_with_rate_limit_exceeded,
+        basic_client_with_rate_limit_not_exceeded=basic_client_with_rate_limit_not_exceeded,
+        basic_client_without_rate_limit=basic_client_without_rate_limit,
     )
 
 

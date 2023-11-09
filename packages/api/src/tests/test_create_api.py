@@ -19,8 +19,8 @@ def test_should_reject_if_invalid_jwt():
 def test_should_reject_if_not_root_client(setup: SetupResult):
     data = {
         "grant_type": "client_credentials",
-        "client_id": setup.basic_client.id,
-        "client_secret": setup.basic_client.secret,
+        "client_id": setup.basic_client_with_rate_limit_exceeded.id,
+        "client_secret": setup.basic_client_with_rate_limit_exceeded.secret,
     }
 
     token_response = client.post("/oauth/token", json=data)
