@@ -12,7 +12,7 @@ class Env(BaseModel):
     internal_client_secret: str
     internal_api_id: str
     internal_workspace_id: str
-    debug: bool = False
+    debug: bool = True
     logflare_api_key: str
     logflare_source_id: str
 
@@ -23,7 +23,7 @@ env = Env(
     internal_client_secret=os.environ.get("INTERNAL_CLIENT_SECRET"),
     internal_api_id=os.environ.get("INTERNAL_API_ID"),
     internal_workspace_id=os.environ.get("INTERNAL_WORKSPACE_ID"),
-    debug=os.environ.get("DEBUG", "false").lower() == "true",
+    debug=os.environ.get("DEBUG", "true").lower() == "true",
     logflare_api_key=os.environ.get("LOGFLARE_API_KEY"),
     logflare_source_id=os.environ.get("LOGFLARE_SOURCE_ID"),
 )
