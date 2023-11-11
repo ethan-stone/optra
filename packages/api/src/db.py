@@ -61,6 +61,33 @@ class DbApi(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
+class ApiScope(Base):
+    """
+    scopes that an api offers
+    """
+
+    __tablename__ = "api_scopes"
+
+    id = Column(String, primary_key=True, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    api_id = Column(String, index=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+
+class ClientScope(Base):
+    """
+    scopes that a client has access to
+    """
+
+    __tablename__ = "client_scopes"
+
+    id = Column(String, primary_key=True, index=True, nullable=False)
+    client_id = Column(String, index=True, nullable=False)
+    scope_id = Column(String, index=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+
 class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
