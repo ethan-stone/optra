@@ -46,7 +46,7 @@ class DbClient(Base):
 class DbWorkspace(Base):
     __tablename__ = "workspaces"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
@@ -54,9 +54,9 @@ class DbWorkspace(Base):
 
 class DbApi(Base):
     __tablename__ = "apis"
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, primary_key=True, index=True)
-    workspace_id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    workspace_id = Column(String, index=True, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
