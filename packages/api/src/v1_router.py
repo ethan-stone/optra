@@ -95,6 +95,7 @@ def create_api(
         ApiCreateParams(
             name=api_params.name,
             workspace_id=client.for_workspace_id,
+            scopes=api_params.scopes,
         )
     )
 

@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -81,21 +81,36 @@ class WorkspaceCreateResult(Workspace):
     ...
 
 
+class ApiScope(BaseModel):
+    id: str
+    name: str
+    description: str
+    created_at: datetime.datetime
+
+
 class Api(BaseModel):
     id: str
     name: str
     workspace_id: str
+    scopes: Optional[List[ApiScope]] = None
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
+
+class ApiScopeCreateParams(BaseModel):
+    name: str
+    description: str
 
 
 class ApiCreateParams(BaseModel):
     name: str
     workspace_id: str
+    scopes: Optional[List[ApiScopeCreateParams]] = None
 
 
 class ApiCreateReqBody(BaseModel):
     name: str
+    scopes: Optional[List[ApiScopeCreateParams]] = None
 
 
 class ApiCreateResult(Api):

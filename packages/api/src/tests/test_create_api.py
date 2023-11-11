@@ -50,7 +50,6 @@ def test_should_reject_if_invalid_body(setup: SetupResult):
     token_response = client.post("/oauth/token", json=data)
 
     token = TokenResponse(**token_response.json())
-    print(token.access_token)
 
     data = {}
 
@@ -63,7 +62,7 @@ def test_should_reject_if_invalid_body(setup: SetupResult):
     assert response.status_code == 422
 
 
-def tes_should_create_api(setup: SetupResult):
+def test_should_create_api(setup: SetupResult):
     data = {
         "grant_type": "client_credentials",
         "client_id": setup.root_client.id,
@@ -73,9 +72,14 @@ def tes_should_create_api(setup: SetupResult):
     token_response = client.post("/oauth/token", json=data)
 
     token = TokenResponse(**token_response.json())
-    print(token.access_token)
 
-    data = {"name": "test api"}
+    data = {
+        "name": "test api",
+        "scopes": [
+            {"name": "write:test", "description": "write test"},
+            {"name": "read:test", "description": "read test"},
+        ],
+    }
 
     headers = {
         "Authorization": f"Bearer {token.access_token}",
@@ -86,5 +90,9 @@ def tes_should_create_api(setup: SetupResult):
     response_json = response.json()
 
     assert response.status_code == 200
-    assert response_json["name"] == "test"
+    assert response_json["name"] == "test api"
     assert response_json["workspace_id"] == setup.root_client.for_workspace_id
+    assert response_json["scopes"][0]["name"] == "write:test"
+    assert response_json["scopes"][0]["description"] == "write test"
+    assert response_json["scopes"][1]["name"] == "read:test"
+    assert response_json["scopes"][1]["description"] == "read test"

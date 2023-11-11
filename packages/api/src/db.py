@@ -10,6 +10,7 @@ from .schemas import (
     Api,
     ApiCreateParams,
     ApiCreateResult,
+    ApiScope,
     BasicClientCreateParams,
     Client,
     ClientCreateResult,
@@ -61,7 +62,7 @@ class DbApi(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
-class ApiScope(Base):
+class DbApiScope(Base):
     """
     scopes that an api offers
     """
@@ -214,16 +215,60 @@ class SqlAlchameyDb:
     def create_api(self, api: ApiCreateParams) -> ApiCreateResult:
         api_id = uuid.uuid4().hex
 
-        db_api = DbApi(
-            id=api_id,
-            name=api.name,
-            workspace_id=api.workspace_id,
-        )
-        self.session.add(db_api)
-        self.session.commit()
-        self.session.refresh(db_api)
+        try:
+            self.session.begin_nested()
 
-        return ApiCreateResult(**db_api.__dict__)
+            db_api = DbApi(
+                id=api_id,
+                name=api.name,
+                workspace_id=api.workspace_id,
+            )
+
+            self.session.add(db_api)
+
+            db_api_scopes = (
+                list(
+                    map(
+                        lambda api_scope: DbApiScope(
+                            id=uuid.uuid4().hex,
+                            name=api_scope.name,
+                            description=api_scope.description,
+                            api_id=api_id,
+                        ),
+                        api.scopes,
+                    )
+                )
+                if api.scopes is not None and len(api.scopes) > 0
+                else None
+            )
+
+            if db_api_scopes is not None:
+                self.session.add_all(db_api_scopes)
+
+            self.session.commit()
+            self.session.refresh(db_api)
+
+            api_scopes = (
+                list(
+                    map(
+                        lambda db_api_scope: ApiScope(
+                            id=db_api_scope.id,
+                            name=db_api_scope.name,
+                            description=db_api_scope.description,
+                            created_at=db_api_scope.created_at,
+                        ),
+                        db_api_scopes,
+                    )
+                )
+                if db_api_scopes is not None and len(db_api_scopes) > 0
+                else None
+            )
+
+            return ApiCreateResult(**db_api.__dict__, scopes=api_scopes)
+
+        except:
+            self.session.rollback()
+            raise
 
     def get_api(self, api_id: str) -> Api | None:
         api = self.session.query(DbApi).filter(DbApi.id == api_id).first()
