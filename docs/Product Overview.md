@@ -15,11 +15,13 @@ Managed machine-to-machine JWTs
 - POST /internal.createRootClient
 - POST /apis.createApi
 - POST /clients.createClient
-- POST /clients.rotateClient
+- POST /clients.rotateSecret
 - POST /clients.verifyClient
 - POST /oauth/token
-# Data Model 
-![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---FijYGrDVpenlE-8cymyna---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
+# Data Model
+![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---euWfSG9mPj2cuT44WIZ7s---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
+
+
 
 # Client Types
 1. Internal Client
@@ -27,13 +29,9 @@ Managed machine-to-machine JWTs
 2. Root Clients
     1. These are keys that belong to the workspaces of users of Optra. They can create APIs and clients for those workspaces only.
 3. Basic Clients
-    1. These are clients that belong to users of the APIs that are managed by Optra. They can't create anything and can only be verified. 
+    1. These are clients that belong to users of the APIs that are managed by Optra. They can't create anything and can only be verified.
 # Rate Limiting
 Basic token bucket rate limiting. Configurable bucket size, refill amount, and refill interval.
-
-
-
-
 
 
 <!--- Eraser file: https://app.eraser.io/workspace/iM0oefDcpBUj4W1UKNPV --->
