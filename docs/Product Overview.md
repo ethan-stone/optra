@@ -19,7 +19,7 @@ Managed machine-to-machine JWTs
 - POST /clients.verifyClient
 - POST /oauth/token
 # Data Model
-![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---euWfSG9mPj2cuT44WIZ7s---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
+![ER Diagram](/.eraser/iM0oefDcpBUj4W1UKNPV___SAeHPhwcNkRksQnkLO1UKbLgEJ22___---figure---jRHBoMRX8nX2YwzWZQFY3---figure---0xoMP7vZV2KYNnKdV1e3jg.png "ER Diagram")
 
 
 
