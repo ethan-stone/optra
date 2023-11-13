@@ -33,7 +33,6 @@ class DbClient(Base):
     __tablename__ = "clients"
 
     id = Column(String, primary_key=True, index=True)
-    secret = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
     workspace_id = Column(String, index=True, nullable=False)
     for_workspace_id = Column(String, index=True)
@@ -41,6 +40,16 @@ class DbClient(Base):
     rate_limit_bucket_size = Column(Integer)
     rate_limit_refill_amount = Column(Integer)
     rate_limit_refill_interval = Column(Integer)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+
+class DbClientSecret(Base):
+    __tablename__ = "client_secrets"
+    id = Column(String, primary_key=True, index=True, nullable=False)
+    client_id = Column(String, index=True, nullable=False)
+    secret = Column(String, unique=True, nullable=False)
+    status = Column(String, default="active", nullable=False)  # active, inactive
+    expires_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
 
 
@@ -126,68 +135,103 @@ class SqlAlchameyDb:
         return Client(**client.__dict__) if client else None
 
     def get_client_secret(self, client_id: str) -> str | None:
-        client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
-        return client.secret if client else None
+        secret = (
+            self.session.query(DbClientSecret)
+            .filter(
+                DbClientSecret.client_id == client_id, DbClientSecret.status == "active"
+            )
+            .first()
+        )
+
+        return secret.secret if secret is not None else None
 
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
+        secret_id = uuid.uuid4().hex
 
         hash = hashlib.sha256()
         hash.update(client_secret.encode())
         hashed_secret = hash.hexdigest()
 
-        db_client = DbClient(
-            id=client_id,
-            secret=hashed_secret,
-            name=client.name,
-            workspace_id=client.workspace_id,
-            for_workspace_id=client.for_workspace_id,
-            api_id=client.api_id,
-        )
+        try:
+            self.session.begin_nested()
 
-        self.session.add(db_client)
-        self.session.commit()
-        self.session.refresh(db_client)
+            db_client = DbClient(
+                id=client_id,
+                name=client.name,
+                workspace_id=client.workspace_id,
+                for_workspace_id=client.for_workspace_id,
+                api_id=client.api_id,
+            )
 
-        client_dict = db_client.__dict__
+            db_secret = DbClientSecret(
+                id=secret_id,
+                secret=hashed_secret,
+                client_id=client_id,
+            )
 
-        # when creating a client, we don't want to return the hashed secret
-        client_dict["secret"] = client_secret
+            self.session.add(db_client)
+            self.session.add(db_secret)
+            self.session.commit()
+            self.session.refresh(db_client)
 
-        return ClientCreateResult(**client_dict)
+            client_dict = db_client.__dict__
+
+            # when creating a client, we don't want to return the hashed secret
+            client_dict["secret"] = client_secret
+
+            return ClientCreateResult(**client_dict)
+
+        except:
+            self.session.rollback()
+            raise
 
     def create_basic_client(
         self, client: BasicClientCreateParams
     ) -> ClientCreateResult:
         client_id = uuid.uuid4().hex
         client_secret = uuid.uuid4().hex
+        secret_id = uuid.uuid4().hex
 
         hash = hashlib.sha256()
         hash.update(client_secret.encode())
         hashed_secret = hash.hexdigest()
 
-        db_client = DbClient(
-            id=client_id,
-            secret=hashed_secret,
-            name=client.name,
-            workspace_id=client.workspace_id,
-            api_id=client.api_id,
-            rate_limit_bucket_size=client.rate_limit_bucket_size,
-            rate_limit_refill_amount=client.rate_limit_refill_amount,
-            rate_limit_refill_interval=client.rate_limit_refill_interval,
-        )
+        try:
+            self.session.begin_nested()
 
-        self.session.add(db_client)
-        self.session.commit()
-        self.session.refresh(db_client)
+            db_client = DbClient(
+                id=client_id,
+                name=client.name,
+                workspace_id=client.workspace_id,
+                api_id=client.api_id,
+                rate_limit_bucket_size=client.rate_limit_bucket_size,
+                rate_limit_refill_amount=client.rate_limit_refill_amount,
+                rate_limit_refill_interval=client.rate_limit_refill_interval,
+            )
 
-        client_dict = db_client.__dict__
+            db_secret = DbClientSecret(
+                id=secret_id,
+                secret=hashed_secret,
+                client_id=client_id,
+            )
 
-        # when creating a client, we don't want to return the hashed secret
-        client_dict["secret"] = client_secret
+            self.session.add(db_client)
+            self.session.add(db_secret)
+            self.session.commit()
+            self.session.refresh(db_client)
 
-        return ClientCreateResult(**client_dict)
+            client_dict = db_client.__dict__
+
+            # when creating a client, we don't want to return the hashed secret
+            client_dict["secret"] = client_secret
+
+            return ClientCreateResult(**client_dict)
+
+        except:
+            self.session.rollback()
+            raise
 
     def create_workspace(
         self, workspace: WorkspaceCreateParams
