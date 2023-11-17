@@ -327,3 +327,12 @@ def get_db() -> Iterator[Db]:
         yield db
     finally:
         session.close()
+
+
+ClientsCache = dict[str, Client]
+
+clients_cache: ClientsCache = {}
+
+
+def get_clients_cache() -> ClientsCache:
+    return clients_cache

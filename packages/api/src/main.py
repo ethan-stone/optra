@@ -126,6 +126,8 @@ else:
 
 Base.metadata.create_all(bind=engine)
 
+# TODO make RedisSubscriber class to subscribe to redis channel
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

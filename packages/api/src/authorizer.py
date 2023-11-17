@@ -8,7 +8,7 @@ from fastapi.security.utils import get_authorization_scheme_param
 from loguru import logger
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from .db import Db, get_db
+from .db import ClientsCache, Db, get_clients_cache, get_db
 from .environment import Env, get_env
 from .schemas import BasicAuthorizerResult, InvalidReasons, JwtPayload
 from .token_bucket import Buckets, TokenBucket, get_token_buckets
@@ -135,6 +135,7 @@ def basic_authorizer(
     token: Annotated[str, Depends(oauth2_client_credentials_scheme)],
     env: Annotated[Env, Depends(get_env)],
     db: Annotated[Db, Depends(get_db)],
+    clients_cache: Annotated[ClientsCache, Depends(get_clients_cache)],
     token_buckets: Annotated[Buckets, Depends(get_token_buckets)],
 ):
     try:
@@ -142,11 +143,17 @@ def basic_authorizer(
 
         payload = JwtPayload(**payload_dict)
 
-        # TODO cache clients in memory
-        client = db.get_client(payload.sub)
+        client = clients_cache.get(payload.sub)
 
-        if not client:
-            return BasicAuthorizerResult(valid=False, reason=InvalidReasons.NOT_FOUND)
+        if client is None:
+            client = db.get_client(payload.sub)
+
+            if client is None:
+                return BasicAuthorizerResult(
+                    valid=False, reason=InvalidReasons.NOT_FOUND
+                )
+
+            clients_cache.update({client.id: client})
 
         if client.rate_limit_bucket_size is None:
             return BasicAuthorizerResult(valid=True)
