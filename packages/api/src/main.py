@@ -12,9 +12,11 @@ from typing import Annotated, List
 
 import httpx
 import jwt
+import redis.asyncio as redis
 from fastapi import Depends, FastAPI, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel
+from redis.asyncio.client import PubSub as AsyncPubSub
 
 from .db import Base, Db, engine, get_db
 from .environment import Env, env, get_env
@@ -129,8 +131,23 @@ Base.metadata.create_all(bind=engine)
 # TODO make RedisSubscriber class to subscribe to redis channel
 
 
+async def reader(channel: AsyncPubSub):
+    while True:
+        message = await channel.get_message(ignore_subscribe_messages=True)
+        if message is not None:
+            print(f"(Reader) Received: {message}")
+
+
+redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    pubsub = redis_client.pubsub()
+    await pubsub.subscribe("secret.rotated")
+
+    reader_task = asyncio.create_task(reader(pubsub))
+
     yield
 
     if logflare_handler is not None:
@@ -138,6 +155,11 @@ async def lifespan(_: FastAPI):
 
         try:
             logflare_handler.flush_logs_task.cancel()
+        except asyncio.exceptions.CancelledError:
+            pass
+
+        try:
+            reader_task.cancel()
         except asyncio.exceptions.CancelledError:
             pass
 
