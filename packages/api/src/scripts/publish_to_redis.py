@@ -1,10 +1,16 @@
+import json
+
 import redis
+
+from ..main import SecretRotatedEvent
 
 
 def main():
     redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-    redis_client.publish("secret.rotated", "hello world")
+    event = SecretRotatedEvent(secret_id="123")
+
+    redis_client.publish("secret.rotated", json.dumps(event))
 
     print("published message to redis channel secret.rotated")
 

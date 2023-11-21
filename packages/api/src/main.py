@@ -15,7 +15,7 @@ import jwt
 import redis.asyncio as redis
 from fastapi import Depends, FastAPI, HTTPException, Request
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from redis.asyncio.client import PubSub as AsyncPubSub
 
 from .db import Base, Db, engine, get_db
@@ -25,6 +25,8 @@ from .uid import uid
 from .v1_router import v1
 
 
+# TODO handle request id missing because it may not be present for async tasks
+# such has redis channel subscriber
 def formatter(record):
     subset = {
         "timestamp": int(record["time"].timestamp() * 1000),
@@ -128,14 +130,24 @@ else:
 
 Base.metadata.create_all(bind=engine)
 
-# TODO make RedisSubscriber class to subscribe to redis channel
+
+class SecretRotatedEvent(BaseModel):
+    secret_id: str
 
 
-async def reader(channel: AsyncPubSub):
+async def handle_secret_rotated(channel: AsyncPubSub):
     while True:
         message = await channel.get_message(ignore_subscribe_messages=True)
         if message is not None:
-            print(f"(Reader) Received: {message}")
+            try:
+                json_message = json.loads(message["data"])
+
+                event = SecretRotatedEvent(**json_message)
+
+                print(event.secret_id)
+
+            except ValidationError:
+                logger.error("Received invalid secret.rotated event format")
 
 
 redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
@@ -146,7 +158,7 @@ async def lifespan(_: FastAPI):
     pubsub = redis_client.pubsub()
     await pubsub.subscribe("secret.rotated")
 
-    reader_task = asyncio.create_task(reader(pubsub))
+    reader_task = asyncio.create_task(handle_secret_rotated(pubsub))
 
     yield
 
