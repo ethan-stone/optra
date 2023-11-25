@@ -131,10 +131,6 @@ else:
 Base.metadata.create_all(bind=engine)
 
 
-class SecretRotatedEvent(BaseModel):
-    secret_id: str
-
-
 async def handle_secret_rotated(channel: AsyncPubSub):
     while True:
         message = await channel.get_message(ignore_subscribe_messages=True)
@@ -142,9 +138,7 @@ async def handle_secret_rotated(channel: AsyncPubSub):
             try:
                 json_message = json.loads(message["data"])
 
-                event = SecretRotatedEvent(**json_message)
-
-                print(event.secret_id)
+                print(json_message)
 
             except ValidationError:
                 logger.error("Received invalid secret.rotated event format")

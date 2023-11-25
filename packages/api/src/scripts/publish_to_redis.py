@@ -2,7 +2,7 @@ import json
 
 import redis
 
-from ..main import SecretRotatedEvent
+from ..schemas import SecretRotatedEvent
 
 
 def main():

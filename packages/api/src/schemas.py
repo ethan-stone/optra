@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -128,3 +128,21 @@ class InvalidReasons(str, Enum):
 class BasicAuthorizerResult(BaseModel):
     valid: bool
     reason: Optional[InvalidReasons] = None
+
+
+class BaseEvent(BaseModel):
+    id: str
+    timestamp: datetime.datetime
+
+
+class SecretRotatedEventData(BaseModel):
+    id: str
+
+
+class SecretRotatedEvent(BaseEvent):
+    event_type: Literal["secret.rotated"]
+    data: SecretRotatedEventData
+
+
+class SecretEvent(BaseModel):
+    event: SecretRotatedEvent
