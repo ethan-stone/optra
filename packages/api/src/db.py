@@ -104,6 +104,9 @@ class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
 
+    def get_client_secrets_by_client_id(self, client_id: str) -> list[ClientSecret]:
+        ...
+
     def get_client_secret_value(self, client_id: str) -> str | None:
         ...
 
@@ -139,11 +142,25 @@ class SqlAlchameyDb:
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return Client(**client.__dict__) if client else None
 
-    def get_client_secret_value(self, client_id: str) -> str | None:
+    def get_client_secrets_by_client_id(self, client_id: str) -> list[ClientSecret]:
+        secrets = (
+            self.session.query(DbClientSecret)
+            .filter(DbClientSecret.client_id == client_id)
+            .all()
+        )
+
+        return list(
+            map(
+                lambda db_client_secret: ClientSecret(**db_client_secret.__dict__),
+                secrets,
+            )
+        )
+
+    def get_client_secret_value(self, secret_id: str) -> str | None:
         secret = (
             self.session.query(DbClientSecret)
             .filter(
-                DbClientSecret.client_id == client_id, DbClientSecret.status == "active"
+                DbClientSecret.id == secret_id,
             )
             .first()
         )

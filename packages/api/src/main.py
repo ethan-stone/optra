@@ -20,7 +20,7 @@ from redis.asyncio.client import PubSub as AsyncPubSub
 
 from .db import Base, Db, engine, get_db
 from .environment import Env, env, get_env
-from .schemas import JwtPayload, SecretEvent
+from .schemas import ClientSecret, JwtPayload, SecretEvent
 from .uid import uid
 from .v1_router import v1
 
@@ -320,22 +320,32 @@ async def oauth_token(
 
     logger.info(f"fetched client {client.id}")
 
-    client_secret_value = db.get_client_secret_value(client_id_parsed)
+    fetched_client_secrets = db.get_client_secrets_by_client_id(client_id_parsed)
 
-    if client_secret_value is None:
+    logger.info(f"fetched secrets for client {client.id}")
+
+    matched_client_secret: ClientSecret | None = None
+
+    for client_secret in fetched_client_secrets:
+        secret_value = db.get_client_secret_value(client_secret.id)
+
+        if secret_value is None:
+            raise HTTPException(status_code=400, detail="Invalid client")
+
+        hash = hashlib.sha256()
+        hash.update(client_secret_parsed.encode())
+        hashed_secret = hash.hexdigest()
+
+        if hashed_secret == secret_value:
+            matched_client_secret = client_secret
+            break
+
         raise HTTPException(status_code=400, detail="Invalid client")
 
-    client_secret = db.get_client_secret(client_id_parsed)
-
-    if client_secret is None:
+    if matched_client_secret is None:
         raise HTTPException(status_code=400, detail="Invalid client")
 
-    hash = hashlib.sha256()
-    hash.update(client_secret_parsed.encode())
-    hashed_secret = hash.hexdigest()
-
-    if client_secret_value != hashed_secret:
-        raise HTTPException(status_code=400, detail="Invalid client")
+    logger.info(f"found matching secret for client {client.id}")
 
     now = datetime.datetime.now()
 
@@ -344,7 +354,7 @@ async def oauth_token(
         iat=now,
         exp=now + datetime.timedelta(days=1),
         version=client.version,
-        secret_expires_at=client_secret.expires_at,
+        secret_expires_at=matched_client_secret.expires_at,
     )
 
     token = jwt.encode(
