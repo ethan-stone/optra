@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 class Client(BaseModel):
     id: str
     name: str
+    version: int = 1
     workspace_id: str
     for_workspace_id: Optional[str] = None
     api_id: str

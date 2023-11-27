@@ -142,6 +142,7 @@ def test_should_create_client(setup: SetupResult):
     assert response_json["name"] == "test"
     assert response_json["workspace_id"] == setup.root_workspace.id
     assert response_json["api_id"] == setup.root_api.id
+    assert response_json["version"] == 1
     assert response_json["rate_limit_bucket_size"] == 10
     assert response_json["rate_limit_refill_amount"] == 2
     assert response_json["rate_limit_refill_interval"] == 200

@@ -34,6 +34,7 @@ class DbClient(Base):
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    version = Column(Integer, default=1, nullable=False)
     workspace_id = Column(String, index=True, nullable=False)
     for_workspace_id = Column(String, index=True)
     api_id = Column(String, index=True, nullable=False)
