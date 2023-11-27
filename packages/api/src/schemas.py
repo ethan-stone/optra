@@ -65,6 +65,7 @@ class JwtPayload(BaseModel):
     sub: str
     iat: datetime.datetime
     exp: datetime.datetime
+    version: int
     secret_expires_at: Optional[
         datetime.datetime
     ] = None  # this is used for when secrets are rotated and the old secret has an expiration date

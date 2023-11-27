@@ -100,6 +100,7 @@ def test_should_be_invalid_if_not_found(setup: SetupResult):
         sub="fake client",
         exp=datetime.datetime.now() + datetime.timedelta(days=1),
         iat=datetime.datetime.now(),
+        version=1,
     )
 
     token = jwt.encode(jwt_payload.model_dump(), "jwt_secret", algorithm="HS256")

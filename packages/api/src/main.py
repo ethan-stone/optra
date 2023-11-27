@@ -334,7 +334,12 @@ async def oauth_token(
 
     now = datetime.datetime.now()
 
-    payload = JwtPayload(sub=client.id, iat=now, exp=now + datetime.timedelta(days=1))
+    payload = JwtPayload(
+        sub=client.id,
+        iat=now,
+        exp=now + datetime.timedelta(days=1),
+        version=client.version,
+    )
 
     token = jwt.encode(
         payload.model_dump(),
