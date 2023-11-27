@@ -1,16 +1,24 @@
+import datetime
 import json
 
 import redis
 
-from ..schemas import SecretRotatedEvent
+from ..schemas import SecretEvent
 
 
 def main():
     redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-    event = SecretRotatedEvent(secret_id="123")
+    event = SecretEvent(
+        event={
+            "event_type": "secret.rotated",
+            "data": {"id": "123"},
+            "id": "123",
+            "timestamp": datetime.datetime.now().timestamp(),
+        }
+    )
 
-    redis_client.publish("secret.rotated", json.dumps(event))
+    redis_client.publish("secret.rotated", json.dumps(event.event.model_dump()))
 
     print("published message to redis channel secret.rotated")
 

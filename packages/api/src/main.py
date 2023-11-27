@@ -20,7 +20,7 @@ from redis.asyncio.client import PubSub as AsyncPubSub
 
 from .db import Base, Db, engine, get_db
 from .environment import Env, env, get_env
-from .schemas import JwtPayload
+from .schemas import JwtPayload, SecretEvent
 from .uid import uid
 from .v1_router import v1
 
@@ -138,7 +138,9 @@ async def handle_secret_rotated(channel: AsyncPubSub):
             try:
                 json_message = json.loads(message["data"])
 
-                print(json_message)
+                msg = SecretEvent(event=json_message)
+
+                print(msg)
 
             except ValidationError:
                 logger.error("Received invalid secret.rotated event format")
