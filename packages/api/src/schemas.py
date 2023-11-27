@@ -27,6 +27,19 @@ class Client(BaseModel):
     model_config: ConfigDict = ConfigDict(from_attributes=True)
 
 
+class ClientSecretStatus(str, Enum):
+    active = "active"
+    inactive = "inactive"
+
+
+class ClientSecret(BaseModel):
+    id: str
+    client_id: str
+    status: ClientSecretStatus
+    expires_at: Optional[datetime.datetime] = None
+    created_at: datetime.datetime
+
+
 class ClientCreateResult(Client):
     secret: str
 

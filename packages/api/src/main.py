@@ -320,7 +320,12 @@ async def oauth_token(
 
     logger.info(f"fetched client {client.id}")
 
-    client_secret = db.get_client_secret_value(client_id_parsed)
+    client_secret_value = db.get_client_secret_value(client_id_parsed)
+
+    if client_secret_value is None:
+        raise HTTPException(status_code=400, detail="Invalid client")
+
+    client_secret = db.get_client_secret(client_id_parsed)
 
     if client_secret is None:
         raise HTTPException(status_code=400, detail="Invalid client")
@@ -329,7 +334,7 @@ async def oauth_token(
     hash.update(client_secret_parsed.encode())
     hashed_secret = hash.hexdigest()
 
-    if client_secret != hashed_secret:
+    if client_secret_value != hashed_secret:
         raise HTTPException(status_code=400, detail="Invalid client")
 
     now = datetime.datetime.now()
@@ -339,6 +344,7 @@ async def oauth_token(
         iat=now,
         exp=now + datetime.timedelta(days=1),
         version=client.version,
+        secret_expires_at=client_secret.expires_at,
     )
 
     token = jwt.encode(

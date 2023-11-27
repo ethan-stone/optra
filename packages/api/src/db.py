@@ -14,6 +14,7 @@ from .schemas import (
     BasicClientCreateParams,
     Client,
     ClientCreateResult,
+    ClientSecret,
     RootClientCreateParams,
     Workspace,
     WorkspaceCreateParams,
@@ -106,6 +107,9 @@ class Db(Protocol):
     def get_client_secret_value(self, client_id: str) -> str | None:
         ...
 
+    def get_client_secret(self, client_id: str) -> ClientSecret | None:
+        ...
+
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         ...
 
@@ -145,6 +149,17 @@ class SqlAlchameyDb:
         )
 
         return secret.secret if secret is not None else None
+
+    def get_client_secret(self, client_id: str) -> DbClientSecret | None:
+        secret = (
+            self.session.query(DbClientSecret)
+            .filter(
+                DbClientSecret.client_id == client_id, DbClientSecret.status == "active"
+            )
+            .first()
+        )
+
+        return ClientSecret(**secret.__dict__) if secret else None
 
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         client_id = uuid.uuid4().hex
