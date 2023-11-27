@@ -320,7 +320,7 @@ async def oauth_token(
 
     logger.info(f"fetched client {client.id}")
 
-    client_secret = db.get_client_secret(client_id_parsed)
+    client_secret = db.get_client_secret_value(client_id_parsed)
 
     if client_secret is None:
         raise HTTPException(status_code=400, detail="Invalid client")

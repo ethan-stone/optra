@@ -103,7 +103,7 @@ class Db(Protocol):
     def get_client(self, client_id: str) -> Client | None:
         ...
 
-    def get_client_secret(self, client_id: str) -> str | None:
+    def get_client_secret_value(self, client_id: str) -> str | None:
         ...
 
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
@@ -135,7 +135,7 @@ class SqlAlchameyDb:
         client = self.session.query(DbClient).filter(DbClient.id == client_id).first()
         return Client(**client.__dict__) if client else None
 
-    def get_client_secret(self, client_id: str) -> str | None:
+    def get_client_secret_value(self, client_id: str) -> str | None:
         secret = (
             self.session.query(DbClientSecret)
             .filter(
