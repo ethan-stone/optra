@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Dict, Optional
 
 import jwt
@@ -62,6 +63,7 @@ oauth2_client_credentials_scheme = OAuth2ClientCredentialsBearer(tokenUrl="oauth
 def internal_authorizer(
     token: Annotated[str, Depends(oauth2_client_credentials_scheme)],
     env: Annotated[Env, Depends(get_env)],
+    db: Annotated[Db, Depends(get_db)],
 ) -> JwtPayload:
     try:
         payload_dict = jwt.decode(token, env.jwt_secret, algorithms=["HS256"])
@@ -71,6 +73,23 @@ def internal_authorizer(
         if payload.sub != env.internal_client_id:
             logger.info("jwt sub does not match internal client id")
             raise TokenAuthorizeError("Invalid client")
+
+        logger.info("jwt sub matches internal client id")
+
+        # root authorizer requests is not a critical path for performance
+        # so to simplify things we just fetch the client from the db every time
+        client = db.get_client(payload.sub)
+
+        if payload.version != client.version:
+            logger.info("jwt version does not match client version")
+            raise TokenAuthorizeError("Invalid version")
+
+        if (
+            payload.secret_expires_at is not None
+            and payload.secret_expires_at < datetime.utcnow()
+        ):
+            logger.info("the secret used to created this jwt has expired")
+            raise TokenAuthorizeError("Invalid secret")
 
         return payload
 
@@ -115,6 +134,23 @@ def root_authorizer(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        logger.info("jwt sub matches internal client id")
+
+        # root authorizer requests is not a critical path for performance
+        # so to simplify things we just fetch the client from the db every time
+        client = db.get_client(payload.sub)
+
+        if payload.version != client.version:
+            logger.info("jwt version does not match client version")
+            raise TokenAuthorizeError("JWT is an old version. Please refresh.")
+
+        if (
+            payload.secret_expires_at is not None
+            and payload.secret_expires_at < datetime.utcnow()
+        ):
+            logger.info("the secret used to created this jwt has expired")
+            raise TokenAuthorizeError("Secret used to created this jwt has expired.")
+
         return payload
 
     except jwt.exceptions.PyJWTError as pyjwt_error:
@@ -155,6 +191,17 @@ def basic_authorizer(
                 )
 
             clients_cache.update({client.id: client})
+
+        if payload.version != client.version:
+            logger.info("jwt version does not match client version")
+            raise TokenAuthorizeError("Invalid version")
+
+        if (
+            payload.secret_expires_at is not None
+            and payload.secret_expires_at < datetime.utcnow()
+        ):
+            logger.info("the secret used to created this jwt has expired")
+            raise TokenAuthorizeError("Invalid secret")
 
         if client.rate_limit_bucket_size is None:
             return BasicAuthorizerResult(valid=True)

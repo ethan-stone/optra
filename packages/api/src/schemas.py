@@ -141,6 +141,8 @@ class InvalidReasons(str, Enum):
     BAD_JWT = "BAD_JWT"
     NOT_FOUND = "NOT_FOUND"
     RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
+    VERSION_MISMATCH = "VERSION_MISMATCH"
+    SECRET_EXPIRED = "SECRET_EXPIRED"
 
 
 class BasicAuthorizerResult(BaseModel):
