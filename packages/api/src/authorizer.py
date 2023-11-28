@@ -69,6 +69,7 @@ def internal_authorizer(
         payload = JwtPayload(**payload_dict)
 
         if payload.sub != env.internal_client_id:
+            logger.info("jwt sub does not match internal client id")
             raise TokenAuthorizeError("Invalid client")
 
         return payload
