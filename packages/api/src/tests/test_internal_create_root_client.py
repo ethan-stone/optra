@@ -43,6 +43,33 @@ def test_should_reject_if_invalid_client(setup: SetupResult):
     assert response_json["detail"] == "Forbidden"
 
 
+def test_should_reject_if_version_mismatch(setup: SetupResult):
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": setup.root_client.id,
+        "client_secret": setup.root_client.secret,
+    }
+
+    token_response = client.post("/oauth/token", json=data)
+
+    token = TokenResponse(**token_response.json())
+
+    data = {
+        "name": "test",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token.access_token}",
+    }
+
+    response = client.post("/v1/internal.createRootClient", json=data, headers=headers)
+
+    response_json = response.json()
+
+    assert response.status_code == 403
+    assert response_json["detail"] == "Forbidden"
+
+
 def test_should_reject_if_invalid_body(setup: SetupResult):
     data = {
         "grant_type": "client_credentials",

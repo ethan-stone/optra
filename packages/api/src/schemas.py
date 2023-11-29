@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 class Client(BaseModel):
     id: str
     name: str
-    version: int = 1
+    version: int
     workspace_id: str
     for_workspace_id: Optional[str] = None
     api_id: str
@@ -48,6 +48,7 @@ class BasicClientCreateParams(BaseModel):
     name: str
     workspace_id: str
     api_id: str
+    version: int = 1
     rate_limit_bucket_size: Optional[int] = None
     rate_limit_refill_amount: Optional[int] = None
     rate_limit_refill_interval: Optional[int] = None
@@ -62,6 +63,7 @@ class BasicClientCreateReqBody(BaseModel):
 
 
 class RootClientCreateParams(BasicClientCreateParams):
+    version: int = 1
     for_workspace_id: str
 
 

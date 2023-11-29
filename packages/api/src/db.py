@@ -182,6 +182,7 @@ class SqlAlchameyDb:
                 workspace_id=client.workspace_id,
                 for_workspace_id=client.for_workspace_id,
                 api_id=client.api_id,
+                version=client.version,
             )
 
             db_secret = DbClientSecret(
@@ -223,6 +224,7 @@ class SqlAlchameyDb:
             db_client = DbClient(
                 id=client_id,
                 name=client.name,
+                version=client.version,
                 workspace_id=client.workspace_id,
                 api_id=client.api_id,
                 rate_limit_bucket_size=client.rate_limit_bucket_size,
