@@ -79,6 +79,7 @@ def setup():
             workspace_id=internal_workspace.id,
             for_workspace_id=root_workspace.id,
             api_id=internal_api.id,
+            version=2,
         )
     )
 
@@ -97,6 +98,7 @@ def setup():
             rate_limit_bucket_size=10,
             rate_limit_refill_amount=2,
             rate_limit_refill_interval=200,
+            version=2,
         )
     )
 
@@ -108,6 +110,7 @@ def setup():
             rate_limit_bucket_size=10,
             rate_limit_refill_amount=2,
             rate_limit_refill_interval=200,
+            version=2,
         )
     )
 
@@ -116,6 +119,7 @@ def setup():
             name="test",
             workspace_id=root_workspace.id,
             api_id=root_api.id,
+            version=2,
         )
     )
 
