@@ -37,7 +37,10 @@ def test_should_reject_if_invalid_client(setup: SetupResult):
 
     response = client.post("/v1/internal.createRootClient", json=data, headers=headers)
 
-    assert response.status_code == 401
+    response_json = response.json()
+
+    assert response.status_code == 403
+    assert response_json["detail"] == "Forbidden"
 
 
 def test_should_reject_if_invalid_body(setup: SetupResult):

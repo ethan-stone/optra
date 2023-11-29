@@ -7,7 +7,7 @@ from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 from loguru import logger
-from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from .db import ClientsCache, Db, get_clients_cache, get_db
 from .environment import Env, get_env
@@ -16,7 +16,10 @@ from .token_bucket import Buckets, TokenBucket, get_token_buckets
 
 
 class TokenAuthorizeError(Exception):
-    pass
+    reason: InvalidReasons
+
+    def __init__(self, reason: InvalidReasons):
+        self.reason = reason
 
 
 class OAuth2ClientCredentialsBearer(OAuth2):
@@ -72,7 +75,11 @@ def internal_authorizer(
 
         if payload.sub != env.internal_client_id:
             logger.info("jwt sub does not match internal client id")
-            raise TokenAuthorizeError("Invalid client")
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Forbidden",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
         logger.info("jwt sub matches internal client id")
 
@@ -82,28 +89,42 @@ def internal_authorizer(
 
         if payload.version != client.version:
             logger.info("jwt version does not match client version")
-            raise TokenAuthorizeError("Invalid version")
+            raise TokenAuthorizeError(InvalidReasons.VERSION_MISMATCH)
 
         if (
             payload.secret_expires_at is not None
             and payload.secret_expires_at < datetime.utcnow()
         ):
             logger.info("the secret used to created this jwt has expired")
-            raise TokenAuthorizeError("Invalid secret")
+            raise TokenAuthorizeError(InvalidReasons.SECRET_EXPIRED)
 
         return payload
+
+    except jwt.exceptions.ExpiredSignatureError as pyjwt_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=InvalidReasons.EXPIRED,
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from pyjwt_error
+
+    except jwt.exceptions.InvalidSignatureError as pyjwt_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=InvalidReasons.INVALID_SIGNATURE,
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from pyjwt_error
 
     except jwt.exceptions.PyJWTError as pyjwt_error:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
-            detail="Failed to authorize token",
+            detail=InvalidReasons.BAD_JWT,
             headers={"WWW-Authenticate": "Bearer"},
         ) from pyjwt_error
 
     except TokenAuthorizeError as token_authorize_error:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
-            detail="Failed to authorize token",
+            detail=token_authorize_error.reason,
             headers={"WWW-Authenticate": "Bearer"},
         ) from token_authorize_error
 
@@ -122,15 +143,15 @@ def root_authorizer(
 
         if not client:
             raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Failed to authorize token",
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Forbidden",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
         if client.for_workspace_id is None:
             raise HTTPException(
-                status_code=HTTP_401_UNAUTHORIZED,
-                detail="Failed to authorize token",
+                status_code=HTTP_403_FORBIDDEN,
+                detail="Forbidden",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
@@ -142,28 +163,42 @@ def root_authorizer(
 
         if payload.version != client.version:
             logger.info("jwt version does not match client version")
-            raise TokenAuthorizeError("JWT is an old version. Please refresh.")
+            raise TokenAuthorizeError(InvalidReasons.VERSION_MISMATCH)
 
         if (
             payload.secret_expires_at is not None
             and payload.secret_expires_at < datetime.utcnow()
         ):
             logger.info("the secret used to created this jwt has expired")
-            raise TokenAuthorizeError("Secret used to created this jwt has expired.")
+            raise TokenAuthorizeError(InvalidReasons.SECRET_EXPIRED)
 
         return payload
+
+    except jwt.exceptions.ExpiredSignatureError as pyjwt_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=InvalidReasons.EXPIRED,
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from pyjwt_error
+
+    except jwt.exceptions.InvalidSignatureError as pyjwt_error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=InvalidReasons.INVALID_SIGNATURE,
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from pyjwt_error
 
     except jwt.exceptions.PyJWTError as pyjwt_error:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
-            detail="Failed to authorize token",
+            detail=InvalidReasons.BAD_JWT,
             headers={"WWW-Authenticate": "Bearer"},
         ) from pyjwt_error
 
     except TokenAuthorizeError as token_authorize_error:
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED,
-            detail="Failed to authorize token",
+            detail=token_authorize_error.reason,
             headers={"WWW-Authenticate": "Bearer"},
         ) from token_authorize_error
 
@@ -194,14 +229,18 @@ def basic_authorizer(
 
         if payload.version != client.version:
             logger.info("jwt version does not match client version")
-            raise TokenAuthorizeError("Invalid version")
+            return BasicAuthorizerResult(
+                valid=False, reason=InvalidReasons.VERSION_MISMATCH
+            )
 
         if (
             payload.secret_expires_at is not None
             and payload.secret_expires_at < datetime.utcnow()
         ):
             logger.info("the secret used to created this jwt has expired")
-            raise TokenAuthorizeError("Invalid secret")
+            return BasicAuthorizerResult(
+                valid=False, reason=InvalidReasons.SECRET_EXPIRED
+            )
 
         if client.rate_limit_bucket_size is None:
             return BasicAuthorizerResult(valid=True)
