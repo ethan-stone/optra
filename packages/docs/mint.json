@@ -72,11 +72,11 @@
       "pages": [
         {
           "group": "APIs",
-          "pages": ["api-references/apis/create"]
+          "pages": ["api-reference/apis/create"]
         },
         {
           "group": "Clients",
-          "pages": ["api-references/clients/create"]
+          "pages": ["api-reference/clients/create"]
         }
       ]
     }
