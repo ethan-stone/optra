@@ -5,7 +5,12 @@ The root authorizer function is reused across a number of api calls, so we just 
 to pick one api call to test. In this case apis.createApi is used.
 """
 
+import datetime
+
+import jwt
+
 from ..main import TokenResponse
+from ..schemas import JwtPayload
 from .conftest import SetupResult, client
 
 
@@ -48,3 +53,31 @@ def test_should_reject_if_not_root_client(setup: SetupResult):
 
     assert response.status_code == 403
     assert response_json["detail"] == "Forbidden"
+
+
+def test_should_reject_if_version_mismatch(setup: SetupResult):
+    # manually make token that is version 0
+    jwt_payload = JwtPayload(
+        sub=setup.internal_client.id,
+        exp=datetime.datetime.now() + datetime.timedelta(days=1),
+        iat=datetime.datetime.now(),
+        version=0,
+    )
+
+    token = jwt.encode(jwt_payload.model_dump(), "jwt_secret", algorithm="HS256")
+
+    data = {
+        "name": "test",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
+    response = client.post("/v1/apis.createApi", json=data, headers=headers)
+
+    response_json = response.json()
+
+    assert response.status_code == 401
+    assert response_json["detail"] == "VERSION_MISMATCH"
+    assert response_json["detail"] == "VERSION_MISMATCH"
