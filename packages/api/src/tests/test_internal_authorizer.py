@@ -26,7 +26,63 @@ def test_should_reject_if_invalid_jwt():
 
     response = client.post("/v1/internal.createRootClient", json=data, headers=headers)
 
+    response_json = response.json()
+
     assert response.status_code == 401
+    assert response_json["detail"] == "BAD_JWT"
+
+
+def test_should_reject_if_expired_jwt(setup: SetupResult):
+    jwt_payload = JwtPayload(
+        sub=setup.internal_client.id,
+        exp=datetime.datetime.now() - datetime.timedelta(days=1),
+        iat=datetime.datetime.now(),
+        version=1,
+    )
+
+    token = jwt.encode(jwt_payload.model_dump(), "jwt_secret", algorithm="HS256")
+
+    data = {
+        "name": "test",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
+    response = client.post("/v1/apis.createApi", json=data, headers=headers)
+
+    response_json = response.json()
+
+    assert response.status_code == 401
+    assert response_json["detail"] == "EXPIRED"
+
+
+def test_should_reject_if_invalid_signature(setup: SetupResult):
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": setup.internal_client.id,
+        "client_secret": setup.internal_client.secret,
+    }
+
+    token_response = client.post("/oauth/token", json=data)
+
+    token = TokenResponse(**token_response.json())
+
+    data = {
+        "name": "test",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token.access_token}randomcharacters",
+    }
+
+    response = client.post("/v1/apis.createApi", json=data, headers=headers)
+
+    response_json = response.json()
+
+    assert response.status_code == 401
+    assert response_json["detail"] == "INVALID_SIGNATURE"
 
 
 def test_should_reject_if_invalid_client(setup: SetupResult):
