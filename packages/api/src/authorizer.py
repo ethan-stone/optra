@@ -93,7 +93,7 @@ def internal_authorizer(
 
         if (
             payload.secret_expires_at is not None
-            and payload.secret_expires_at < datetime.utcnow()
+            and payload.secret_expires_at < datetime.utcnow().timestamp()
         ):
             logger.info("the secret used to created this jwt has expired")
             raise TokenAuthorizeError(InvalidReasons.SECRET_EXPIRED)
@@ -235,7 +235,7 @@ def basic_authorizer(
 
         if (
             payload.secret_expires_at is not None
-            and payload.secret_expires_at < datetime.utcnow()
+            and payload.secret_expires_at < datetime.utcnow().timestamp()
         ):
             logger.info("the secret used to created this jwt has expired")
             return BasicAuthorizerResult(

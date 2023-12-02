@@ -82,8 +82,8 @@ class JwtPayload(BaseModel):
     exp: datetime.datetime
     version: int
     secret_expires_at: Optional[
-        datetime.datetime
-    ] = None  # this is used for when secrets are rotated and the old secret has an expiration date
+        int
+    ] = None  # this is used for when secrets are rotated and the old secret has an expiration date. It is a float representing the number of seconds since the epoch. The "jwt" package does not automatically parse it as a datetime like "exp" and "iat"
 
 
 class Workspace(BaseModel):

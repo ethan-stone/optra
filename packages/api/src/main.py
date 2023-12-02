@@ -354,7 +354,9 @@ async def oauth_token(
         iat=now,
         exp=now + datetime.timedelta(days=1),
         version=client.version,
-        secret_expires_at=matched_client_secret.expires_at,
+        secret_expires_at=int(matched_client_secret.expires_at.timestamp())
+        if matched_client_secret.expires_at is not None
+        else None,
     )
 
     token = jwt.encode(

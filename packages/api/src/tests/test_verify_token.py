@@ -188,3 +188,56 @@ def test_should_be_valid_if_rate_limit_not_exceeded(setup: SetupResult):
 
     assert response.status_code == 200
     assert response_json["valid"] is True
+
+
+def test_should_be_invalid_if_version_mismatch(setup: SetupResult):
+    jwt_payload = JwtPayload(
+        sub=setup.basic_client_without_rate_limit.id,
+        exp=datetime.datetime.utcnow() + datetime.timedelta(days=1),
+        iat=datetime.datetime.utcnow(),
+        version=0,
+    )
+
+    token = jwt.encode(jwt_payload.model_dump(), "jwt_secret", algorithm="HS256")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
+    response = client.post(
+        "/v1/tokens.verifyToken", headers=headers, json={"token": "wef"}
+    )
+
+    response_json = response.json()
+
+    assert response.status_code == 200
+    assert response_json["valid"] is False
+    assert response_json["reason"] == "VERSION_MISMATCH"
+
+
+def test_should_be_invalid_if_secret_expired(setup: SetupResult):
+    jwt_payload = JwtPayload(
+        sub=setup.basic_client_without_rate_limit.id,
+        exp=datetime.datetime.now() + datetime.timedelta(days=1),
+        iat=datetime.datetime.now(),
+        version=2,
+        secret_expires_at=int(
+            (datetime.datetime.now() - datetime.timedelta(days=1)).timestamp()
+        ),
+    )
+
+    token = jwt.encode(jwt_payload.model_dump(), "jwt_secret", algorithm="HS256")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
+    response = client.post(
+        "/v1/tokens.verifyToken", headers=headers, json={"token": "wef"}
+    )
+
+    response_json = response.json()
+
+    assert response.status_code == 200
+    assert response_json["valid"] is False
+    assert response_json["reason"] == "SECRET_EXPIRED"
