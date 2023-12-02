@@ -1,3 +1,5 @@
 *.env
 
 sql_app.db
+
+.coverage
