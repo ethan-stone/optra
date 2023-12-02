@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 
 import jwt
@@ -98,8 +98,8 @@ def test_should_be_invalid_if_not_found(setup: SetupResult):
     # token signed with correct secret but for a client that doesn't exist
     jwt_payload = JwtPayload(
         sub="fake client",
-        exp=datetime.datetime.now() + datetime.timedelta(days=1),
-        iat=datetime.datetime.now(),
+        exp=datetime.now(timezone.utc) + timedelta(days=1),
+        iat=datetime.now(timezone.utc),
         version=1,
     )
 
@@ -193,8 +193,8 @@ def test_should_be_valid_if_rate_limit_not_exceeded(setup: SetupResult):
 def test_should_be_invalid_if_version_mismatch(setup: SetupResult):
     jwt_payload = JwtPayload(
         sub=setup.basic_client_without_rate_limit.id,
-        exp=datetime.datetime.utcnow() + datetime.timedelta(days=1),
-        iat=datetime.datetime.utcnow(),
+        exp=datetime.now(timezone.utc) + timedelta(days=1),
+        iat=datetime.now(timezone.utc),
         version=0,
     )
 
@@ -218,11 +218,11 @@ def test_should_be_invalid_if_version_mismatch(setup: SetupResult):
 def test_should_be_invalid_if_secret_expired(setup: SetupResult):
     jwt_payload = JwtPayload(
         sub=setup.basic_client_without_rate_limit.id,
-        exp=datetime.datetime.now() + datetime.timedelta(days=1),
-        iat=datetime.datetime.now(),
+        exp=datetime.now(timezone.utc) + timedelta(days=1),
+        iat=datetime.now(timezone.utc),
         version=2,
         secret_expires_at=int(
-            (datetime.datetime.now() - datetime.timedelta(days=1)).timestamp()
+            (datetime.now(timezone.utc) - timedelta(days=1)).timestamp()
         ),
     )
 

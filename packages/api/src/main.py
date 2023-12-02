@@ -1,11 +1,11 @@
 import asyncio
 import base64
-import datetime
 import hashlib
 import json
 import sys
 import time
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from logging import NOTSET, Handler, LogRecord
 from typing import Annotated, List
@@ -184,13 +184,13 @@ async def logger_middleware(request: Request, call_next):
         path=request.url.path,
         method=request.method,
     ):
-        start_timestamp = int(datetime.datetime.now().timestamp() * 1000)
+        start_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
 
         logger.info(f"begin request {request_id}")
 
         response = await call_next(request)
 
-        end_timestamp = int(datetime.datetime.now().timestamp() * 1000)
+        end_timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
 
         logger.bind(
             status_code=response.status_code,
@@ -347,12 +347,12 @@ async def oauth_token(
 
     logger.info(f"found matching secret for client {client.id}")
 
-    now = datetime.datetime.now()
+    now = datetime.now(timezone.utc)
 
     payload = JwtPayload(
         sub=client.id,
         iat=now,
-        exp=now + datetime.timedelta(days=1),
+        exp=now + timedelta(days=1),
         version=client.version,
         secret_expires_at=int(matched_client_secret.expires_at.timestamp())
         if matched_client_secret.expires_at is not None
@@ -370,6 +370,6 @@ async def oauth_token(
     return TokenResponse(
         access_token=token,
         token_type="bearer",
-        expires_in=datetime.timedelta(days=1).total_seconds(),
+        expires_in=timedelta(days=1).total_seconds(),
         scope=None,
     )

@@ -1,6 +1,6 @@
-import datetime
 import hashlib
 import uuid
+from datetime import datetime, timezone
 from typing import Iterator, Protocol
 
 from sqlalchemy import Column, DateTime, Integer, String, create_engine
@@ -30,6 +30,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+def get_utc_now():
+    return datetime.now(timezone.utc)
+
+
 class DbClient(Base):
     __tablename__ = "clients"
 
@@ -42,7 +46,7 @@ class DbClient(Base):
     rate_limit_bucket_size = Column(Integer)
     rate_limit_refill_amount = Column(Integer)
     rate_limit_refill_interval = Column(Integer)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 
 class DbClientSecret(Base):
@@ -52,7 +56,7 @@ class DbClientSecret(Base):
     secret = Column(String, unique=True, nullable=False)
     status = Column(String, default="active", nullable=False)  # active, inactive
     expires_at = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 
 class DbWorkspace(Base):
@@ -60,8 +64,8 @@ class DbWorkspace(Base):
 
     id = Column(String, primary_key=True, index=True, nullable=False)
     name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
+    updated_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 
 class DbApi(Base):
@@ -69,8 +73,8 @@ class DbApi(Base):
     id = Column(String, primary_key=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     workspace_id = Column(String, index=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
+    updated_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 
 class DbApiScope(Base):
@@ -84,7 +88,7 @@ class DbApiScope(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=False)
     api_id = Column(String, index=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 
 class ClientScope(Base):
@@ -97,7 +101,7 @@ class ClientScope(Base):
     id = Column(String, primary_key=True, index=True, nullable=False)
     client_id = Column(String, index=True, nullable=False)
     scope_id = Column(String, index=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=get_utc_now, nullable=False)
 
 
 class Db(Protocol):

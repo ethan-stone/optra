@@ -5,7 +5,7 @@ The root authorizer function is reused across a number of api calls, so we just 
 to pick one api call to test. In this case apis.createApi is used.
 """
 
-import datetime
+from datetime import datetime, timedelta, timezone
 
 import jwt
 
@@ -34,8 +34,8 @@ def test_should_reject_if_invalid_jwt():
 def test_should_reject_if_expired_jwt(setup: SetupResult):
     jwt_payload = JwtPayload(
         sub=setup.root_client.id,
-        exp=datetime.datetime.now() - datetime.timedelta(days=1),
-        iat=datetime.datetime.now(),
+        exp=datetime.now(timezone.utc) - timedelta(days=1),
+        iat=datetime.now(timezone.utc),
         version=1,
     )
 
@@ -115,8 +115,8 @@ def test_should_reject_if_version_mismatch(setup: SetupResult):
     # manually make token that is version 0
     jwt_payload = JwtPayload(
         sub=setup.root_client.id,
-        exp=datetime.datetime.now() + datetime.timedelta(days=1),
-        iat=datetime.datetime.now(),
+        exp=datetime.now(timezone.utc) + timedelta(days=1),
+        iat=datetime.now(timezone.utc),
         version=0,
     )
 

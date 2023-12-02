@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -8,7 +8,7 @@ class TokenBucket:
     refill_amount: int
     refill_interval: int
     tokens: int
-    last_refill_time: datetime = datetime.now()
+    last_refill_time: datetime = datetime.now(timezone.utc)
 
     def __post_init__(self):
         if self.tokens is None:
@@ -26,7 +26,7 @@ class TokenBucket:
         return False
 
     def calculate_new_tokens(self) -> int:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         time_passed = now - self.last_refill_time
         new_tokens = (
             (time_passed.total_seconds() * 1000)

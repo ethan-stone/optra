@@ -1,5 +1,5 @@
-import datetime
 import json
+from datetime import datetime, timezone
 
 import redis
 
@@ -14,7 +14,7 @@ def main():
             "event_type": "secret.rotated",
             "data": {"id": "123"},
             "id": "123",
-            "timestamp": datetime.datetime.now().timestamp(),
+            "timestamp": datetime.now(timezone.utc).timestamp(),
         }
     )
 
