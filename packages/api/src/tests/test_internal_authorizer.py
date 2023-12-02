@@ -137,3 +137,33 @@ def test_should_reject_if_version_mismatch(setup: SetupResult):
 
     assert response.status_code == 401
     assert response_json["detail"] == "VERSION_MISMATCH"
+
+
+def test_should_reject_if_secret_expired(setup: SetupResult):
+    # manually make token that is version 0
+    jwt_payload = JwtPayload(
+        sub=setup.internal_client.id,
+        exp=datetime.now(timezone.utc) + timedelta(days=1),
+        iat=datetime.now(timezone.utc),
+        version=1,
+        secret_expires_at=int(
+            (datetime.now(timezone.utc) - timedelta(days=1)).timestamp()
+        ),
+    )
+
+    token = jwt.encode(jwt_payload.model_dump(), "jwt_secret", algorithm="HS256")
+
+    data = {
+        "name": "test",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
+    response = client.post("/v1/internal.createRootClient", json=data, headers=headers)
+
+    response_json = response.json()
+
+    assert response.status_code == 401
+    assert response_json["detail"] == "SECRET_EXPIRED"
