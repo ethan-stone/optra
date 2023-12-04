@@ -25,6 +25,7 @@ from .schemas import (
     BasicClientCreateParams,
     BasicClientCreateReqBody,
     ClientCreateResult,
+    ClientSecretCreateResult,
     RootClientCreateParams,
     RootClientCreateReqBody,
     RotateClientSecretParams,
@@ -145,13 +146,13 @@ def create_basic_client(
     return basic_client
 
 
-@v1.post("/clients.rotateSecret", response_model=BasicAuthorizerResult)
+@v1.post("/clients.rotateSecret", response_model=ClientSecretCreateResult)
 def rotate_secret(
     params: Annotated[RotateClientSecretReqBody, Body()],
     db: Annotated[Db, Depends(get_db)],
     jwt: Annotated[JwtPayload, Depends(root_authorizer)],
 ):
-    secrets = db.get_client_secrets_by_client_id(params.id)
+    secrets = db.get_client_secrets_by_client_id(params.client_id)
 
     # validation of number of secrets that should exist
     if len(secrets) == 2:
