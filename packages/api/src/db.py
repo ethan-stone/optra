@@ -15,7 +15,9 @@ from .schemas import (
     Client,
     ClientCreateResult,
     ClientSecret,
+    ClientSecretCreateResult,
     RootClientCreateParams,
+    RotateClientSecretParams,
     Workspace,
     WorkspaceCreateParams,
     WorkspaceCreateResult,
@@ -114,6 +116,11 @@ class Db(Protocol):
     def get_client_secret_value(self, client_id: str) -> str | None:
         ...
 
+    def rotate_client_secret(
+        self, params: RotateClientSecretParams
+    ) -> ClientSecretCreateResult:
+        ...
+
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         ...
 
@@ -167,6 +174,54 @@ class SqlAlchameyDb:
         )
 
         return secret.secret if secret is not None else None
+
+    def rotate_client_secret(
+        self, params: RotateClientSecretParams
+    ) -> ClientSecretCreateResult:
+        secret_id = uuid.uuid4().hex
+        client_secret = uuid.uuid4().hex
+
+        hash = hashlib.sha256()
+        hash.update(client_secret.encode())
+        hashed_secret = hash.hexdigest()
+
+        try:
+            # make new secret
+            db_secret = DbClientSecret(
+                id=secret_id,
+                secret=hashed_secret,
+                client_id=params.client_id,
+            )
+
+            # update expiration of old secret
+            old_secret = (
+                self.session.query(DbClientSecret)
+                .filter(DbClientSecret.client_id == params.client_id)
+                .first()
+            )
+
+            old_secret.expires_at = params.expires_at
+
+            # increment client version
+            client = (
+                self.session.query(DbClient)
+                .filter(DbClient.id == params.client_id)
+                .first()
+            )
+            client.version += 1
+
+            self.session.add(db_secret)
+            self.session.commit()
+            self.session.refresh(db_secret)
+
+            secret_dict = db_secret.__dict__
+            secret_dict["secret"] = client_secret
+
+            return ClientSecretCreateResult(**secret_dict)
+
+        except:
+            self.session.rollback()
+            raise
 
     def create_root_client(self, client: RootClientCreateParams) -> ClientCreateResult:
         client_id = uuid.uuid4().hex

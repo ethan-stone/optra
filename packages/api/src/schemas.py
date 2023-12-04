@@ -40,8 +40,24 @@ class ClientSecret(BaseModel):
     created_at: datetime.datetime
 
 
+class ClientSecretCreateResult(ClientSecret):
+    secret: str
+
+
 class ClientCreateResult(Client):
     secret: str
+
+
+class RotateClientSecretParams(BaseModel):
+    client_id: str  # client of the secret to rotate
+    expires_at: Optional[datetime.datetime] = None  # expiration date of the old secret
+
+
+class RotateClientSecretReqBody(BaseModel):
+    client_id: str  # client of the secret to rotate
+    expires_at: Optional[
+        int
+    ] = None  # expiration date of the old secret in seconds since the epoch
 
 
 class BasicClientCreateParams(BaseModel):

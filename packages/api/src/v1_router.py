@@ -3,7 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_403_FORBIDDEN,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
 
 from .authorizer import (
     JwtPayload,
@@ -23,6 +27,8 @@ from .schemas import (
     ClientCreateResult,
     RootClientCreateParams,
     RootClientCreateReqBody,
+    RotateClientSecretParams,
+    RotateClientSecretReqBody,
     WorkspaceCreateParams,
     WorkspaceCreateResult,
 )
@@ -137,6 +143,70 @@ def create_basic_client(
     logger.info(f"created basic client {basic_client.id}")
 
     return basic_client
+
+
+@v1.post("/clients.rotateSecret", response_model=BasicAuthorizerResult)
+def rotate_secret(
+    params: Annotated[RotateClientSecretReqBody, Body()],
+    db: Annotated[Db, Depends(get_db)],
+    jwt: Annotated[JwtPayload, Depends(root_authorizer)],
+):
+    secrets = db.get_client_secrets_by_client_id(params.id)
+
+    # validation of number of secrets that should exist
+    if len(secrets) == 2:
+        raise HTTPException(
+            HTTP_400_BAD_REQUEST,
+            detail="This client already has 2 secrets. First delete a secret before ",
+        )
+
+    if len(secrets) == 0:
+        logger.error(
+            "Client {params.id} has no secrets to rotate. This should never happen."
+        )
+        raise HTTPException(
+            HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An internal error occurred. Please try again later.",
+        )
+
+    old_secret = secrets[0]
+
+    root_client = db.get_client(jwt.sub)
+
+    # validation of root client
+    if root_client is None:
+        logger.error(f"Somehow jwt sub ${jwt.sub} is not a client that exists")
+        raise HTTPException(
+            HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An internal error occurred. Please try again later.",
+        )
+
+    secret_client = db.get_client(old_secret.client_id)
+
+    # validation of secret client
+    if secret_client is None:
+        logger.error(f"Somehow secret client {old_secret.client_id} does not exist")
+        raise HTTPException(
+            HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An internal error occurred. Please try again later.",
+        )
+
+    # validation that the root client has access to the secret client
+    if secret_client.workspace_id != root_client.for_workspace_id:
+        raise HTTPException(
+            HTTP_403_FORBIDDEN,
+            detail="You do not have permission to rotate this client's secret",
+        )
+
+    # rotate secret and create new secret
+    secret = db.rotate_client_secret(
+        RotateClientSecretParams(
+            client_id=params.client_id,
+            expires_at=params.expires_at,
+        )
+    )
+
+    return secret
 
 
 @v1.post("/tokens.verifyToken", response_model=BasicAuthorizerResult)
