@@ -11,16 +11,16 @@ def main():
 
     event = SecretEvent(
         event={
-            "event_type": "secret.rotated",
+            "event_type": "client.secret.rotated",
             "data": {"id": "123"},
             "id": "123",
             "timestamp": datetime.now(timezone.utc).timestamp(),
         }
     )
 
-    redis_client.publish("secret.rotated", json.dumps(event.event.model_dump()))
+    redis_client.publish("clients", json.dumps(event.event.model_dump()))
 
-    print("published message to redis channel secret.rotated")
+    print("published message to redis channel clients")
 
     redis_client.close()
 

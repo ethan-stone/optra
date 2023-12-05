@@ -132,6 +132,7 @@ def setup():
             internal_workspace_id=internal_workspace.id,
             logflare_api_key="logflare_api_key",
             logflare_source_id="logflare_source_id",
+            redis_url="redis://localhost:6379",
         )
 
     app.dependency_overrides[get_env] = override_get_env

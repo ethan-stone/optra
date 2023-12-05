@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Query
 from loguru import logger
 from starlette.status import (
     HTTP_400_BAD_REQUEST,
@@ -17,6 +17,7 @@ from .authorizer import (
 )
 from .db import Db, get_db
 from .environment import Env, get_env
+from .pubsub import Publisher, get_publisher
 from .schemas import (
     ApiCreateParams,
     ApiCreateReqBody,
@@ -170,7 +171,9 @@ def get_basic_client(
 def rotate_secret(
     params: Annotated[RotateClientSecretReqBody, Body()],
     db: Annotated[Db, Depends(get_db)],
+    publisher: Annotated[Publisher, Depends(get_publisher)],
     jwt: Annotated[JwtPayload, Depends(root_authorizer)],
+    background_tasks: BackgroundTasks,
 ):
     secrets = db.get_client_secrets_by_client_id(params.client_id)
 
@@ -226,6 +229,8 @@ def rotate_secret(
             expires_at=params.expires_at,
         )
     )
+
+    background_tasks.add_task(publisher.send_secret_rotated, secret_client)
 
     return secret
 

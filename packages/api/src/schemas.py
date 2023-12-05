@@ -173,12 +173,12 @@ class BaseEvent(BaseModel):
     timestamp: float
 
 
-class SecretRotatedEventData(BaseModel):
-    id: str
+class SecretRotatedEventData(Client):
+    created_at: float  # override the default datetime.datetime type to be a float representing the number of seconds since the epoch
 
 
 class SecretRotatedEvent(BaseEvent):
-    event_type: Literal["secret.rotated"]
+    event_type: Literal["client.secret.rotated"]
     data: SecretRotatedEventData
 
 

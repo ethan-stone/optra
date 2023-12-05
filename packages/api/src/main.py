@@ -143,7 +143,7 @@ async def handle_secret_rotated(channel: AsyncPubSub):
                 print(msg)
 
             except ValidationError:
-                logger.error("Received invalid secret.rotated event format")
+                logger.error("Received invalid client.secret.rotated event format")
 
 
 redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
@@ -152,7 +152,7 @@ redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     pubsub = redis_client.pubsub()
-    await pubsub.subscribe("secret.rotated")
+    await pubsub.subscribe("clients")
 
     reader_task = asyncio.create_task(handle_secret_rotated(pubsub))
 

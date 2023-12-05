@@ -15,6 +15,7 @@ class Env(BaseModel):
     debug: bool = True
     logflare_api_key: str
     logflare_source_id: str
+    redis_url: str
 
 
 env = Env(
@@ -26,6 +27,7 @@ env = Env(
     debug=os.environ.get("DEBUG", "true").lower() == "true",
     logflare_api_key=os.environ.get("LOGFLARE_API_KEY"),
     logflare_source_id=os.environ.get("LOGFLARE_SOURCE_ID"),
+    redis_url=os.environ.get("REDIS_URL"),
 )
 
 
