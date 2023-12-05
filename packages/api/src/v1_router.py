@@ -1,11 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from loguru import logger
-from pydantic import BaseModel
 from starlette.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
@@ -24,6 +24,7 @@ from .schemas import (
     BasicAuthorizerResult,
     BasicClientCreateParams,
     BasicClientCreateReqBody,
+    Client,
     ClientCreateResult,
     ClientSecretCreateResult,
     RootClientCreateParams,
@@ -35,10 +36,6 @@ from .schemas import (
 )
 
 v1 = APIRouter(prefix="/v1")
-
-
-class ClientParams(BaseModel):
-    name: str
 
 
 @v1.post("/internal.createRootClient", response_model=ClientCreateResult)
@@ -142,6 +139,29 @@ def create_basic_client(
     )
 
     logger.info(f"created basic client {basic_client.id}")
+
+    return basic_client
+
+
+@v1.get("/clients.getClient", response_model=Client)
+def get_basic_client(
+    db: Annotated[Db, Depends(get_db)],
+    jwt: Annotated[JwtPayload, Depends(root_authorizer)],
+    client_id: Annotated[str, Query()],
+):
+    root_client = db.get_client(jwt.sub)
+
+    if root_client is None:
+        logger.error(f"Somehow jwt sub ${jwt.sub} is not a client that exists")
+        raise HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR)
+
+    basic_client = db.get_client(client_id)
+
+    if basic_client is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Client not found")
+
+    if basic_client.workspace_id != root_client.for_workspace_id:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Client not found")
 
     return basic_client
 
