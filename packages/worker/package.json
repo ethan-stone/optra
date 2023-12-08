@@ -14,7 +14,11 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.9.3",
+    "@optra/db": "workspace:^",
+    "@planetscale/database": "^1.11.0",
+    "drizzle-orm": "^0.29.1",
     "hono": "^3.11.3",
+    "nanoid": "^5.0.4",
     "zod": "^3.22.4"
   }
 }

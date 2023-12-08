@@ -1,5 +1,8 @@
 import { App } from '@/app';
 import { createRoute, z } from '@hono/zod-openapi';
+import { db } from '@/root';
+import { schema } from '@/db';
+import { uid } from '@/uid';
 
 const route = createRoute({
 	method: 'get',
@@ -10,7 +13,7 @@ const route = createRoute({
 			content: {
 				'application/json': {
 					schema: z.object({
-						message: z.string(),
+						id: z.string(),
 					}),
 				},
 			},
@@ -20,8 +23,17 @@ const route = createRoute({
 
 export const addExample = (app: App) => {
 	app.openapi(route, async (c) => {
+		const id = uid('ws');
+
+		await db.insert(schema.workspaces).values({
+			id: id,
+			name: 'Hello world',
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+
 		return c.json({
-			message: 'Hello world',
+			id,
 		});
 	});
 };
