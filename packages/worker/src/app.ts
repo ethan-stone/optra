@@ -1,8 +1,13 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { prettyJSON } from 'hono/pretty-json';
+import { Env } from './env';
+
+export type HonoEnv = {
+	Bindings: Env;
+};
 
 export function createApp() {
-	const app = new OpenAPIHono({});
+	const app = new OpenAPIHono<HonoEnv>({});
 
 	app.use(prettyJSON());
 

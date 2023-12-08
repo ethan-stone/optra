@@ -35,6 +35,6 @@ export default {
 			dbUrl: env.DRIZZLE_DATABASE_URL,
 		});
 
-		return app.fetch(request, {}, ctx);
+		return app.fetch(request, parsedEnv, ctx);
 	},
 };
