@@ -1,6 +1,6 @@
-import { createConnection } from '@/db';
+import { createConnection, Db, PlanetScaleDb } from '@/db';
 
-export let db: ReturnType<typeof createConnection>;
+export let db: Db;
 
 let hasInitialized = false;
 
@@ -9,7 +9,9 @@ export function initialize(env: { dbUrl: string }) {
 		return;
 	}
 
-	db = createConnection(env.dbUrl);
+	const conn = createConnection(env.dbUrl);
+
+	db = new PlanetScaleDb(conn);
 
 	hasInitialized = true;
 }

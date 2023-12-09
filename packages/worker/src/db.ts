@@ -1,6 +1,11 @@
 import { schema } from '@optra/db';
 import { connect } from '@planetscale/database';
-import { drizzle } from 'drizzle-orm/planetscale-serverless';
+import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
+import { InferSelectModel, InferInsertModel, eq } from 'drizzle-orm';
+import { uid } from './uid';
+
+export * from 'drizzle-orm';
+export * from '@optra/db';
 
 export function createConnection(url: string) {
 	const connection = connect({
@@ -16,5 +21,153 @@ export function createConnection(url: string) {
 	});
 }
 
-export * from 'drizzle-orm';
-export * from '@optra/db';
+type InsertClientModel = InferInsertModel<(typeof schema)['clients']>;
+
+type Client = InferSelectModel<(typeof schema)['clients']>;
+type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
+type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'>;
+type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
+type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
+type CreateApiParams = Omit<InsertApiModel, 'id'>;
+type Api = InferSelectModel<(typeof schema)['apis']>;
+type Workspace = InferSelectModel<(typeof schema)['workspaces']>;
+type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
+type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
+
+export interface Db {
+	getClientById(id: string): Promise<Client | null>;
+	getClientSecretsByClientId(clientId: string): Promise<ClientSecret[]>;
+	getClientSecretValueById(secretId: string): Promise<string | null>;
+	createRootClient(params: CreateRootClientParams): Promise<{ id: string }>;
+	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string }>;
+	createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }>;
+	getWorkspaceById(id: string): Promise<Workspace | null>;
+	createApi(params: CreateApiParams): Promise<{ id: string }>;
+	getApiById(id: string): Promise<Api | null>;
+}
+
+export class PlanetScaleDb implements Db {
+	constructor(private readonly db: PlanetScaleDatabase<typeof schema>) {}
+
+	async getClientById(id: string) {
+		const client = await this.db.query.clients.findFirst({
+			where: eq(schema.clients.id, id),
+		});
+
+		return client ?? null;
+	}
+
+	async getClientSecretsByClientId(clientId: string) {
+		const secrets = await this.db.query.clientSecrets.findMany({
+			where: eq(schema.clientSecrets.clientId, clientId),
+			columns: {
+				secret: false,
+			},
+		});
+
+		return secrets;
+	}
+
+	async getClientSecretValueById(id: string): Promise<string | null> {
+		const secrets = await this.db.query.clientSecrets.findFirst({
+			where: eq(schema.clientSecrets.id, id),
+			columns: {
+				secret: true,
+			},
+		});
+
+		return secrets?.secret ?? null;
+	}
+
+	async createRootClient(params: CreateRootClientParams): Promise<{ id: string }> {
+		const clientId = uid('client');
+		const secretId = uid('client_secret');
+		const secretValue = uid();
+
+		await this.db.transaction(async (tx) => {
+			await tx.insert(schema.clients).values({
+				id: clientId,
+				...params,
+			});
+
+			await tx.insert(schema.clientSecrets).values({
+				id: secretId,
+				clientId: clientId,
+				secret: secretValue,
+				status: 'active',
+				createdAt: new Date(),
+			});
+		});
+
+		return {
+			id: clientId,
+		};
+	}
+
+	async createBasicClient(params: CreateBasicClientParams): Promise<{ id: string }> {
+		const clientId = uid('client');
+		const secretId = uid('client_secret');
+		const secretValue = uid();
+
+		await this.db.transaction(async (tx) => {
+			await tx.insert(schema.clients).values({
+				id: clientId,
+				...params,
+			});
+
+			await tx.insert(schema.clientSecrets).values({
+				id: secretId,
+				clientId: clientId,
+				secret: secretValue,
+				status: 'active',
+				createdAt: new Date(),
+			});
+		});
+
+		return {
+			id: clientId,
+		};
+	}
+
+	async createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }> {
+		const workspaceId = uid('ws');
+
+		await this.db.insert(schema.workspaces).values({
+			id: workspaceId,
+			...params,
+		});
+
+		return {
+			id: workspaceId,
+		};
+	}
+
+	async getWorkspaceById(id: string): Promise<Workspace | null> {
+		const workspace = await this.db.query.workspaces.findFirst({
+			where: eq(schema.workspaces.id, id),
+		});
+
+		return workspace ?? null;
+	}
+
+	async createApi(params: CreateApiParams): Promise<{ id: string }> {
+		const apiId = uid('api');
+
+		await this.db.insert(schema.apis).values({
+			id: apiId,
+			...params,
+		});
+
+		return {
+			id: apiId,
+		};
+	}
+
+	async getApiById(id: string): Promise<Api | null> {
+		const api = await this.db.query.apis.findFirst({
+			where: eq(schema.apis.id, id),
+		});
+
+		return api ?? null;
+	}
+}

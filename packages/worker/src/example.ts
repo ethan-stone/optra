@@ -23,10 +23,7 @@ const route = createRoute({
 
 export const addExample = (app: App) => {
 	app.openapi(route, async (c) => {
-		const id = uid('ws');
-
-		await db.insert(schema.workspaces).values({
-			id: id,
+		const { id } = await db.createWorkspace({
 			name: 'Hello world',
 			createdAt: new Date(),
 			updatedAt: new Date(),
