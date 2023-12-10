@@ -1,6 +1,5 @@
 import { schema } from "@optra/db";
-import { connect } from "@planetscale/database";
-import { drizzle } from "drizzle-orm/planetscale-serverless";
+import { PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless";
 import { randomBytes, createHash } from "crypto";
 
 function uid() {
@@ -26,15 +25,7 @@ function generateRandomName() {
 /**
  * This generates an internal workspace and api that represents optra itself
  */
-async function main() {
-  const connection = connect({
-    url: process.env.DRIZZLE_DATABASE_URL as string,
-  });
-
-  const db = drizzle(connection, {
-    schema,
-  });
-
+export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
   const internalWorkspaceId = `ws_` + uid();
 
   await db.insert(schema.workspaces).values({
@@ -91,13 +82,11 @@ async function main() {
     createdAt: new Date(),
   });
 
-  console.log({
+  return {
     OPTRA_WORKSPACE_ID: internalWorkspaceId,
     OPTRA_API_ID: internalApiId,
     WORKSPACE_ID: workspaceId,
     ROOT_CLIENT_ID: rootClientId,
     ROOT_CLIENT_SECRET: rootClientSecretValue,
-  });
+  };
 }
-
-main();

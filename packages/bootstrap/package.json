@@ -4,7 +4,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "bootstrap": "dotenv -e .env ts-node ./src/index.ts"
+    "bootstrap": "dotenv -e .env ts-node ./src/bootstrap.ts"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
