@@ -1,7 +1,6 @@
 import { createApp } from '@/app';
-import { addExample } from './example';
-import { initialize, db } from '@/root';
-import { Env, envSchema } from './env';
+import { initialize } from '@/root';
+import { Env, envSchema } from '@/env';
 import { makeGetOAuthToken } from './v1/get-oauth-token';
 
 /**
@@ -14,10 +13,9 @@ import { makeGetOAuthToken } from './v1/get-oauth-token';
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-const app = createApp();
+export const app = createApp();
 
-addExample(app);
-makeGetOAuthToken(app, db);
+makeGetOAuthToken(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

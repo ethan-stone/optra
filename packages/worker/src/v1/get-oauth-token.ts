@@ -1,13 +1,23 @@
 import { App } from '@/app';
-import { Db, ClientSecret } from '@/db';
+import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
+import { db } from '@/root';
 
 const bodySchema = z.object({
 	clientId: z.string(),
 	clientSecret: z.string(),
 	grantType: z.enum(['client_credentials']),
 });
+
+const res = z.object({
+	accessToken: z.string(),
+	tokenType: z.string(),
+	expiresIn: z.number().int(),
+	scope: z.string().nullable(),
+});
+
+export type GetOAuthTokenRes = z.infer<typeof res>;
 
 const route = createRoute({
 	method: 'post',
@@ -26,12 +36,7 @@ const route = createRoute({
 			description: 'Response from creating an api',
 			content: {
 				'application/json': {
-					schema: z.object({
-						accessToken: z.string(),
-						tokenType: z.string(),
-						expiresIn: z.number().int(),
-						scope: z.string().nullable(),
-					}),
+					schema: res,
 				},
 			},
 		},
@@ -48,7 +53,7 @@ const route = createRoute({
 	},
 });
 
-export function makeGetOAuthToken(app: App, db: Db) {
+export function makeGetOAuthToken(app: App) {
 	app.openapi(route, async (c) => {
 		const { clientId, clientSecret, grantType } = c.req.valid('json');
 
@@ -88,6 +93,8 @@ export function makeGetOAuthToken(app: App, db: Db) {
 		}
 
 		if (matchedClientSecret === null) {
+			console.log('no secret');
+
 			return c.json(
 				{
 					error: 'invalid_request',

@@ -3,6 +3,7 @@ import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
 import { InferSelectModel, InferInsertModel, eq } from 'drizzle-orm';
 import { uid } from './uid';
+import { Env } from './env';
 
 export * from 'drizzle-orm';
 export * from '@optra/db';

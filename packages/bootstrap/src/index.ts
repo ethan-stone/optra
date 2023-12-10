@@ -22,6 +22,14 @@ function generateRandomName() {
   return `${color}${animal}${number}`;
 }
 
+export type BootstrapData = {
+  OPTRA_WORKSPACE_ID: string;
+  OPTRA_API_ID: string;
+  WORKSPACE_ID: string;
+  ROOT_CLIENT_ID: string;
+  ROOT_CLIENT_SECRET: string;
+};
+
 /**
  * This generates an internal workspace and api that represents optra itself
  */
