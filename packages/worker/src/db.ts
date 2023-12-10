@@ -23,16 +23,16 @@ export function createConnection(url: string) {
 
 type InsertClientModel = InferInsertModel<(typeof schema)['clients']>;
 
-type Client = InferSelectModel<(typeof schema)['clients']>;
-type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
-type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'>;
-type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
-type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
-type CreateApiParams = Omit<InsertApiModel, 'id'>;
-type Api = InferSelectModel<(typeof schema)['apis']>;
-type Workspace = InferSelectModel<(typeof schema)['workspaces']>;
-type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
-type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
+export type Client = InferSelectModel<(typeof schema)['clients']>;
+export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
+export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'>;
+export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
+export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
+export type CreateApiParams = Omit<InsertApiModel, 'id'>;
+export type Api = InferSelectModel<(typeof schema)['apis']>;
+export type Workspace = InferSelectModel<(typeof schema)['workspaces']>;
+export type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
+export type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
 
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;

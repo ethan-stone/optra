@@ -1,7 +1,8 @@
 import { createApp } from '@/app';
 import { addExample } from './example';
-import { initialize } from './root';
+import { initialize, db } from '@/root';
 import { Env, envSchema } from './env';
+import { makeGetOAuthToken } from './v1/get-oauth-token';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -16,6 +17,7 @@ import { Env, envSchema } from './env';
 const app = createApp();
 
 addExample(app);
+makeGetOAuthToken(app, db);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -35,6 +37,6 @@ export default {
 			dbUrl: env.DRIZZLE_DATABASE_URL,
 		});
 
-		return app.fetch(request, parsedEnv, ctx);
+		return app.fetch(request, parsedEnv.data, ctx);
 	},
 };
