@@ -11,14 +11,14 @@ export class TokenBucket {
 	constructor(private config: TokenBucketConfig) {}
 
 	getTokens(num: number): boolean {
-		if (this.canConsumer(num)) {
+		if (this.canConsume(num)) {
 			this.config.tokens -= num;
 			return true;
 		}
 		return false;
 	}
 
-	canConsumer(num: number): boolean {
+	canConsume(num: number): boolean {
 		if (this.config.tokens + this.calculateNewTokens() >= num) {
 			return true;
 		}
