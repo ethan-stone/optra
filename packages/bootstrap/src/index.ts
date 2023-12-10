@@ -1,10 +1,10 @@
 import { schema } from "@optra/db";
 import { connect } from "@planetscale/database";
 import { drizzle } from "drizzle-orm/planetscale-serverless";
-import { randomUUID, createHash } from "crypto";
+import { randomBytes, createHash } from "crypto";
 
 function uid() {
-  return randomUUID().replace(/-/g, "");
+  return randomBytes(10).toString("hex");
 }
 
 function generateRandomName() {
