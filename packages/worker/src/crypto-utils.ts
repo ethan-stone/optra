@@ -8,7 +8,9 @@ export async function hashSHA256(data: string): Promise<string> {
 		text
 	);
 
-	return new TextDecoder('utf-8').decode(hashed);
+	const buffer = new Uint8Array(hashed);
+
+	return buffer.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
 }
 
 type JwtPayload = {
