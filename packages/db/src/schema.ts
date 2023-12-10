@@ -19,8 +19,8 @@ export const clients = mysqlTable(
     forWorkspaceId: varchar("for_workspace_id", { length: 36 }),
     apiId: varchar("api_id", { length: 36 }).notNull(),
     rateLimitBucketSize: int("rate_limit_bucket_size"),
-    rateLimitRefillAmount: int("rate_limit_bucket_size"),
-    rateLimitRefillInterval: int("rate_limit_bucket_size"),
+    rateLimitRefillAmount: int("rate_limit_refill_amount"),
+    rateLimitRefillInterval: int("rate_limit_refill_interval"),
     createdAt: datetime("created_at", { fsp: 3 }).notNull(),
   },
   (table) => {
