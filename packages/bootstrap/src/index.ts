@@ -37,7 +37,7 @@ async function main() {
 
   const workspaceId = `ws_` + uid();
 
-  const workspace = await db.insert(schema.workspaces).values({
+  await db.insert(schema.workspaces).values({
     id: workspaceId,
     name: generateRandomName(),
     createdAt: new Date(),
@@ -46,7 +46,7 @@ async function main() {
 
   const apiId = `api_` + uid();
 
-  const api = await db.insert(schema.apis).values({
+  await db.insert(schema.apis).values({
     id: apiId,
     name: generateRandomName(),
     workspaceId: workspaceId,
