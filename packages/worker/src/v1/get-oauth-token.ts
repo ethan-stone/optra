@@ -93,8 +93,6 @@ export function makeGetOAuthToken(app: App) {
 		}
 
 		if (matchedClientSecret === null) {
-			console.log('no secret');
-
 			return c.json(
 				{
 					error: 'invalid_request',
