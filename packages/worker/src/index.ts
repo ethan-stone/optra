@@ -1,7 +1,7 @@
 import { createApp } from '@/app';
 import { initialize, logger } from '@/root';
 import { Env, envSchema } from '@/env';
-import { makeGetOAuthToken } from './v1/get-oauth-token';
+import { makeV1GetOAuthToken } from './v1/get-oauth-token';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -29,7 +29,7 @@ app.use('*', async (c, next) => {
 	}
 });
 
-makeGetOAuthToken(app);
+makeV1GetOAuthToken(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

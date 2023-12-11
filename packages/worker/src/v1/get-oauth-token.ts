@@ -53,7 +53,7 @@ const route = createRoute({
 	},
 });
 
-export function makeGetOAuthToken(app: App) {
+export function makeV1GetOAuthToken(app: App) {
 	app.openapi(route, async (c) => {
 		const { clientId, clientSecret } = c.req.valid('json');
 
