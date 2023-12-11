@@ -113,6 +113,9 @@ importers:
 
   packages/worker:
     dependencies:
+      '@axiomhq/js':
+        specifier: 1.0.0-rc.1
+        version: 1.0.0-rc.1
       '@hono/zod-openapi':
         specifier: ^0.9.3
         version: 0.9.3(hono@3.11.3)(zod@3.22.4)
@@ -1453,6 +1456,14 @@ packages:
     dependencies:
       tslib: 2.6.2
     dev: true
+
+  /@axiomhq/js@1.0.0-rc.1:
+    resolution: {integrity: sha512-B/TT5HPc3KmoEIJUwhfzAAp0SLNfcxQnr0SGEbs1lWS0OOLckgj1Q4K1Tp/l669Yje1CK68i3LcajU/9+z+v2g==}
+    engines: {node: '>=16'}
+    dependencies:
+      fetch-retry: 5.0.6
+      uuid: 8.3.2
+    dev: false
 
   /@babel/code-frame@7.22.13:
     resolution: {integrity: sha512-XktuhWlJ5g+3TJXc5upd9Ks1HutSArik6jf2eAjYFyIOf4ej3RN+184cZbzDvbPnuTJIUhPKKJE3cIsYTiAT3w==}
@@ -5140,6 +5151,10 @@ packages:
     hasBin: true
     dependencies:
       strnum: 1.0.5
+
+  /fetch-retry@5.0.6:
+    resolution: {integrity: sha512-3yurQZ2hD9VISAhJJP9bpYFNQrHHBXE2JxxjY5aLEcDi46RmAzJE2OC9FAde0yis5ElW0jTTzs0zfg/Cca4XqQ==}
+    dev: false
 
   /fill-range@7.0.1:
     resolution: {integrity: sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==}

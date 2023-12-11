@@ -2,7 +2,7 @@ import { App } from '@/app';
 import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
-import { db } from '@/root';
+import { db, logger } from '@/root';
 
 const bodySchema = z.object({
 	clientId: z.string(),
@@ -59,7 +59,11 @@ export function makeGetOAuthToken(app: App) {
 
 		const client = await db.getClientById(clientId);
 
+		logger.info(`Got client ${clientId}`);
+
 		if (client === null) {
+			logger.info(`Client ${clientId} not found`);
+
 			return c.json(
 				{
 					error: 'invalid_request',
@@ -93,6 +97,8 @@ export function makeGetOAuthToken(app: App) {
 		}
 
 		if (matchedClientSecret === null) {
+			logger.info(`Could not find mathing client secret for client ${clientId}`);
+
 			return c.json(
 				{
 					error: 'invalid_request',
@@ -101,14 +107,7 @@ export function makeGetOAuthToken(app: App) {
 			);
 		}
 
-		if (grantType !== 'client_credentials') {
-			return c.json(
-				{
-					error: 'unsupported_grant_type',
-				},
-				400
-			);
-		}
+		logger.info(`Found matching client secret for client ${clientId}`);
 
 		const now = new Date();
 
@@ -123,6 +122,8 @@ export function makeGetOAuthToken(app: App) {
 			c.env.JWT_SECRET,
 			'HS256'
 		);
+
+		logger.info(`Created JWT for client ${clientId}`);
 
 		return c.json(
 			{

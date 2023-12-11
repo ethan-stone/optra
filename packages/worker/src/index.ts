@@ -1,5 +1,5 @@
 import { createApp } from '@/app';
-import { initialize } from '@/root';
+import { initialize, logger } from '@/root';
 import { Env, envSchema } from '@/env';
 import { makeGetOAuthToken } from './v1/get-oauth-token';
 
@@ -14,6 +14,20 @@ import { makeGetOAuthToken } from './v1/get-oauth-token';
  */
 
 export const app = createApp();
+
+app.use('*', async (c, next) => {
+	try {
+		await next();
+	} catch (error) {
+		logger.error('Error in request', {
+			error: error,
+		});
+
+		throw error;
+	} finally {
+		c.executionCtx.waitUntil(logger.flush());
+	}
+});
 
 makeGetOAuthToken(app);
 
@@ -33,6 +47,10 @@ export default {
 
 		initialize({
 			dbUrl: env.DRIZZLE_DATABASE_URL,
+			env: env.ENVIRONMENT,
+			axiomDataset: env.AXIOM_DATASET,
+			axiomOrgId: env.AXIOM_ORG_ID,
+			axiomToken: env.AXIOM_TOKEN,
 		});
 
 		return app.fetch(request, parsedEnv.data, ctx);
