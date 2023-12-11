@@ -55,7 +55,7 @@ const route = createRoute({
 
 export function makeGetOAuthToken(app: App) {
 	app.openapi(route, async (c) => {
-		const { clientId, clientSecret, grantType } = c.req.valid('json');
+		const { clientId, clientSecret } = c.req.valid('json');
 
 		const client = await db.getClientById(clientId);
 
