@@ -1,4 +1,5 @@
 import { App } from '@/app';
+import { verifyAuthHeader, verifyToken } from '@/authorizers';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -38,12 +39,37 @@ const route = createRoute({
 				},
 			},
 		},
+		400: {
+			description: 'The request parameters are invalid',
+			content: {
+				'application/json': {
+					schema: z.object({
+						reason: z.string(),
+						message: z.string(),
+					}),
+				},
+			},
+		},
 	},
 });
 
 export function makeV1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const { name, scopes } = c.req.valid('json');
+
+		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
+
+		if (!verifiedAuthHeader.valid) {
+			return c.json(
+				{
+					reason: 'BAD_REQUEST',
+					message: verifiedAuthHeader.message,
+				},
+				400
+			);
+		}
+
+		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET);
 
 		return c.json({
 			id: '123',
