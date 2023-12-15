@@ -4,7 +4,7 @@ import { GetOAuthTokenRes } from '@/v1/get-oauth-token';
 
 const env = testEnv.parse(process.env);
 
-describe('v1-get-oauth-token', () => {
+describe('POST /v1/oauth/token', () => {
 	it('should get oauth token', async () => {
 		const req = new Request('http://localhost:8787/v1/oauth/token', {
 			method: 'POST',

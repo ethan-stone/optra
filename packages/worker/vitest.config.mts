@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import path from 'path';
+import { resolve } from 'path';
 
 export default defineConfig({
 	test: {
@@ -7,6 +7,6 @@ export default defineConfig({
 		watch: false,
 	},
 	resolve: {
-		alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+		alias: [{ find: '@', replacement: resolve(__dirname, 'src') }],
 	},
 });

@@ -31,16 +31,18 @@ export const verifyAuthHeader = async (header: string | undefined | null): Promi
 	return { valid: true, token };
 };
 
-type VerifyTokenResult =
-	| {
-			valid: true;
-			client: Client;
-	  }
-	| {
-			valid: false;
-			message: string;
-			reason: keyof typeof InvalidReason;
-	  };
+type VerifyTokenFailed = {
+	valid: false;
+	message: string;
+	reason: keyof typeof InvalidReason;
+};
+
+type VerifyTokenSuccess = {
+	valid: true;
+	client: Client;
+};
+
+type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
 
 /**
  * Use this to validate that the jwt is valid and belongs to a root client.
@@ -74,24 +76,7 @@ export const verifyToken = async (token: string, secret: string): Promise<Verify
 	return { valid: true, client };
 };
 
-const parseVerifyTokenResultToHttpResponse = (c: Context<HonoEnv>, result: VerifyTokenResult) => {
-	if (result.valid) {
-		return c.json(
-			{
-				valid: true,
-				client: {
-					id: result.client.id,
-					name: result.client.name,
-					version: result.client.version,
-					rateLimitBucketSize: result.client.rateLimitBucketSize,
-					rateLimitRefillAmount: result.client.rateLimitRefillAmount,
-					rateLimitRefillInterval: result.client.rateLimitRefillInterval,
-				},
-			},
-			200
-		);
-	}
-
+export const parseVerifyTokenFailedToHttpResponse = (c: Context<HonoEnv>, result: VerifyTokenFailed) => {
 	if (result.reason === 'BAD_JWT') {
 		return c.json({
 			reason: 'BAD_JWT',

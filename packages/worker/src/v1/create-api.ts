@@ -1,5 +1,6 @@
 import { App } from '@/app';
-import { verifyAuthHeader, verifyToken } from '@/authorizers';
+import { parseVerifyTokenFailedToHttpResponse, verifyAuthHeader, verifyToken } from '@/authorizers';
+import { db } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -71,8 +72,30 @@ export function makeV1CreateApi(app: App) {
 
 		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET);
 
-		return c.json({
-			id: '123',
+		if (!verifiedToken.valid) {
+			return parseVerifyTokenFailedToHttpResponse(c, verifiedToken);
+		}
+
+		if (!verifiedToken.client.forWorkspaceId) {
+			return c.json(
+				{
+					reason: 'FORBIDDEN',
+					message: 'This route can only be used by root clients.',
+				},
+				403
+			);
+		}
+
+		const now = new Date();
+
+		const { id } = await db.createApi({
+			name: name,
+			scopes: scopes,
+			workspaceId: verifiedToken.client.forWorkspaceId,
+			createdAt: now,
+			updatedAt: now,
 		});
+
+		return c.json({ id });
 	});
 }

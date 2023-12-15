@@ -157,8 +157,8 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4
       wrangler:
-        specifier: ^3.0.0
-        version: 3.19.0
+        specifier: ^3.20.0
+        version: 3.20.0
 
 packages:
 
@@ -6052,6 +6052,29 @@ packages:
       - utf-8-validate
     dev: true
 
+  /miniflare@3.20231030.4:
+    resolution: {integrity: sha512-7MBz0ArLuDop1WJGZC6tFgN6c5MRyDOIlxbm3yp0TRBpvDS/KsTuWCQcCjsxN4QQ5zvL3JTkuIZbQzRRw/j6ow==}
+    engines: {node: '>=16.13'}
+    hasBin: true
+    dependencies:
+      acorn: 8.10.0
+      acorn-walk: 8.3.1
+      capnp-ts: 0.7.0
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      source-map-support: 0.5.21
+      stoppable: 1.1.0
+      undici: 5.26.4
+      workerd: 1.20231030.0
+      ws: 8.14.2
+      youch: 3.3.3
+      zod: 3.22.4
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: true
+
   /minimalistic-assert@1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
     dev: true
@@ -7713,6 +7736,33 @@ packages:
       esbuild: 0.17.19
       miniflare: 3.20231030.3
       nanoid: 3.3.6
+      path-to-regexp: 6.2.1
+      resolve.exports: 2.0.2
+      selfsigned: 2.4.1
+      source-map: 0.6.1
+      source-map-support: 0.5.21
+      xxhash-wasm: 1.0.2
+    optionalDependencies:
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: true
+
+  /wrangler@3.20.0:
+    resolution: {integrity: sha512-7mg25zJByhBmrfG+CbImSid7JNd5lxGovLA167ndtE8Yrqd3TUukrGWL8o0RCQIm0FUcgl2nCzWArJDShlZVKA==}
+    engines: {node: '>=16.17.0'}
+    hasBin: true
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.2.0
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      chokidar: 3.5.3
+      esbuild: 0.17.19
+      miniflare: 3.20231030.4
+      nanoid: 3.3.7
       path-to-regexp: 6.2.1
       resolve.exports: 2.0.2
       selfsigned: 2.4.1
