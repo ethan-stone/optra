@@ -40,6 +40,8 @@ app.use('*', async (c, next) => {
 				},
 				{
 					requestId: reqId,
+					path: c.req.path,
+					method: c.req.method,
 				}
 			);
 		} else {
@@ -49,6 +51,8 @@ app.use('*', async (c, next) => {
 				},
 				{
 					requestId: reqId,
+					path: c.req.path,
+					method: c.req.method,
 				}
 			);
 		}
