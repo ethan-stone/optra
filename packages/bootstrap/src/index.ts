@@ -22,14 +22,6 @@ function generateRandomName() {
   return `${color}${animal}${number}`;
 }
 
-export type BootstrapData = {
-  OPTRA_WORKSPACE_ID: string;
-  OPTRA_API_ID: string;
-  WORKSPACE_ID: string;
-  ROOT_CLIENT_ID: string;
-  ROOT_CLIENT_SECRET: string;
-};
-
 /**
  * This generates an internal workspace and api that represents optra itself
  */
@@ -62,6 +54,15 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
     updatedAt: new Date(),
   });
 
+  const otherWorkspaceId = `ws_` + uid();
+
+  await db.insert(schema.workspaces).values({
+    id: otherWorkspaceId,
+    name: generateRandomName(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
   const rootClientId = `client_` + uid();
   const rootClientSecretId = `client_secret_` + uid();
   const rootClientSecretValue = uid();
@@ -87,6 +88,35 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
     id: rootClientSecretId,
     secret: rootClientSecretHash,
     clientId: rootClientId,
+    status: "active",
+    createdAt: new Date(),
+  });
+
+  const otherRootClientId = `client_` + uid();
+  const otherRootClientSecretId = `client_secret_` + uid();
+  const otherRootClientSecretValue = uid();
+  const otherRootClientSecretHash = createHash("sha256")
+    .update(otherRootClientSecretValue)
+    .digest("hex");
+
+  await db.insert(schema.clients).values({
+    id: otherRootClientId,
+    name: generateRandomName(),
+    apiId: internalApiId,
+    version: 1,
+    workspaceId: internalWorkspaceId,
+    forWorkspaceId: otherWorkspaceId,
+    rateLimitBucketSize: 1000,
+    rateLimitRefillAmount: 10,
+    rateLimitRefillInterval: 10,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  await db.insert(schema.clientSecrets).values({
+    id: otherRootClientSecretId,
+    secret: otherRootClientSecretHash,
+    clientId: otherRootClientId,
     status: "active",
     createdAt: new Date(),
   });
@@ -135,6 +165,9 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
     WORKSPACE_ID: workspaceId,
     ROOT_CLIENT_ID: rootClientId,
     ROOT_CLIENT_SECRET: rootClientSecretValue,
+    OTHER_WORKSPACE_ID: otherWorkspaceId,
+    OTHER_ROOT_CLIENT_ID: otherRootClientId,
+    OTHER_ROOT_CLIENT_SECRET: otherRootClientSecretValue,
     API_ID: apiId,
     BASIC_CLIENT_ID: basicClientId,
     BASIC_CLIENT_SECRET: basicClientSecretValue,

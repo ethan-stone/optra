@@ -6,7 +6,7 @@ import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
 	method: 'post',
-	path: '/v1/clients.cretaeClient',
+	path: '/v1/clients.createClient',
 	security: [
 		{
 			oauth2: [],
@@ -20,9 +20,9 @@ const route = createRoute({
 					schema: z.object({
 						name: z.string(),
 						apiId: z.string(),
-						rateLimitBucketSize: z.number().int(),
-						rateLimitRefillAmount: z.number().int(),
-						rateLimitRefillInterval: z.number().int(),
+						rateLimitBucketSize: z.number().int().optional(),
+						rateLimitRefillAmount: z.number().int().optional(),
+						rateLimitRefillInterval: z.number().int().optional(),
 					}),
 				},
 			},
@@ -84,7 +84,7 @@ export function makeV1CreateClient(app: App) {
 			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace`);
 			throw new HTTPException({
 				reason: 'BAD_REQUEST',
-				message: 'The api that you are trying to create a client for does not exist or does not belong to your workspace',
+				message: 'The api that you are trying to create a client for does not exist',
 			});
 		}
 

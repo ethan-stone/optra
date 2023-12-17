@@ -53,8 +53,6 @@ export function makeV1GetOAuthToken(app: App) {
 
 		const client = await db.getClientById(clientId);
 
-		logger.info(`Got client ${clientId}`);
-
 		if (client === null) {
 			logger.info(`Client ${clientId} not found`);
 
@@ -63,6 +61,8 @@ export function makeV1GetOAuthToken(app: App) {
 				message: 'Could not generate token for client',
 			});
 		}
+
+		logger.info(`Got client ${clientId}`);
 
 		const secrets = await db.getClientSecretsByClientId(client.id);
 

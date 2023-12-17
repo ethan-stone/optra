@@ -128,10 +128,16 @@ export class HTTPException extends HonoHTTPException {
 
 export function handleZodError(parseResult: { success: true; data: any } | { success: false; error: z.ZodError }, ctx: Context) {
 	if (!parseResult.success) {
+		const logger = ctx.get('logger');
+
+		const readableMessage = generateErrorMessage(parseResult.error.issues);
+
+		logger.info(`Invalid request body. Reason: ${readableMessage}`);
+
 		return ctx.json<ErrorResponse>(
 			{
 				reason: 'BAD_REQUEST',
-				message: generateErrorMessage(parseResult.error.issues),
+				message: readableMessage,
 			},
 			400
 		);

@@ -138,7 +138,9 @@ export const clientSecretsRelations = relations(clientSecrets, ({ one }) => {
 
 export const workspacesRelations = relations(workspaces, ({ many }) => {
   return {
-    clients: many(clients),
+    clients: many(clients, {
+      relationName: "workspace_client_relation",
+    }),
     apis: many(apis),
   };
 });
