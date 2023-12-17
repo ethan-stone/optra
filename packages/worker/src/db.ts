@@ -39,8 +39,8 @@ export interface Db {
 	getClientById(id: string): Promise<Client | null>;
 	getClientSecretsByClientId(clientId: string): Promise<ClientSecret[]>;
 	getClientSecretValueById(secretId: string): Promise<string | null>;
-	createRootClient(params: CreateRootClientParams): Promise<{ id: string }>;
-	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string }>;
+	createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }>;
+	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }>;
 	createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }>;
 	getWorkspaceById(id: string): Promise<Workspace | null>;
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
@@ -80,7 +80,7 @@ export class PlanetScaleDb implements Db {
 		return secrets?.secret ?? null;
 	}
 
-	async createRootClient(params: CreateRootClientParams): Promise<{ id: string }> {
+	async createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }> {
 		const clientId = uid('client');
 		const secretId = uid('client_secret');
 		const secretValue = uid();
@@ -102,10 +102,11 @@ export class PlanetScaleDb implements Db {
 
 		return {
 			id: clientId,
+			secret: secretValue,
 		};
 	}
 
-	async createBasicClient(params: CreateBasicClientParams): Promise<{ id: string }> {
+	async createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }> {
 		const clientId = uid('client');
 		const secretId = uid('client_secret');
 		const secretValue = uid();
@@ -127,6 +128,7 @@ export class PlanetScaleDb implements Db {
 
 		return {
 			id: clientId,
+			secret: secretValue,
 		};
 	}
 

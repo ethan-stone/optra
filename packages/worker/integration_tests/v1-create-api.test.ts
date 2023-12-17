@@ -48,7 +48,9 @@ describe('POST /v1/apis.createApi', () => {
 	});
 
 	it.todo('should return 403 FORBIDDEN if not authorized', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+
+		console.log(token);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
@@ -64,6 +66,8 @@ describe('POST /v1/apis.createApi', () => {
 
 		const res = await fetch(req);
 		const resJson = await res.json();
+
+		console.log(resJson);
 
 		expect(res.status).toBe(403);
 		expect(resJson).toHaveProperty('reason');

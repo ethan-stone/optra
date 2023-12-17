@@ -22,6 +22,7 @@ export const clients = mysqlTable(
     rateLimitRefillAmount: int("rate_limit_refill_amount"),
     rateLimitRefillInterval: int("rate_limit_refill_interval"),
     createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
   },
   (table) => {
     return {

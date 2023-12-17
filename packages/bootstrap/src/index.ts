@@ -80,6 +80,7 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
     rateLimitRefillAmount: 10,
     rateLimitRefillInterval: 10,
     createdAt: new Date(),
+    updatedAt: new Date(),
   });
 
   await db.insert(schema.clientSecrets).values({
@@ -90,11 +91,52 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
     createdAt: new Date(),
   });
 
+  const apiId = `api_` + uid();
+
+  await db.insert(schema.apis).values({
+    id: apiId,
+    name: generateRandomName(),
+    workspaceId: workspaceId,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+  });
+
+  const basicClientId = `client_` + uid();
+  const basicClientSecretId = `client_secret_` + uid();
+  const basicClientSecretValue = uid();
+  const basicClientSecretHash = createHash("sha256")
+    .update(rootClientSecretValue)
+    .digest("hex");
+
+  await db.insert(schema.clients).values({
+    id: basicClientId,
+    name: generateRandomName(),
+    apiId: apiId,
+    version: 1,
+    workspaceId: workspaceId,
+    rateLimitBucketSize: 1000,
+    rateLimitRefillAmount: 10,
+    rateLimitRefillInterval: 10,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  await db.insert(schema.clientSecrets).values({
+    id: basicClientSecretId,
+    secret: basicClientSecretHash,
+    clientId: basicClientId,
+    status: "active",
+    createdAt: new Date(),
+  });
+
   return {
     OPTRA_WORKSPACE_ID: internalWorkspaceId,
     OPTRA_API_ID: internalApiId,
     WORKSPACE_ID: workspaceId,
     ROOT_CLIENT_ID: rootClientId,
     ROOT_CLIENT_SECRET: rootClientSecretValue,
+    API_ID: apiId,
+    BASIC_CLIENT_ID: basicClientId,
+    BASIC_CLIENT_SECRET: basicClientSecretValue,
   };
 }

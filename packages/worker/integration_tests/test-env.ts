@@ -9,4 +9,7 @@ export const testEnv = z.object({
 	WORKSPACE_ID: z.string(),
 	ROOT_CLIENT_ID: z.string(),
 	ROOT_CLIENT_SECRET: z.string(),
+	API_ID: z.string(),
+	BASIC_CLIENT_ID: z.string(),
+	BASIC_CLIENT_SECRET: z.string(),
 });
