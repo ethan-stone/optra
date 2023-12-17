@@ -3,6 +3,7 @@ import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
 import { db, logger } from '@/root';
+import { HTTPException, errorResponseSchemas } from '@/errors';
 
 const bodySchema = z.object({
 	clientId: z.string(),
@@ -40,16 +41,7 @@ const route = createRoute({
 				},
 			},
 		},
-		400: {
-			description: 'The request parameters are invalid',
-			content: {
-				'application/json': {
-					schema: z.object({
-						error: z.string(),
-					}),
-				},
-			},
-		},
+		...errorResponseSchemas,
 	},
 });
 
@@ -64,12 +56,10 @@ export function makeV1GetOAuthToken(app: App) {
 		if (client === null) {
 			logger.info(`Client ${clientId} not found`);
 
-			return c.json(
-				{
-					error: 'invalid_request',
-				},
-				400
-			);
+			throw new HTTPException({
+				reason: 'FORBIDDEN',
+				message: 'Could not generate token for client',
+			});
 		}
 
 		const secrets = await db.getClientSecretsByClientId(client.id);
@@ -80,12 +70,10 @@ export function makeV1GetOAuthToken(app: App) {
 			const secretValue = await db.getClientSecretValueById(secret.id);
 
 			if (!secretValue) {
-				return c.json(
-					{
-						error: 'invalid_request',
-					},
-					400
-				);
+				throw new HTTPException({
+					reason: 'FORBIDDEN',
+					message: 'Could not generate token for client',
+				});
 			}
 
 			const hashedClientSecret = await hashSHA256(clientSecret);
@@ -99,12 +87,10 @@ export function makeV1GetOAuthToken(app: App) {
 		if (matchedClientSecret === null) {
 			logger.info(`Could not find mathing client secret for client ${clientId}`);
 
-			return c.json(
-				{
-					error: 'invalid_request',
-				},
-				400
-			);
+			throw new HTTPException({
+				reason: 'FORBIDDEN',
+				message: 'Could not generate token for client',
+			});
 		}
 
 		logger.info(`Found matching client secret for client ${clientId}`);
@@ -115,7 +101,7 @@ export function makeV1GetOAuthToken(app: App) {
 			{
 				exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24 * 30,
 				iat: Math.floor(now.getTime() / 1000),
-				sub: 'root',
+				sub: client.id,
 				secret_expires_at: null,
 				version: 1,
 			},

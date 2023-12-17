@@ -1,14 +1,18 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { prettyJSON } from 'hono/pretty-json';
 import { Env } from './env';
+import { handleError, handleZodError } from './errors';
 
 export type HonoEnv = {
 	Bindings: Env;
 };
 
 export function createApp() {
-	const app = new OpenAPIHono<HonoEnv>({});
+	const app = new OpenAPIHono<HonoEnv>({
+		defaultHook: handleZodError,
+	});
 
+	app.onError(handleError);
 	app.use(prettyJSON());
 
 	app.openAPIRegistry.registerComponent('securitySchemes', 'oauth2', {

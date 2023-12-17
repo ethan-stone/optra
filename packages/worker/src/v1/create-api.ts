@@ -1,5 +1,6 @@
 import { App } from '@/app';
-import { parseVerifyTokenFailedToHttpResponse, verifyAuthHeader, verifyToken } from '@/authorizers';
+import { verifyAuthHeader, verifyToken } from '@/authorizers';
+import { HTTPException, errorResponseSchemas } from '@/errors';
 import { db } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
@@ -18,12 +19,14 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						name: z.string(),
-						scopes: z.array(
-							z.object({
-								name: z.string(),
-								description: z.string(),
-							})
-						),
+						scopes: z
+							.array(
+								z.object({
+									name: z.string(),
+									description: z.string(),
+								})
+							)
+							.optional(),
 					}),
 				},
 			},
@@ -40,17 +43,7 @@ const route = createRoute({
 				},
 			},
 		},
-		400: {
-			description: 'The request parameters are invalid',
-			content: {
-				'application/json': {
-					schema: z.object({
-						reason: z.string(),
-						message: z.string(),
-					}),
-				},
-			},
-		},
+		...errorResponseSchemas,
 	},
 });
 
@@ -61,29 +54,26 @@ export function makeV1CreateApi(app: App) {
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
 		if (!verifiedAuthHeader.valid) {
-			return c.json(
-				{
-					reason: 'BAD_REQUEST',
-					message: verifiedAuthHeader.message,
-				},
-				400
-			);
+			throw new HTTPException({
+				message: 'Could not parse Authorization header',
+				reason: 'BAD_JWT',
+			});
 		}
 
 		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET);
 
 		if (!verifiedToken.valid) {
-			return parseVerifyTokenFailedToHttpResponse(c, verifiedToken);
+			throw new HTTPException({
+				reason: verifiedToken.reason,
+				message: verifiedToken.message,
+			});
 		}
 
 		if (!verifiedToken.client.forWorkspaceId) {
-			return c.json(
-				{
-					reason: 'FORBIDDEN',
-					message: 'This route can only be used by root clients.',
-				},
-				403
-			);
+			throw new HTTPException({
+				reason: 'FORBIDDEN',
+				message: 'This route can only be used by root clients.',
+			});
 		}
 
 		const now = new Date();

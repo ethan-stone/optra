@@ -14,7 +14,7 @@
 		"typescript": "^5.0.4",
 		"vite": "^5.0.7",
 		"vitest": "^1.0.4",
-		"wrangler": "^3.20.0"
+		"wrangler": "^3.21.0"
 	},
 	"dependencies": {
 		"@axiomhq/js": "1.0.0-rc.1",
@@ -25,6 +25,7 @@
 		"drizzle-orm": "^0.29.1",
 		"hono": "^3.11.3",
 		"nanoid": "^5.0.4",
-		"zod": "^3.22.4"
+		"zod": "^3.22.4",
+		"zod-error": "^1.5.0"
 	}
 }

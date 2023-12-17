@@ -175,11 +175,6 @@ export class PlanetScaleDb implements Db {
 			}
 		});
 
-		await this.db.insert(schema.apis).values({
-			id: apiId,
-			...params,
-		});
-
 		return {
 			id: apiId,
 		};
