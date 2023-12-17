@@ -53,6 +53,7 @@ export function makeV1CreateClient(app: App) {
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
 		if (!verifiedAuthHeader.valid) {
+			logger.info('Could not parse Authorization header');
 			throw new HTTPException({
 				message: 'Could not parse Authorization header',
 				reason: 'BAD_JWT',
@@ -62,6 +63,7 @@ export function makeV1CreateClient(app: App) {
 		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET, { logger });
 
 		if (!verifiedToken.valid) {
+			logger.info(`Token is not valid. Reason ${verifiedToken.reason}`);
 			throw new HTTPException({
 				message: verifiedToken.message,
 				reason: verifiedToken.reason,
@@ -69,6 +71,7 @@ export function makeV1CreateClient(app: App) {
 		}
 
 		if (!verifiedToken.client.forWorkspaceId) {
+			logger.info(`Client with id ${verifiedToken.client.id} is not a root client. Can not create apis.`);
 			throw new HTTPException({
 				reason: 'FORBIDDEN',
 				message: 'This route can only be used by root clientss',
@@ -78,6 +81,7 @@ export function makeV1CreateClient(app: App) {
 		const api = await db.getApiById(apiId);
 
 		if (!api || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
+			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace`);
 			throw new HTTPException({
 				reason: 'BAD_REQUEST',
 				message: 'The api that you are trying to create a client for does not exist or does not belong to your workspace',
@@ -97,6 +101,8 @@ export function makeV1CreateClient(app: App) {
 			createdAt: now,
 			updatedAt: now,
 		});
+
+		logger.info(`Successfully created client with id ${id}`);
 
 		return c.json(
 			{

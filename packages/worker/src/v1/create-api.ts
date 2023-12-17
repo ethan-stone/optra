@@ -56,6 +56,7 @@ export function makeV1CreateApi(app: App) {
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
 		if (!verifiedAuthHeader.valid) {
+			logger.info('Could not parse Authorization header');
 			throw new HTTPException({
 				message: 'Could not parse Authorization header',
 				reason: 'BAD_JWT',
@@ -65,6 +66,7 @@ export function makeV1CreateApi(app: App) {
 		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET, { logger });
 
 		if (!verifiedToken.valid) {
+			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
 			throw new HTTPException({
 				reason: verifiedToken.reason,
 				message: verifiedToken.message,
@@ -72,6 +74,7 @@ export function makeV1CreateApi(app: App) {
 		}
 
 		if (!verifiedToken.client.forWorkspaceId) {
+			logger.info(`Client with id ${verifiedToken.client.id} is not a root client. Can not create apis.`);
 			throw new HTTPException({
 				reason: 'FORBIDDEN',
 				message: 'This route can only be used by root clients.',
@@ -87,6 +90,8 @@ export function makeV1CreateApi(app: App) {
 			createdAt: now,
 			updatedAt: now,
 		});
+
+		logger.info(`Successufly created api with id ${id}`);
 
 		return c.json({ id });
 	});
