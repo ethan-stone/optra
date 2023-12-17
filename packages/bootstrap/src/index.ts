@@ -105,7 +105,7 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
   const basicClientSecretId = `client_secret_` + uid();
   const basicClientSecretValue = uid();
   const basicClientSecretHash = createHash("sha256")
-    .update(rootClientSecretValue)
+    .update(basicClientSecretValue)
     .digest("hex");
 
   await db.insert(schema.clients).values({

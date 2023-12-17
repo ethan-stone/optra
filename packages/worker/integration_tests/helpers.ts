@@ -16,7 +16,6 @@ export async function getOAuthToken(clientId: string, clientSecret: string): Pro
 	const res = await fetch(req);
 
 	if (res.status !== 200) {
-		console.log(await res.json());
 		throw new Error('Failed to get oauth token');
 	}
 

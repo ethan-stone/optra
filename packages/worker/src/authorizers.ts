@@ -1,8 +1,9 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
-import { db, logger } from '@/root';
+import { db } from '@/root';
 import { Client } from '@/db';
 import { Context } from 'hono';
 import { HonoEnv } from '@/app';
+import { Logger } from '@/logger';
 
 export type VerifyAuthHeaderResult =
 	| {
@@ -48,7 +49,9 @@ type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
  * Use this to validate that the jwt is valid and belongs to a root client.
  * @param authorization Value of the Authorization header.
  */
-export const verifyToken = async (token: string, secret: string): Promise<VerifyTokenResult> => {
+export const verifyToken = async (token: string, secret: string, ctx: { logger: Logger }): Promise<VerifyTokenResult> => {
+	const logger = ctx.logger;
+
 	const verifyResult = await verify(token, secret, { algorithm: 'HS256', throwError: false });
 
 	if (!verifyResult.valid) {

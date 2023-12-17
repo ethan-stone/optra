@@ -46,6 +46,8 @@ const route = createRoute({
 
 export function makeV1CreateClient(app: App) {
 	app.openapi(route, async (c) => {
+		const logger = c.get('logger');
+
 		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval } = c.req.valid('json');
 
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
@@ -57,7 +59,7 @@ export function makeV1CreateClient(app: App) {
 			});
 		}
 
-		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET);
+		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET, { logger });
 
 		if (!verifiedToken.valid) {
 			throw new HTTPException({

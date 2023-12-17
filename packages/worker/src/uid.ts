@@ -4,6 +4,6 @@ const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLM
 
 type Prefix = 'client' | 'api' | 'client_secret' | 'ws' | 'req' | 'client_scope' | 'api_scope';
 
-export function uid(prefix?: Prefix): string {
-	return prefix ? `${prefix}_${nanoid()}` : nanoid();
+export function uid(prefix?: Prefix, length: number = 21): string {
+	return prefix ? `${prefix}_${nanoid(length)}` : nanoid(length);
 }

@@ -25,9 +25,11 @@ export type LoggerOptions =
 export class Logger implements Logger {
 	private axiom?: Axiom;
 	private opts: LoggerOptions;
+	public readonly defaultFields: Fields = {};
 
-	constructor(opts: LoggerOptions) {
+	constructor(opts: LoggerOptions, defaultFields: Fields = {}) {
 		this.opts = opts;
+		this.defaultFields = defaultFields;
 
 		if (this.opts.env === 'production') {
 			this.axiom = new Axiom({
@@ -41,7 +43,7 @@ export class Logger implements Logger {
 		const level = fields?.level || 'info';
 		const logFn = level === 'info' || level === 'warn' || level === 'error' ? console[level] : console.info;
 
-		const f = { ...fields };
+		const f = { ...this.defaultFields, ...fields };
 
 		if (Object.keys(f).length === 0) {
 			logFn(message);

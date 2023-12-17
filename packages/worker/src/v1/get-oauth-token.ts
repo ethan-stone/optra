@@ -2,7 +2,7 @@ import { App } from '@/app';
 import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
-import { db, logger } from '@/root';
+import { db } from '@/root';
 import { HTTPException, errorResponseSchemas } from '@/errors';
 
 const bodySchema = z.object({
@@ -47,6 +47,8 @@ const route = createRoute({
 
 export function makeV1GetOAuthToken(app: App) {
 	app.openapi(route, async (c) => {
+		const logger = c.get('logger');
+
 		const { clientId, clientSecret } = c.req.valid('json');
 
 		const client = await db.getClientById(clientId);

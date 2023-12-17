@@ -2,9 +2,14 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { prettyJSON } from 'hono/pretty-json';
 import { Env } from './env';
 import { handleError, handleZodError } from './errors';
+import { Logger } from './logger';
 
 export type HonoEnv = {
 	Bindings: Env;
+	Variables: {
+		reqId: string;
+		logger: Logger;
+	};
 };
 
 export function createApp() {
