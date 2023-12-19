@@ -66,34 +66,23 @@ export const verifyToken = async (token: string, secret: string, ctx: { logger: 
 
 	if (!payload.payload) {
 		logger.error(`Payload is somehow undefined despite being valid. This is fatal`);
-		throw new Error(`Payload is somehow undefined despite being valid. This is fatal`);
+		return {
+			valid: false,
+			message: 'Payload is invalid.',
+			reason: 'INVALID_SIGNATURE',
+		};
 	}
 
 	const client = await db.getClientById(payload.payload.sub);
 
 	if (!client) {
 		logger.error(`Client with id ${payload.payload.sub} not found despite being verified. This is fatal`);
-		throw new Error(`Client with id ${payload.payload.sub} not found despite being verified. This is fatal`);
+		return {
+			valid: false,
+			message: 'The client this token belongs to no longer exists.',
+			reason: 'INVALID_CLIENT',
+		};
 	}
 
 	return { valid: true, client };
-};
-
-export const parseVerifyTokenFailedToHttpResponse = (c: Context<HonoEnv>, result: VerifyTokenFailed) => {
-	if (result.reason === 'BAD_JWT') {
-		return c.json({
-			reason: 'BAD_JWT',
-			message: 'The JWT is malformed',
-		});
-	} else if (result.reason === 'NOT_FOUND') {
-		return c.json({
-			reason: 'NOT_FOUND',
-			message: 'A client with the given id was not found',
-		});
-	} else {
-		return c.json({
-			reason: result.reason,
-			message: result.message,
-		});
-	}
 };

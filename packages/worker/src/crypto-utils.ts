@@ -13,7 +13,7 @@ export async function hashSHA256(data: string): Promise<string> {
 	return buffer.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
 }
 
-type JwtPayload = {
+export type JwtPayload = {
 	sub: string;
 	iat: number;
 	exp: number;
@@ -232,7 +232,7 @@ export const InvalidReason = {
 	RATELIMIT_EXCEEDED: 'RATELIMIT_EXCEEDED',
 	SECRET_EXPIRED: 'SECRET_EXPIRED',
 	VERSION_MISMATCH: 'VERSION_MISMATCH',
-	NOT_FOUND: 'NOT_FOUND',
+	INVALID_CLIENT: 'INVALID_CLIENT',
 } as const;
 
 /**

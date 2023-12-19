@@ -6,6 +6,7 @@ import { makeV1CreateApi } from './v1/create-api';
 import { uid } from '@/uid';
 import { Logger } from '@/logger';
 import { makeV1CreateClient } from './v1/create-client';
+import { makeV1VerifyToken } from './v1/verify-token';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -84,6 +85,7 @@ app.use('*', async (c, next) => {
 makeV1GetOAuthToken(app);
 makeV1CreateApi(app);
 makeV1CreateClient(app);
+makeV1VerifyToken(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

@@ -101,7 +101,7 @@ export function makeV1GetOAuthToken(app: App) {
 
 		const jwt = await sign(
 			{
-				exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24 * 30,
+				exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
 				iat: Math.floor(now.getTime() / 1000),
 				sub: client.id,
 				secret_expires_at: null,

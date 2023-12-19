@@ -3,7 +3,7 @@ import { HTTPException as HonoHTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import { generateErrorMessage } from 'zod-error';
 
-const ErrorReason = z.enum([
+export const ErrorReason = z.enum([
 	'BAD_JWT',
 	'INVALID_SIGNATURE',
 	'EXPIRED',
@@ -13,6 +13,7 @@ const ErrorReason = z.enum([
 	'NOT_FOUND',
 	'BAD_REQUEST',
 	'FORBIDDEN',
+	'INVALID_CLIENT',
 	'INTERNAL_SERVER_ERROR',
 ]);
 
@@ -100,6 +101,7 @@ function reasonToStatus(reason: z.infer<typeof ErrorReason>) {
 		case 'EXPIRED':
 		case 'SECRET_EXPIRED':
 		case 'VERSION_MISMATCH':
+		case 'INVALID_CLIENT':
 			return 401;
 		case 'RATELIMIT_EXCEEDED':
 			return 429;
