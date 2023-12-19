@@ -1,6 +1,6 @@
 import { App } from '@/app';
-import { verifyAuthHeader, verifyToken } from '@/authorizers';
-import { ErrorReason, HTTPException, errorResponseSchemas } from '@/errors';
+import { verifyToken } from '@/authorizers';
+import { ErrorReason, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
