@@ -81,9 +81,6 @@ export const errorResponseSchemas = {
 	},
 };
 
-// TODO: handle errors
-// https://github.com/unkeyed/unkey/blob/main/apps/api/src/pkg/errors/http.ts
-
 export const ErrorSchema = z.object({
 	reason: ErrorReason.openapi({
 		example: 'INTERNAL_SERVER_ERROR',

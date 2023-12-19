@@ -118,4 +118,27 @@ describe('POST /v1/clients.createClient', () => {
 		expect((resJson as any).reason).toBe('BAD_REQUEST');
 		expect(resJson).toHaveProperty('message');
 	});
+
+	it('should response with 200 OK if valid request', async () => {
+		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+
+		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name: 'test',
+				apiId: env.API_ID,
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		const res = await fetch(req);
+		const resJson = await res.json();
+
+		expect(res.status).toBe(200);
+		expect(resJson).toHaveProperty('clientId');
+		expect(resJson).toHaveProperty('clientSecret');
+	});
 });
