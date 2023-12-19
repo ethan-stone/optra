@@ -21,7 +21,7 @@ export const app = createApp();
 
 app.use('*', async (c, next) => {
 	try {
-		const reqId = uid('req', 11);
+		const reqId = uid('req', 14);
 		c.set('reqId', reqId);
 
 		let logger: Logger;
