@@ -54,6 +54,8 @@ export function makeV1VerifyToken(app: App) {
 		const verifiedToken = await verifyToken(token, c.env.JWT_SECRET, { logger });
 
 		if (!verifiedToken.valid) {
+			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
+
 			return c.json<VerifyTokenResponse>(
 				{
 					valid: false,
@@ -63,6 +65,8 @@ export function makeV1VerifyToken(app: App) {
 				200
 			);
 		}
+
+		logger.info(`Token is valid for client ${verifiedToken.client.id}`);
 
 		return c.json<VerifyTokenResponse>(
 			{
