@@ -6,10 +6,16 @@ meta {
 
 post {
   url: {{base_url}}/v1/tokens.verifyToken
-  body: none
+  body: json
   auth: bearer
 }
 
 auth:bearer {
   token: {{jwt}}
+}
+
+body:json {
+  {
+    "token": "{{jwt}}"
+  }
 }

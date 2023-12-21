@@ -1,6 +1,7 @@
 name = "worker"
 main = "src/index.ts"
 compatibility_date = "2023-11-21"
+compatibility_flags = [ "nodejs_compat" ]
 
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)

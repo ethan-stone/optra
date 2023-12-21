@@ -7,6 +7,9 @@ export const envSchema = z.object({
 	AXIOM_DATASET: z.string().optional(),
 	AXIOM_ORG_ID: z.string().optional(),
 	ENVIRONMENT: z.enum(['development', 'production']),
+	AWS_ACCESS_KEY_ID: z.string(),
+	AWS_SECRET_ACCESS_KEY: z.string(),
+	AWS_KMS_KEY_ARN: z.string(),
 });
 
 export type Env = z.infer<typeof envSchema>;

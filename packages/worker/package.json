@@ -17,6 +17,7 @@
 		"wrangler": "^3.22.1"
 	},
 	"dependencies": {
+		"@aws-sdk/client-kms": "^3.478.0",
 		"@axiomhq/js": "1.0.0-rc.1",
 		"@hono/zod-openapi": "^0.9.3",
 		"@optra/db": "workspace:^",

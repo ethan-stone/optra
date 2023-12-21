@@ -41,6 +41,7 @@ app.use('*', async (c, next) => {
 					axiomOrgId: c.env.AXIOM_ORG_ID,
 				},
 				{
+					app: 'api',
 					requestId: reqId,
 					path: c.req.path,
 					method: c.req.method,
@@ -52,6 +53,7 @@ app.use('*', async (c, next) => {
 					env: 'development',
 				},
 				{
+					app: 'api',
 					requestId: reqId,
 					path: c.req.path,
 					method: c.req.method,
