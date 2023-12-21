@@ -16,7 +16,7 @@ export async function getOAuthToken(clientId: string, clientSecret: string): Pro
 	const res = await fetch(req);
 
 	if (res.status !== 200) {
-		throw new Error('Failed to get oauth token');
+		throw new Error(`Failed to get oauth token. Optra-Request-Id: ${res.headers.get('Optra-Request-Id')}`);
 	}
 
 	const resJson = (await res.json()) as GetOAuthTokenRes;

@@ -15,4 +15,6 @@ export const testEnv = z.object({
 	API_ID: z.string(),
 	BASIC_CLIENT_ID: z.string(),
 	BASIC_CLIENT_SECRET: z.string(),
+	BASIC_CLIENT_ID_WITH_LOW_RATELIMIT: z.string(),
+	BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT: z.string(),
 });

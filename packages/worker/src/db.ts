@@ -2,8 +2,8 @@ import { schema } from '@optra/db';
 import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
 import { InferSelectModel, InferInsertModel, eq } from 'drizzle-orm';
-import { uid } from './uid';
-import { Env } from './env';
+import { uid } from '@/uid';
+import { hashSHA256 } from '@/crypto-utils';
 
 export * from 'drizzle-orm';
 export * from '@optra/db';
@@ -120,7 +120,7 @@ export class PlanetScaleDb implements Db {
 			await tx.insert(schema.clientSecrets).values({
 				id: secretId,
 				clientId: clientId,
-				secret: secretValue,
+				secret: await hashSHA256(secretValue),
 				status: 'active',
 				createdAt: new Date(),
 			});

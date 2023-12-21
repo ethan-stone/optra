@@ -165,6 +165,35 @@ describe('POST /v1/tokens.verifyToken', () => {
 		expect((resJson as any).reason).toBe('INVALID_CLIENT');
 	});
 
+	it('should return 200 OK with invalid if ratelimit exceeded', async () => {
+		const token = await getOAuthToken(env.BASIC_CLIENT_ID_WITH_LOW_RATELIMIT, env.BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT);
+
+		while (true) {
+			const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+				method: 'POST',
+				body: JSON.stringify({
+					token,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			const res = await fetch(req);
+			const resJson = await res.json();
+
+			expect(res.status).toBe(200);
+			expect(resJson).toHaveProperty('valid');
+
+			if (!(resJson as any).valid) {
+				expect((resJson as any).valid).toBeFalsy();
+				expect(resJson).toHaveProperty('reason');
+				expect((resJson as any).reason).toBe('RATELIMIT_EXCEEDED');
+				break;
+			}
+		}
+	});
+
 	it('should return 200 OK with valid if token is valid', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
