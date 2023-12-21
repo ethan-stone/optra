@@ -1,14 +1,12 @@
 import { KMSClient, GenerateDataKeyCommand, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
 
-const client = new KMSClient({});
-
-export interface KeyManagementSystem {
+export interface KeyManagementService {
 	generateDataKey: (keyId: string) => Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }>;
 	encrypt: (keyId: string, plaintext: Uint8Array) => Promise<Uint8Array>;
 	decrypt: (keyId: string, ciphertext: Uint8Array) => Promise<Uint8Array>;
 }
 
-export class AWSKeyManagementSystem implements KeyManagementSystem {
+export class AWSKeyManagementService implements KeyManagementService {
 	constructor(private client: KMSClient) {}
 
 	public async generateDataKey(keyId: string): Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }> {
