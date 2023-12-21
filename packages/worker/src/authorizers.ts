@@ -1,9 +1,10 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
-import { db } from '@/root';
+import { db, tokenBuckets } from '@/root';
 import { Client } from '@/db';
 import { Context } from 'hono';
 import { HonoEnv } from '@/app';
 import { Logger } from '@/logger';
+import { TokenBucket } from '@/ratelimit';
 
 export type VerifyAuthHeaderResult =
 	| {
@@ -81,6 +82,34 @@ export const verifyToken = async (token: string, secret: string, ctx: { logger: 
 			valid: false,
 			message: 'The client this token belongs to no longer exists.',
 			reason: 'INVALID_CLIENT',
+		};
+	}
+
+	if (!client.rateLimitBucketSize || !client.rateLimitRefillAmount || !client.rateLimitRefillInterval)
+		return {
+			valid: true,
+			client,
+		};
+
+	let tokenBucket = tokenBuckets.get(client.id);
+
+	if (!tokenBucket) {
+		tokenBucket = new TokenBucket({
+			refillAmount: client.rateLimitRefillAmount,
+			refillInterval: client.rateLimitRefillInterval,
+			size: client.rateLimitBucketSize,
+			tokens: client.rateLimitBucketSize,
+		});
+
+		tokenBuckets.set(client.id, tokenBucket);
+	}
+
+	if (!tokenBucket.getTokens(1)) {
+		logger.info(`Client ${client.id} has exceeded their rate limit`);
+		return {
+			valid: false,
+			message: 'You have exceeded your rate limit.',
+			reason: 'RATELIMIT_EXCEEDED',
 		};
 	}
 

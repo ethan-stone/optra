@@ -1,6 +1,8 @@
 import { createConnection, Db, PlanetScaleDb } from '@/db';
+import { TokenBucket } from '@/ratelimit';
 
 export let db: Db;
+export const tokenBuckets: Map<string, TokenBucket> = new Map();
 
 let hasInitialized = false;
 
