@@ -74,14 +74,14 @@ export function makeV1CreateClient(app: App) {
 			logger.info(`Client with id ${verifiedToken.client.id} is not a root client. Can not create apis.`);
 			throw new HTTPException({
 				reason: 'FORBIDDEN',
-				message: 'This route can only be used by root clientss',
+				message: 'This route can only be used by root clients',
 			});
 		}
 
 		const api = await db.getApiById(apiId);
 
 		if (!api || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
-			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace`);
+			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace.`);
 			throw new HTTPException({
 				reason: 'BAD_REQUEST',
 				message: 'The api that you are trying to create a client for does not exist',

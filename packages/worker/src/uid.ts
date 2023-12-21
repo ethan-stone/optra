@@ -1,6 +1,6 @@
 import { customAlphabet } from 'nanoid';
 
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 26);
+const nanoid = customAlphabet('2346789abcdefghijkmnpqrtwxyzABCDEFGHJKLMNPQRTUVWXYZ', 26);
 
 type Prefix = 'client' | 'api' | 'client_secret' | 'ws' | 'req' | 'client_scope' | 'api_scope';
 
