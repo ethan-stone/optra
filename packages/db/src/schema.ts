@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 import {
   mysqlEnum,
   mysqlTable,
-  uniqueIndex,
   index,
   varchar,
   int,
@@ -56,6 +55,7 @@ export const workspaces = mysqlTable("workspaces", {
   updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
 });
 
+// TODO: refactor so api references signingSecret instead of signingSecrets referencing apis
 export const apis = mysqlTable(
   "apis",
   {
@@ -68,6 +68,23 @@ export const apis = mysqlTable(
   (table) => {
     return {
       workspaceIdIdx: index("workspace_id_idx").on(table.workspaceId),
+    };
+  }
+);
+
+export const signingSecrets = mysqlTable(
+  "signing_secrets",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    apiId: varchar("client_id", { length: 36 }).notNull(),
+    secret: varchar("secret", { length: 1024 }).notNull(),
+    algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
+    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+  },
+  (table) => {
+    return {
+      apiIdIdx: index("api_id_idx").on(table.apiId),
     };
   }
 );
@@ -154,6 +171,19 @@ export const apisRelations = relations(apis, ({ one, many }) => {
     }),
     scopes: many(apiScopes),
     clients: many(clients),
+    signingSecret: one(signingSecrets, {
+      fields: [apis.id],
+      references: [signingSecrets.apiId],
+    }),
+  };
+});
+
+export const signingSecretsRelations = relations(signingSecrets, ({ one }) => {
+  return {
+    api: one(apis, {
+      fields: [signingSecrets.apiId],
+      references: [apis.id],
+    }),
   };
 });
 
