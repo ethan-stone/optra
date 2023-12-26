@@ -62,6 +62,7 @@ export const apis = mysqlTable(
     id: varchar("id", { length: 36 }).primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+    signingSecretId: varchar("signing_secret_id", { length: 36 }).notNull(),
     createdAt: datetime("created_at", { fsp: 3 }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
   },
@@ -72,22 +73,13 @@ export const apis = mysqlTable(
   }
 );
 
-export const signingSecrets = mysqlTable(
-  "signing_secrets",
-  {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    apiId: varchar("client_id", { length: 36 }).notNull(),
-    secret: varchar("secret", { length: 1024 }).notNull(),
-    algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
-  },
-  (table) => {
-    return {
-      apiIdIdx: index("api_id_idx").on(table.apiId),
-    };
-  }
-);
+export const signingSecrets = mysqlTable("signing_secrets", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  secret: varchar("secret", { length: 1024 }).notNull(),
+  algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
+  createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+  updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+});
 
 export const apiScopes = mysqlTable(
   "api_scopes",
@@ -172,17 +164,8 @@ export const apisRelations = relations(apis, ({ one, many }) => {
     scopes: many(apiScopes),
     clients: many(clients),
     signingSecret: one(signingSecrets, {
-      fields: [apis.id],
-      references: [signingSecrets.apiId],
-    }),
-  };
-});
-
-export const signingSecretsRelations = relations(signingSecrets, ({ one }) => {
-  return {
-    api: one(apis, {
-      fields: [signingSecrets.apiId],
-      references: [apis.id],
+      fields: [apis.signingSecretId],
+      references: [signingSecrets.id],
     }),
   };
 });
