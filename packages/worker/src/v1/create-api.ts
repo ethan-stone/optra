@@ -1,8 +1,9 @@
 import { App } from '@/app';
 import { verifyAuthHeader, verifyToken } from '@/authorizers';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db } from '@/root';
+import { db, keyManagementService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
+import { Buffer } from '@/buffer';
 
 const route = createRoute({
 	method: 'post',
@@ -81,9 +82,12 @@ export function makeV1CreateApi(app: App) {
 			});
 		}
 
+		const { ciphertext } = await keyManagementService.generateDataKey();
+
 		const now = new Date();
 
 		const { id } = await db.createApi({
+			encryptedSigningSecret: Buffer.from(ciphertext).toString('base64'),
 			name: name,
 			scopes: scopes,
 			workspaceId: verifiedToken.client.forWorkspaceId,

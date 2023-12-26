@@ -9,7 +9,13 @@ export let keyManagementService: KeyManagementService;
 
 let hasInitialized = false;
 
-export function initialize(env: { env: 'development' | 'production'; dbUrl: string; awsAccessKeyId: string; awsSecretAccessKey: string }) {
+export function initialize(env: {
+	env: 'development' | 'production';
+	dbUrl: string;
+	awsAccessKeyId: string;
+	awsSecretAccessKey: string;
+	awsKMSKeyArn: string;
+}) {
 	if (hasInitialized) {
 		return;
 	}
@@ -24,7 +30,9 @@ export function initialize(env: { env: 'development' | 'production'; dbUrl: stri
 				accessKeyId: env.awsAccessKeyId,
 				secretAccessKey: env.awsSecretAccessKey,
 			},
-		})
+			region: 'us-east-1',
+		}),
+		env.awsKMSKeyArn
 	);
 
 	hasInitialized = true;

@@ -29,7 +29,10 @@ export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspac
 export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'>;
 export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
 export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
-export type CreateApiParams = Omit<InsertApiModel, 'id'> & { scopes?: { name: string; description: string }[] };
+export type CreateApiParams = Omit<InsertApiModel, 'id' | 'signingSecretId'> & {
+	scopes?: { name: string; description: string }[];
+	encryptedSigningSecret: string;
+};
 export type Api = InferSelectModel<(typeof schema)['apis']>;
 export type Workspace = InferSelectModel<(typeof schema)['workspaces']>;
 export type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
@@ -155,10 +158,12 @@ export class PlanetScaleDb implements Db {
 
 	async createApi(params: CreateApiParams): Promise<{ id: string }> {
 		const apiId = uid('api');
+		const signingSecretId = uid('signing_secret');
 
 		await this.db.transaction(async (tx) => {
 			await tx.insert(schema.apis).values({
 				id: apiId,
+				signingSecretId: signingSecretId,
 				...params,
 			});
 

@@ -108,9 +108,9 @@ export default {
 		initialize({
 			dbUrl: env.DRIZZLE_DATABASE_URL,
 			env: env.ENVIRONMENT,
-			axiomDataset: env.AXIOM_DATASET,
-			axiomOrgId: env.AXIOM_ORG_ID,
-			axiomToken: env.AXIOM_TOKEN,
+			awsAccessKeyId: env.AWS_ACCESS_KEY_ID,
+			awsSecretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+			awsKMSKeyArn: env.AWS_KMS_KEY_ARN,
 		});
 
 		return app.fetch(request, parsedEnv.data, ctx);

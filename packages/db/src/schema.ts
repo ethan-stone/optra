@@ -55,7 +55,6 @@ export const workspaces = mysqlTable("workspaces", {
   updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
 });
 
-// TODO: refactor so api references signingSecret instead of signingSecrets referencing apis
 export const apis = mysqlTable(
   "apis",
   {
@@ -75,7 +74,7 @@ export const apis = mysqlTable(
 
 export const signingSecrets = mysqlTable("signing_secrets", {
   id: varchar("id", { length: 36 }).primaryKey(),
-  secret: varchar("secret", { length: 1024 }).notNull(),
+  secret: varchar("secret", { length: 1024 }).notNull(), // base64 encoded encrypted signing secret
   algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
   createdAt: datetime("created_at", { fsp: 3 }).notNull(),
   updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),

@@ -1,17 +1,17 @@
 import { KMSClient, GenerateDataKeyCommand, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
 
 export interface KeyManagementService {
-	generateDataKey: (keyId: string) => Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }>;
-	encrypt: (keyId: string, plaintext: Uint8Array) => Promise<Uint8Array>;
-	decrypt: (keyId: string, ciphertext: Uint8Array) => Promise<Uint8Array>;
+	generateDataKey: () => Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }>;
+	encrypt: (plaintext: Uint8Array) => Promise<Uint8Array>;
+	decrypt: (ciphertext: Uint8Array) => Promise<Uint8Array>;
 }
 
 export class AWSKeyManagementService implements KeyManagementService {
-	constructor(private client: KMSClient) {}
+	constructor(private client: KMSClient, private keyId: string) {}
 
-	public async generateDataKey(keyId: string): Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }> {
+	public async generateDataKey(): Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }> {
 		const command = new GenerateDataKeyCommand({
-			KeyId: keyId,
+			KeyId: this.keyId,
 			KeySpec: 'AES_256',
 		});
 
@@ -27,9 +27,9 @@ export class AWSKeyManagementService implements KeyManagementService {
 		};
 	}
 
-	public async encrypt(keyId: string, plaintext: Uint8Array): Promise<Uint8Array> {
+	public async encrypt(plaintext: Uint8Array): Promise<Uint8Array> {
 		const command = new EncryptCommand({
-			KeyId: keyId,
+			KeyId: this.keyId,
 			Plaintext: plaintext,
 		});
 
@@ -42,9 +42,9 @@ export class AWSKeyManagementService implements KeyManagementService {
 		return result.CiphertextBlob;
 	}
 
-	public async decrypt(keyId: string, ciphertext: Uint8Array): Promise<Uint8Array> {
+	public async decrypt(ciphertext: Uint8Array): Promise<Uint8Array> {
 		const command = new DecryptCommand({
-			KeyId: keyId,
+			KeyId: this.keyId,
 			CiphertextBlob: ciphertext,
 		});
 
