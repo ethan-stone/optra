@@ -68,7 +68,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 		});
 
 		const res = await fetch(req);
-		console.log(res.headers.get('Optra-Request-Id'));
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
