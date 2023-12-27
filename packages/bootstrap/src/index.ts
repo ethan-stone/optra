@@ -179,10 +179,12 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
     dataEncryptionKey: internalDataEncryptionKey,
   });
 
-  const { workspaceId } = await newWorkspace(db);
+  const { workspaceId, dataEncryptionKey } = await newWorkspace(db);
 
-  const { workspaceId: otherWorkspaceId, dataEncryptionKey } =
-    await newWorkspace(db);
+  const {
+    workspaceId: otherWorkspaceId,
+    dataEncryptionKey: otherDataEncryptionKey,
+  } = await newWorkspace(db);
 
   const { clientId: rootClientId, clientSecretValue: rootClientSecretValue } =
     await newClient(db, {

@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { HTTPException as HonoHTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 import { generateErrorMessage } from 'zod-error';
+import { HonoEnv } from '@/app';
 
 export const ErrorReason = z.enum([
 	'BAD_JWT',
@@ -125,7 +126,7 @@ export class HTTPException extends HonoHTTPException {
 	}
 }
 
-export function handleZodError(parseResult: { success: true; data: any } | { success: false; error: z.ZodError }, ctx: Context) {
+export function handleZodError(parseResult: { success: true; data: any } | { success: false; error: z.ZodError }, ctx: Context<HonoEnv>) {
 	if (!parseResult.success) {
 		const logger = ctx.get('logger');
 
@@ -143,7 +144,9 @@ export function handleZodError(parseResult: { success: true; data: any } | { suc
 	}
 }
 
-export function handleError(err: Error, ctx: Context): Response {
+export function handleError(err: Error, ctx: Context<HonoEnv>): Response {
+	const logger = ctx.get('logger');
+
 	if (err instanceof HTTPException) {
 		return ctx.json<ErrorResponse>(
 			{
@@ -154,7 +157,9 @@ export function handleError(err: Error, ctx: Context): Response {
 		);
 	}
 
-	console.error(err);
+	logger.error('An internal server error occurred', {
+		error: err,
+	});
 
 	return ctx.json<ErrorResponse>(
 		{

@@ -2,8 +2,9 @@ import { App } from '@/app';
 import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
-import { db } from '@/root';
+import { db, keyManagementService } from '@/root';
 import { HTTPException, errorResponseSchemas } from '@/errors';
+import { Buffer } from '@/buffer';
 
 const bodySchema = z.object({
 	clientId: z.string(),
@@ -99,6 +100,38 @@ export function makeV1GetOAuthToken(app: App) {
 
 		const now = new Date();
 
+		const workspace = await db.getWorkspaceById(client.workspaceId);
+
+		const api = await db.getApiById(client.apiId);
+
+		if (!workspace || !api) {
+			logger.error(`Could not find workspace or api for client ${clientId}`);
+
+			throw new HTTPException({
+				reason: 'INTERNAL_SERVER_ERROR',
+				message: 'An internal error occurred.',
+			});
+		}
+
+		const signingSecret = await db.getSigningSecretById(api.signingSecretId);
+
+		if (!signingSecret) {
+			logger.info(`Could not find signing secret ${api.signingSecretId} for api ${api.id}`);
+
+			throw new HTTPException({
+				reason: 'INTERNAL_SERVER_ERROR',
+				message: 'An internal error occurred.',
+			});
+		}
+
+		// decrypt the signing secret
+		const decryptResult = await keyManagementService.decryptWithDataKey(
+			workspace.dataEncryptionKeyId,
+			Buffer.from(signingSecret.secret, 'base64'),
+			Buffer.from(signingSecret.iv, 'base64')
+		);
+
+		// sign the jwt with the signing secret
 		const jwt = await sign(
 			{
 				exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
@@ -107,7 +140,7 @@ export function makeV1GetOAuthToken(app: App) {
 				secret_expires_at: null,
 				version: 1,
 			},
-			c.env.JWT_SECRET,
+			Buffer.from(decryptResult.decryptedData).toString('base64'),
 			'HS256'
 		);
 

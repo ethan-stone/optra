@@ -51,7 +51,7 @@ export function makeV1VerifyToken(app: App) {
 
 		const { token } = c.req.valid('json');
 
-		const verifiedToken = await verifyToken(token, c.env.JWT_SECRET, { logger });
+		const verifiedToken = await verifyToken(token, { logger });
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);

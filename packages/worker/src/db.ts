@@ -39,6 +39,7 @@ export type Workspace = InferSelectModel<(typeof schema)['workspaces']>;
 export type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
 export type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
 export type DataEncryptionKey = InferSelectModel<(typeof schema)['dataEncryptionKeys']>;
+export type SigningSecret = InferSelectModel<(typeof schema)['signingSecrets']>;
 
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;
@@ -50,6 +51,7 @@ export interface Db {
 	getWorkspaceById(id: string): Promise<Workspace | null>;
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
 	getApiById(id: string): Promise<Api | null>;
+	getSigningSecretById(id: string): Promise<SigningSecret | null>;
 	getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null>;
 }
 
@@ -205,6 +207,14 @@ export class PlanetScaleDb implements Db {
 		});
 
 		return api ?? null;
+	}
+
+	async getSigningSecretById(id: string): Promise<SigningSecret | null> {
+		const secret = await this.db.query.signingSecrets.findFirst({
+			where: eq(schema.signingSecrets.id, id),
+		});
+
+		return secret ?? null;
 	}
 
 	async getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null> {

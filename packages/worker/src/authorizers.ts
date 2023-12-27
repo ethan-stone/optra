@@ -1,10 +1,11 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
-import { db, tokenBuckets } from '@/root';
+import { db, keyManagementService, tokenBuckets } from '@/root';
 import { Client } from '@/db';
 import { Context } from 'hono';
 import { HonoEnv } from '@/app';
 import { Logger } from '@/logger';
 import { TokenBucket } from '@/ratelimit';
+import { Buffer } from '@/buffer';
 
 export type VerifyAuthHeaderResult =
 	| {
@@ -50,27 +51,31 @@ type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
  * Use this to validate that the jwt is valid and belongs to a root client.
  * @param authorization Value of the Authorization header.
  */
-export const verifyToken = async (token: string, secret: string, ctx: { logger: Logger }): Promise<VerifyTokenResult> => {
+export const verifyToken = async (token: string, ctx: { logger: Logger }): Promise<VerifyTokenResult> => {
 	const logger = ctx.logger;
 
-	const verifyResult = await verify(token, secret, { algorithm: 'HS256', throwError: false });
+	let payload: ReturnType<typeof decode>;
 
-	if (!verifyResult.valid) {
+	try {
+		payload = decode(token);
+	} catch (error) {
+		logger.info(`Token is malformed.`);
+
 		return {
 			valid: false,
-			message: 'Token is invalid. Check the reason field to see why.',
-			reason: verifyResult.reason,
+			message: 'JWT is malformed.',
+			reason: 'BAD_JWT',
 		};
 	}
 
-	const payload = decode(token);
+	logger.info(`Decoded token payload.`);
 
 	if (!payload.payload) {
 		logger.error(`Payload is somehow undefined despite being valid. This is fatal`);
 		return {
 			valid: false,
-			message: 'Payload is invalid.',
-			reason: 'INVALID_SIGNATURE',
+			message: 'JWT is malformed.',
+			reason: 'BAD_JWT',
 		};
 	}
 
@@ -82,6 +87,58 @@ export const verifyToken = async (token: string, secret: string, ctx: { logger: 
 			valid: false,
 			message: 'The client this token belongs to no longer exists.',
 			reason: 'INVALID_CLIENT',
+		};
+	}
+
+	const workspace = await db.getWorkspaceById(client.workspaceId);
+
+	if (!workspace) {
+		logger.error(`Workspace with id ${client.workspaceId} not found despite being verified. This is fatal`);
+		return {
+			valid: false,
+			message: 'The workspace this client belongs to no longer exists.',
+			reason: 'INVALID_CLIENT',
+		};
+	}
+
+	const api = await db.getApiById(client.apiId);
+
+	if (!api) {
+		logger.error(`Api with id ${client.apiId} not found despite being verified. This is fatal`);
+		return {
+			valid: false,
+			message: 'The api this client belongs to no longer exists.',
+			reason: 'INVALID_CLIENT',
+		};
+	}
+
+	const signingSecret = await db.getSigningSecretById(api.signingSecretId);
+
+	if (!signingSecret) {
+		logger.error(`Signing secret with id ${api.signingSecretId} not found despite being verified. This is fatal`);
+		return {
+			valid: false,
+			message: 'The signing secret this api belongs to no longer exists.',
+			reason: 'INVALID_CLIENT',
+		};
+	}
+
+	const decryptResult = await keyManagementService.decryptWithDataKey(
+		workspace.dataEncryptionKeyId,
+		Buffer.from(signingSecret.secret, 'base64'),
+		Buffer.from(signingSecret.iv, 'base64')
+	);
+
+	const verifyResult = await verify(token, Buffer.from(decryptResult.decryptedData).toString('base64'), {
+		algorithm: 'HS256',
+		throwError: false,
+	});
+
+	if (!verifyResult.valid) {
+		return {
+			valid: false,
+			message: 'Token is invalid. Check the reason field to see why.',
+			reason: verifyResult.reason,
 		};
 	}
 

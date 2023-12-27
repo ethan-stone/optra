@@ -66,7 +66,7 @@ export function makeV1CreateApi(app: App) {
 			});
 		}
 
-		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c.env.JWT_SECRET, { logger });
+		const verifiedToken = await verifyToken(verifiedAuthHeader.token, { logger });
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
