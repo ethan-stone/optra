@@ -142,7 +142,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	const { client, api, workspace, decryptedSigningSecret } = data;
+	const { client, decryptedSigningSecret } = data;
 
 	const verifyResult = await verify(token, Buffer.from(decryptedSigningSecret).toString('base64'), {
 		algorithm: 'HS256',
