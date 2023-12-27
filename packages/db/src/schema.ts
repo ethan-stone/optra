@@ -48,12 +48,25 @@ export const clientSecrets = mysqlTable(
   }
 );
 
-export const workspaces = mysqlTable("workspaces", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-  updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
-});
+export const workspaces = mysqlTable(
+  "workspaces",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    dataEncryptionKeyId: varchar("data_encryption_key_id", {
+      length: 36,
+    }).notNull(),
+    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+  },
+  (table) => {
+    return {
+      dataEncryptionKeyIdIdx: index("data_encryption_key_id_idx").on(
+        table.dataEncryptionKeyId
+      ),
+    };
+  }
+);
 
 export const apis = mysqlTable(
   "apis",
@@ -75,6 +88,7 @@ export const apis = mysqlTable(
 export const signingSecrets = mysqlTable("signing_secrets", {
   id: varchar("id", { length: 36 }).primaryKey(),
   secret: varchar("secret", { length: 1024 }).notNull(), // base64 encoded encrypted signing secret
+  iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
   algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
   createdAt: datetime("created_at", { fsp: 3 }).notNull(),
   updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
@@ -113,6 +127,12 @@ export const clientScopes = mysqlTable(
   }
 );
 
+export const dataEncryptionKeys = mysqlTable("data_encryption_keys", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  key: varchar("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
+  createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+});
+
 export const clientRelations = relations(clients, ({ one, many }) => {
   return {
     secrets: many(clientSecrets),
@@ -144,12 +164,16 @@ export const clientSecretsRelations = relations(clientSecrets, ({ one }) => {
   };
 });
 
-export const workspacesRelations = relations(workspaces, ({ many }) => {
+export const workspacesRelations = relations(workspaces, ({ many, one }) => {
   return {
     clients: many(clients, {
       relationName: "workspace_client_relation",
     }),
     apis: many(apis),
+    dataEncryptionKey: one(dataEncryptionKeys, {
+      fields: [workspaces.dataEncryptionKeyId],
+      references: [dataEncryptionKeys.id],
+    }),
   };
 });
 

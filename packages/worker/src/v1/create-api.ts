@@ -48,6 +48,8 @@ const route = createRoute({
 	},
 });
 
+// TODO: need to come up with a good interface for all these encryption and decryption operations
+
 export function makeV1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
@@ -82,12 +84,27 @@ export function makeV1CreateApi(app: App) {
 			});
 		}
 
-		const { ciphertext } = await keyManagementService.generateDataKey();
+		const workspace = await db.getWorkspaceById(verifiedToken.client.forWorkspaceId);
+
+		if (!workspace) {
+			logger.error(`Somehow could not find workspace for verfied token.`);
+			throw new HTTPException({
+				reason: 'INTERNAL_SERVER_ERROR',
+				message: 'An internal error occurred.',
+			});
+		}
 
 		const now = new Date();
 
+		// Generate a plaintext signing secret.
+		const signingSecretPlain = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
+
+		// Encrypt the signing secret with the data encryption key for the workspace.
+		const encryptResult = await keyManagementService.encryptWithDataKey(workspace.dataEncryptionKeyId, Buffer.from(signingSecretPlain));
+
 		const { id } = await db.createApi({
-			encryptedSigningSecret: Buffer.from(ciphertext).toString('base64'),
+			encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
+			iv: Buffer.from(encryptResult.iv).toString('base64'),
 			name: name,
 			scopes: scopes,
 			workspaceId: verifiedToken.client.forWorkspaceId,

@@ -1,35 +1,22 @@
-import { KMSClient, GenerateDataKeyCommand, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
+import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
+import { schema } from '@optra/db';
+import { PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
+import { eq } from '@/db';
+import { Buffer } from '@/buffer';
 
 export interface KeyManagementService {
-	generateDataKey: () => Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }>;
-	encrypt: (plaintext: Uint8Array) => Promise<Uint8Array>;
-	decrypt: (ciphertext: Uint8Array) => Promise<Uint8Array>;
+	encryptWithCustomerKey: (plaintext: Uint8Array) => Promise<Uint8Array>;
+	decryptWithCustomerKey: (ciphertext: Uint8Array) => Promise<Uint8Array>;
+	encryptWithDataKey: (keyId: string, plaintext: Uint8Array) => Promise<{ encryptedData: Uint8Array; iv: Uint8Array }>;
+	decryptWithDataKey: (keyId: string, ciphertext: Uint8Array, iv: Uint8Array) => Promise<{ decryptedData: Uint8Array }>;
 }
 
 export class AWSKeyManagementService implements KeyManagementService {
-	constructor(private client: KMSClient, private keyId: string) {}
+	constructor(private client: KMSClient, private db: PlanetScaleDatabase<typeof schema>, private customerKeyId: string) {}
 
-	public async generateDataKey(): Promise<{ plaintext: Uint8Array; ciphertext: Uint8Array }> {
-		const command = new GenerateDataKeyCommand({
-			KeyId: this.keyId,
-			KeySpec: 'AES_256',
-		});
-
-		const result = await this.client.send(command);
-
-		if (!result.Plaintext || !result.CiphertextBlob) {
-			throw new Error('Plaintext or Ciphertext is missing from KMS response');
-		}
-
-		return {
-			plaintext: result.Plaintext,
-			ciphertext: result.CiphertextBlob,
-		};
-	}
-
-	public async encrypt(plaintext: Uint8Array): Promise<Uint8Array> {
+	public async encryptWithCustomerKey(plaintext: Uint8Array): Promise<Uint8Array> {
 		const command = new EncryptCommand({
-			KeyId: this.keyId,
+			KeyId: this.customerKeyId,
 			Plaintext: plaintext,
 		});
 
@@ -42,9 +29,9 @@ export class AWSKeyManagementService implements KeyManagementService {
 		return result.CiphertextBlob;
 	}
 
-	public async decrypt(ciphertext: Uint8Array): Promise<Uint8Array> {
+	public async decryptWithCustomerKey(ciphertext: Uint8Array): Promise<Uint8Array> {
 		const command = new DecryptCommand({
-			KeyId: this.keyId,
+			KeyId: this.customerKeyId,
 			CiphertextBlob: ciphertext,
 		});
 
@@ -55,5 +42,89 @@ export class AWSKeyManagementService implements KeyManagementService {
 		}
 
 		return result.Plaintext;
+	}
+
+	public async encryptWithDataKey(keyId: string, plaintext: Uint8Array): Promise<{ encryptedData: Uint8Array; iv: Uint8Array }> {
+		const dek = await this.db.query.dataEncryptionKeys.findFirst({
+			where: eq(schema.dataEncryptionKeys.id, keyId),
+		});
+
+		if (!dek) {
+			throw new Error(`Could not find data encryption key ${keyId}`);
+		}
+
+		// decrypt the data encryption key
+
+		const command = new DecryptCommand({
+			KeyId: this.customerKeyId,
+			CiphertextBlob: Buffer.from(dek.key, 'base64'),
+		});
+
+		const result = await this.client.send(command);
+
+		if (!result.Plaintext) {
+			throw new Error('Plaintext is missing from KMS response');
+		}
+
+		const plaintextDek = result.Plaintext;
+
+		// import the key
+		const importedKey = await crypto.subtle.importKey('raw', plaintextDek, 'AES-GCM', true, ['encrypt', 'decrypt']);
+
+		// generate an initialization vector
+		const iv = crypto.getRandomValues(new Uint8Array(16));
+
+		// encrypt the plaintext with the data encryption key
+		const encryptedData = await crypto.subtle.encrypt(
+			{
+				name: 'AES-GCM',
+				iv: iv,
+			},
+			importedKey,
+			plaintext
+		);
+
+		return {
+			encryptedData: new Uint8Array(encryptedData),
+			iv: iv,
+		};
+	}
+
+	public async decryptWithDataKey(keyId: string, ciphertext: Uint8Array, iv: Uint8Array): Promise<{ decryptedData: Uint8Array }> {
+		const dek = await this.db.query.dataEncryptionKeys.findFirst({
+			where: eq(schema.dataEncryptionKeys.id, keyId),
+		});
+
+		if (!dek) {
+			throw new Error(`Could not find data encryption key ${keyId}`);
+		}
+
+		const command = new DecryptCommand({
+			KeyId: this.customerKeyId,
+			CiphertextBlob: Buffer.from(dek.key, 'base64'),
+		});
+
+		const result = await this.client.send(command);
+
+		if (!result.Plaintext) {
+			throw new Error('Plaintext is missing from KMS response');
+		}
+
+		const plaintextDek = result.Plaintext;
+
+		const importedKey = await crypto.subtle.importKey('raw', plaintextDek, 'AES-GCM', true, ['encrypt', 'decrypt']);
+
+		const decryptedData = await crypto.subtle.decrypt(
+			{
+				iv: iv,
+				name: 'AES-GCM',
+			},
+			importedKey,
+			ciphertext
+		);
+
+		return {
+			decryptedData: new Uint8Array(decryptedData),
+		};
 	}
 }

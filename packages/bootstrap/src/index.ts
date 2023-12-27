@@ -1,11 +1,7 @@
 import { schema } from "@optra/db";
 import { PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless";
-import { randomBytes, createHash } from "crypto";
-import {
-  EncryptCommand,
-  GenerateDataKeyCommand,
-  KMSClient,
-} from "@aws-sdk/client-kms";
+import { randomBytes, createHash, createCipheriv } from "crypto";
+import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 
 const kmsClient = new KMSClient({
   credentials: {
@@ -17,6 +13,15 @@ const kmsClient = new KMSClient({
 
 function uid() {
   return randomBytes(10).toString("hex");
+}
+
+function encrypt(text: string, key: Buffer) {
+  const iv = randomBytes(16);
+
+  const cipher = createCipheriv("aes-256-cbc", key, iv);
+  let encrypted = cipher.update(text, "utf8", "base64");
+  encrypted += cipher.final("base64");
+  return { iv, encryptedData: Buffer.from(encrypted, "base64") };
 }
 
 function generateRandomName() {
@@ -38,38 +43,54 @@ function generateRandomName() {
 async function newWorkspace(db: PlanetScaleDatabase<typeof schema>) {
   const workspaceId = `ws_` + uid();
 
-  await db.insert(schema.workspaces).values({
-    id: workspaceId,
-    name: generateRandomName(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
-  return { workspaceId };
-}
-
-async function newApi(
-  db: PlanetScaleDatabase<typeof schema>,
-  args: { workspaceId: string }
-) {
-  const apiId = `api_` + uid();
-
-  const signingSecretId = `signing_secret_` + uid();
-
-  const { CiphertextBlob } = await kmsClient.send(
+  const { CiphertextBlob, Plaintext } = await kmsClient.send(
     new GenerateDataKeyCommand({
       KeyId: process.env.AWS_KMS_KEY_ARN!,
       KeySpec: "AES_256",
     })
   );
 
-  const signingSecretEncrypted = Buffer.from(CiphertextBlob!).toString(
-    "base64"
+  const dataEncryptionKeyId = `dek_` + uid();
+
+  await db.insert(schema.dataEncryptionKeys).values({
+    id: dataEncryptionKeyId,
+    key: Buffer.from(CiphertextBlob!).toString("base64"),
+    createdAt: new Date(),
+  });
+
+  await db.insert(schema.workspaces).values({
+    id: workspaceId,
+    dataEncryptionKeyId: dataEncryptionKeyId,
+    name: generateRandomName(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  return {
+    workspaceId,
+    dataEncryptionKey: Buffer.from(Plaintext!).toString("base64"),
+  };
+}
+
+async function newApi(
+  db: PlanetScaleDatabase<typeof schema>,
+  args: { workspaceId: string; dataEncryptionKey: string }
+) {
+  const apiId = `api_` + uid();
+
+  const signingSecretId = `signing_secret_` + uid();
+
+  const signingSecretPlain = randomBytes(32);
+
+  const { encryptedData, iv } = encrypt(
+    signingSecretPlain.toString("base64"),
+    Buffer.from(args.dataEncryptionKey, "base64")
   );
 
   await db.insert(schema.signingSecrets).values({
     id: signingSecretId,
-    secret: signingSecretEncrypted,
+    secret: encryptedData.toString("base64"),
+    iv: iv.toString("base64"),
     algorithm: "hsa256",
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -134,15 +155,20 @@ async function newClient(
  * This generates an internal workspace and api that represents optra itself
  */
 export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
-  const { workspaceId: internalWorkspaceId } = await newWorkspace(db);
+  const {
+    workspaceId: internalWorkspaceId,
+    dataEncryptionKey: internalDataEncryptionKey,
+  } = await newWorkspace(db);
 
   const { apiId: internalApiId } = await newApi(db, {
     workspaceId: internalWorkspaceId,
+    dataEncryptionKey: internalDataEncryptionKey,
   });
 
   const { workspaceId } = await newWorkspace(db);
 
-  const { workspaceId: otherWorkspaceId } = await newWorkspace(db);
+  const { workspaceId: otherWorkspaceId, dataEncryptionKey } =
+    await newWorkspace(db);
 
   const { clientId: rootClientId, clientSecretValue: rootClientSecretValue } =
     await newClient(db, {
@@ -162,6 +188,7 @@ export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
 
   const { apiId } = await newApi(db, {
     workspaceId,
+    dataEncryptionKey: dataEncryptionKey,
   });
 
   const { clientId: basicClientId, clientSecretValue: basicClientSecretValue } =

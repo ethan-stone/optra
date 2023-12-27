@@ -32,6 +32,7 @@ export function initialize(env: {
 			},
 			region: 'us-east-1',
 		}),
+		conn,
 		env.awsKMSKeyArn
 	);
 
