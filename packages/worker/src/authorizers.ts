@@ -90,6 +90,8 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
+	logger.info(`Fetched client ${client.id} from payload.`);
+
 	const workspace = await db.getWorkspaceById(client.workspaceId);
 
 	if (!workspace) {
@@ -100,6 +102,8 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 			reason: 'INVALID_CLIENT',
 		};
 	}
+
+	logger.info(`Fetched workspace ${workspace.id} from client.`);
 
 	const api = await db.getApiById(client.apiId);
 
@@ -112,6 +116,8 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
+	logger.info(`Fetched api ${api.id} from client.`);
+
 	const signingSecret = await db.getSigningSecretById(api.signingSecretId);
 
 	if (!signingSecret) {
@@ -123,11 +129,15 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
+	logger.info(`Fetched signing secret ${signingSecret.id} from api.`);
+
 	const decryptResult = await keyManagementService.decryptWithDataKey(
 		workspace.dataEncryptionKeyId,
 		Buffer.from(signingSecret.secret, 'base64'),
 		Buffer.from(signingSecret.iv, 'base64')
 	);
+
+	logger.info(`Decrypted signing secret.`);
 
 	const verifyResult = await verify(token, Buffer.from(decryptResult.decryptedData).toString('base64'), {
 		algorithm: 'HS256',
@@ -142,11 +152,17 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	if (!client.rateLimitBucketSize || !client.rateLimitRefillAmount || !client.rateLimitRefillInterval)
+	logger.info(`Verified token signature.`);
+
+	if (!client.rateLimitBucketSize || !client.rateLimitRefillAmount || !client.rateLimitRefillInterval) {
+		logger.info(`Client ${client.id} has no rate limit. Token is valid.`);
 		return {
 			valid: true,
 			client,
 		};
+	}
+
+	logger.info(`Client ${client.id} has a rate limit. Checking if they have exceeded it.`);
 
 	let tokenBucket = tokenBuckets.get(client.id);
 
@@ -169,6 +185,8 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 			reason: 'RATELIMIT_EXCEEDED',
 		};
 	}
+
+	logger.info(`Client ${client.id} has not exceeded their rate limit. Token is valid.`);
 
 	return { valid: true, client };
 };
