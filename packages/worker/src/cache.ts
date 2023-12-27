@@ -1,4 +1,5 @@
 import { Api, Client, Workspace } from '@/db';
+import { Logger } from '@/logger';
 
 type CacheRecord<Value> = {
 	value: Value;
@@ -19,6 +20,7 @@ export interface Cache<Namespaces extends Record<string, unknown>> {
 	set<Namespace extends keyof Namespaces>(namespace: Namespace, key: string, value: Namespaces[Namespace]): Promise<void>;
 	delete<Namespace extends keyof Namespaces>(namespace: Namespace, key: string): Promise<void>;
 	fetchOrPopulate<Namespace extends keyof Namespaces>(
+		ctx: { logger: Logger },
 		namespace: Namespace,
 		key: string,
 		populate: (key: string) => Promise<Namespaces[Namespace]>
@@ -65,19 +67,28 @@ export class InMemoryCache<Namespaces extends Record<string, unknown>> implement
 	}
 
 	async fetchOrPopulate<Namespace extends keyof Namespaces>(
+		ctx: { logger: Logger },
 		namespace: Namespace,
 		key: string,
 		populate: (key: string) => Promise<Namespaces[Namespace]>
 	): Promise<Namespaces[Namespace]> {
+		const logger = ctx.logger;
+
+		logger.info(`Fetching from cache for ${String(namespace)}:${key}`);
+
 		const cached = await this.get(namespace, key);
 
 		if (cached) {
+			logger.info(`Cache hit for ${String(namespace)}:${key}`);
 			return cached;
 		}
 
+		logger.info(`Cache miss for ${String(namespace)}:${key}. Populating...`);
 		const populated = await populate(key);
 
 		await this.set<Namespace>(namespace, key, populated);
+
+		logger.info(`Populated cache for ${String(namespace)}:${key}`);
 
 		return populated;
 	}

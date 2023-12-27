@@ -77,7 +77,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	const data = await cache.fetchOrPopulate('clientById', payload.payload.sub, async (key) => {
+	const data = await cache.fetchOrPopulate({ logger }, 'clientById', payload.payload.sub, async (key) => {
 		const client = await db.getClientById(key);
 
 		if (!client) {
@@ -137,7 +137,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 	if (!data) {
 		return {
 			valid: false,
-			message: 'The client this token belongs to no longer exists.',
+			message: 'The client, api, or workspace this token belongs to does not exist.',
 			reason: 'INVALID_CLIENT',
 		};
 	}
