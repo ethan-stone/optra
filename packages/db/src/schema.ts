@@ -19,7 +19,7 @@ export const clients = mysqlTable(
     apiId: varchar("api_id", { length: 36 }).notNull(),
     rateLimitBucketSize: int("rate_limit_bucket_size"),
     rateLimitRefillAmount: int("rate_limit_refill_amount"),
-    rateLimitRefillInterval: int("rate_limit_refill_interval"),
+    rateLimitRefillInterval: int("rate_limit_refill_interval"), // in milliseconds
     createdAt: datetime("created_at", { fsp: 3 }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
   },

@@ -1,5 +1,5 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
-import { db, keyManagementService, tokenBuckets } from '@/root';
+import { cache, db, keyManagementService, tokenBuckets } from '@/root';
 import { Client } from '@/db';
 import { Logger } from '@/logger';
 import { TokenBucket } from '@/ratelimit';
@@ -77,10 +77,64 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	const client = await db.getClientById(payload.payload.sub);
+	const data = await cache.fetchOrPopulate('clientById', payload.payload.sub, async (key) => {
+		const client = await db.getClientById(key);
 
-	if (!client) {
-		logger.info(`Client with id ${payload.payload.sub} not found.`);
+		if (!client) {
+			logger.info(`Client with id ${key} not found.`);
+
+			return null;
+		}
+
+		logger.info(`Fetched client ${client.id} from payload.`);
+
+		const workspace = await db.getWorkspaceById(client.workspaceId);
+
+		if (!workspace) {
+			logger.info(`Workspace with id ${client.workspaceId} not found.`);
+
+			return null;
+		}
+
+		logger.info(`Fetched workspace ${workspace.id} from client.`);
+
+		const api = await db.getApiById(client.apiId);
+
+		if (!api) {
+			logger.info(`Api with id ${client.apiId} not found.`);
+
+			return null;
+		}
+
+		logger.info(`Fetched api ${api.id} from client.`);
+
+		const signingSecret = await db.getSigningSecretById(api.signingSecretId);
+
+		if (!signingSecret) {
+			logger.info(`Signing secret with id ${api.signingSecretId} not found despite being verified. This is fatal`);
+
+			return null;
+		}
+
+		logger.info(`Fetched signing secret ${signingSecret.id} from api.`);
+
+		const decryptResult = await keyManagementService.decryptWithDataKey(
+			workspace.dataEncryptionKeyId,
+			Buffer.from(signingSecret.secret, 'base64'),
+			Buffer.from(signingSecret.iv, 'base64')
+		);
+
+		logger.info(`Decrypted signing secret.`);
+
+		return {
+			api,
+			client,
+			decryptedSigningSecret: decryptResult.decryptedData,
+			workspace,
+		};
+	});
+
+	if (!data) {
 		return {
 			valid: false,
 			message: 'The client this token belongs to no longer exists.',
@@ -88,56 +142,9 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	logger.info(`Fetched client ${client.id} from payload.`);
+	const { client, api, workspace, decryptedSigningSecret } = data;
 
-	const workspace = await db.getWorkspaceById(client.workspaceId);
-
-	if (!workspace) {
-		logger.info(`Workspace with id ${client.workspaceId} not found.`);
-		return {
-			valid: false,
-			message: 'The workspace this client belongs to no longer exists.',
-			reason: 'INVALID_CLIENT',
-		};
-	}
-
-	logger.info(`Fetched workspace ${workspace.id} from client.`);
-
-	const api = await db.getApiById(client.apiId);
-
-	if (!api) {
-		logger.info(`Api with id ${client.apiId} not found.`);
-		return {
-			valid: false,
-			message: 'The api this client belongs to no longer exists.',
-			reason: 'INVALID_CLIENT',
-		};
-	}
-
-	logger.info(`Fetched api ${api.id} from client.`);
-
-	const signingSecret = await db.getSigningSecretById(api.signingSecretId);
-
-	if (!signingSecret) {
-		logger.info(`Signing secret with id ${api.signingSecretId} not found despite being verified. This is fatal`);
-		return {
-			valid: false,
-			message: 'The signing secret this api belongs to no longer exists.',
-			reason: 'INVALID_CLIENT',
-		};
-	}
-
-	logger.info(`Fetched signing secret ${signingSecret.id} from api.`);
-
-	const decryptResult = await keyManagementService.decryptWithDataKey(
-		workspace.dataEncryptionKeyId,
-		Buffer.from(signingSecret.secret, 'base64'),
-		Buffer.from(signingSecret.iv, 'base64')
-	);
-
-	logger.info(`Decrypted signing secret.`);
-
-	const verifyResult = await verify(token, Buffer.from(decryptResult.decryptedData).toString('base64'), {
+	const verifyResult = await verify(token, Buffer.from(decryptedSigningSecret).toString('base64'), {
 		algorithm: 'HS256',
 		throwError: false,
 	});
