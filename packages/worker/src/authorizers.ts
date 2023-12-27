@@ -1,8 +1,6 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
 import { db, keyManagementService, tokenBuckets } from '@/root';
 import { Client } from '@/db';
-import { Context } from 'hono';
-import { HonoEnv } from '@/app';
 import { Logger } from '@/logger';
 import { TokenBucket } from '@/ratelimit';
 import { Buffer } from '@/buffer';
@@ -71,7 +69,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 	logger.info(`Decoded token payload.`);
 
 	if (!payload.payload) {
-		logger.error(`Payload is somehow undefined despite being valid. This is fatal`);
+		logger.info(`Payload is undefined.`);
 		return {
 			valid: false,
 			message: 'JWT is malformed.',
@@ -82,7 +80,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 	const client = await db.getClientById(payload.payload.sub);
 
 	if (!client) {
-		logger.error(`Client with id ${payload.payload.sub} not found despite being verified. This is fatal`);
+		logger.info(`Client with id ${payload.payload.sub} not found.`);
 		return {
 			valid: false,
 			message: 'The client this token belongs to no longer exists.',
@@ -95,7 +93,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 	const workspace = await db.getWorkspaceById(client.workspaceId);
 
 	if (!workspace) {
-		logger.error(`Workspace with id ${client.workspaceId} not found despite being verified. This is fatal`);
+		logger.info(`Workspace with id ${client.workspaceId} not found.`);
 		return {
 			valid: false,
 			message: 'The workspace this client belongs to no longer exists.',
@@ -108,7 +106,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 	const api = await db.getApiById(client.apiId);
 
 	if (!api) {
-		logger.error(`Api with id ${client.apiId} not found despite being verified. This is fatal`);
+		logger.info(`Api with id ${client.apiId} not found.`);
 		return {
 			valid: false,
 			message: 'The api this client belongs to no longer exists.',
@@ -121,7 +119,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 	const signingSecret = await db.getSigningSecretById(api.signingSecretId);
 
 	if (!signingSecret) {
-		logger.error(`Signing secret with id ${api.signingSecretId} not found despite being verified. This is fatal`);
+		logger.info(`Signing secret with id ${api.signingSecretId} not found despite being verified. This is fatal`);
 		return {
 			valid: false,
 			message: 'The signing secret this api belongs to no longer exists.',
