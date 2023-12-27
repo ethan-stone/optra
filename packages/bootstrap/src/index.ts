@@ -1,6 +1,6 @@
 import { schema } from "@optra/db";
 import { PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless";
-import { randomBytes, createHash, createCipheriv } from "crypto";
+import { randomBytes, createHash, createCipheriv, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 
 const kmsClient = new KMSClient({
@@ -15,13 +15,27 @@ function uid() {
   return randomBytes(10).toString("hex");
 }
 
-function encrypt(text: string, key: Buffer) {
-  const iv = randomBytes(16);
+async function encrypt(text: Uint8Array, key: Uint8Array) {
+  const iv = webcrypto.getRandomValues(new Uint8Array(16));
 
-  const cipher = createCipheriv("aes-256-cbc", key, iv);
-  let encrypted = cipher.update(text, "utf8", "base64");
-  encrypted += cipher.final("base64");
-  return { iv, encryptedData: Buffer.from(encrypted, "base64") };
+  const importedKey = await crypto.subtle.importKey(
+    "raw",
+    key,
+    "AES-GCM",
+    true,
+    ["encrypt", "decrypt"]
+  );
+
+  const encryptedData = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv: iv,
+    },
+    importedKey,
+    text
+  );
+
+  return { iv, encryptedData: new Uint8Array(encryptedData) };
 }
 
 function generateRandomName() {
@@ -80,17 +94,17 @@ async function newApi(
 
   const signingSecretId = `signing_secret_` + uid();
 
-  const signingSecretPlain = randomBytes(32);
+  const signingSecretPlain = webcrypto.getRandomValues(new Uint8Array(32));
 
-  const { encryptedData, iv } = encrypt(
-    signingSecretPlain.toString("base64"),
+  const { encryptedData, iv } = await encrypt(
+    signingSecretPlain,
     Buffer.from(args.dataEncryptionKey, "base64")
   );
 
   await db.insert(schema.signingSecrets).values({
     id: signingSecretId,
-    secret: encryptedData.toString("base64"),
-    iv: iv.toString("base64"),
+    secret: Buffer.from(encryptedData).toString("base64"),
+    iv: Buffer.from(iv).toString("base64"),
     algorithm: "hsa256",
     createdAt: new Date(),
     updatedAt: new Date(),
