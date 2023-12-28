@@ -141,7 +141,7 @@ export function makeV1GetOAuthToken(app: App) {
 				iat: Math.floor(now.getTime() / 1000),
 				sub: client.id,
 				secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
-				version: 1,
+				version: client.version,
 			},
 			Buffer.from(decryptResult.decryptedData).toString('base64'),
 			'HS256'
