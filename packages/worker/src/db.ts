@@ -199,6 +199,7 @@ export class PlanetScaleDb implements Db {
 						id: uid('api_scope'),
 						apiId: apiId,
 						name: scopes.name,
+						description: scopes.description,
 						createdAt: now,
 						updatedAt: now,
 					});

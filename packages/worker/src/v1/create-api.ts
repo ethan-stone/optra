@@ -27,7 +27,16 @@ const route = createRoute({
 									description: z.string(),
 								})
 							)
-							.optional(),
+							.optional()
+							.refine((scopes) => {
+								if (!scopes) return true;
+								const names = scopes.map((s) => s.name);
+								// Check for duplicates
+								return new Set(names).size === names.length;
+							})
+							.openapi({
+								description: 'An array of scopes to create with the api. Scopes must have unique names within the api.',
+							}),
 					}),
 				},
 			},

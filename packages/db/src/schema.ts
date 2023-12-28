@@ -7,6 +7,7 @@ import {
   int,
   datetime,
   json,
+  unique,
 } from "drizzle-orm/mysql-core";
 
 export const clients = mysqlTable(
@@ -102,12 +103,14 @@ export const apiScopes = mysqlTable(
     id: varchar("id", { length: 36 }).primaryKey(),
     apiId: varchar("api_id", { length: 36 }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
+    description: varchar("description", { length: 1024 }).default(""),
     createdAt: datetime("created_at", { fsp: 3 }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
   },
   (table) => {
     return {
       apiIdIdx: index("api_id_idx").on(table.apiId),
+      apiIdNameIdx: unique("api_id_name_idx").on(table.apiId, table.name),
     };
   }
 );
