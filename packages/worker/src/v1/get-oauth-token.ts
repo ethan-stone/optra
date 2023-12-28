@@ -65,7 +65,10 @@ export function makeV1GetOAuthToken(app: App) {
 
 		logger.info(`Got client ${clientId}`);
 
-		const secrets = await db.getClientSecretsByClientId(client.id);
+		const secrets = await db.getClientSecretsByClientId(client.id, {
+			excludeExpired: true,
+			status: 'active',
+		});
 
 		let matchedClientSecret: ClientSecret | null = null;
 

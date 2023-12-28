@@ -78,7 +78,10 @@ export function makeV1RotateSecret(app: App) {
 			});
 		}
 
-		const secrets = await db.getClientSecretsByClientId(clientId);
+		const secrets = await db.getClientSecretsByClientId(clientId, {
+			status: 'active',
+			excludeExpired: true,
+		});
 
 		if (secrets.length === 2) {
 			throw new HTTPException({
@@ -124,6 +127,7 @@ export function makeV1RotateSecret(app: App) {
 		const expiresAt = new Date(now.getTime() + expiresIn);
 
 		const newSecret = await db.rotateClientSecret({
+			secretId: currentSecret.id,
 			clientId,
 			expiresAt,
 		});

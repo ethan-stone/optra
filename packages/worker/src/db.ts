@@ -1,7 +1,7 @@
 import { schema } from '@optra/db';
 import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
-import { InferSelectModel, InferInsertModel, eq, and, gt, or, isNull } from 'drizzle-orm';
+import { InferSelectModel, InferInsertModel, eq, and, gt, or, isNull, SQL, desc } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
 
@@ -43,12 +43,18 @@ export type DataEncryptionKey = InferSelectModel<(typeof schema)['dataEncryption
 export type SigningSecret = InferSelectModel<(typeof schema)['signingSecrets']>;
 export type RotateClientSecretParams = {
 	clientId: string;
+	secretId: string;
 	expiresAt: Date;
+};
+
+type GetClientSecretsByClientIdFilter = {
+	status?: 'active' | 'revoked';
+	excludeExpired?: boolean;
 };
 
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;
-	getClientSecretsByClientId(clientId: string): Promise<ClientSecret[]>;
+	getClientSecretsByClientId(clientId: string, filters?: GetClientSecretsByClientIdFilter): Promise<ClientSecret[]>;
 	getClientSecretValueById(secretId: string): Promise<string | null>;
 	createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }>;
 	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }>;
@@ -72,16 +78,18 @@ export class PlanetScaleDb implements Db {
 		return client ?? null;
 	}
 
-	async getClientSecretsByClientId(clientId: string) {
+	async getClientSecretsByClientId(clientId: string, filters: GetClientSecretsByClientIdFilter = {}): Promise<ClientSecret[]> {
+		const query: (SQL<unknown> | undefined)[] = [eq(schema.clientSecrets.clientId, clientId)];
+
+		if (filters?.status) query.push(eq(schema.clientSecrets.status, filters.status));
+		if (!filters?.excludeExpired) query.push(or(gt(schema.clientSecrets.expiresAt, new Date()), isNull(schema.clientSecrets.expiresAt)));
+
 		const secrets = await this.db.query.clientSecrets.findMany({
-			where: and(
-				eq(schema.clientSecrets.clientId, clientId),
-				eq(schema.clientSecrets.status, 'active'),
-				or(gt(schema.clientSecrets.expiresAt, new Date()), isNull(schema.clientSecrets.expiresAt))
-			),
+			where: and(...query),
 			columns: {
 				secret: false,
 			},
+			orderBy: desc(schema.clientSecrets.createdAt),
 		});
 
 		return secrets;
@@ -250,7 +258,7 @@ export class PlanetScaleDb implements Db {
 				.set({
 					expiresAt: params.expiresAt,
 				})
-				.where(and(eq(schema.clientSecrets.clientId, params.clientId), eq(schema.clientSecrets.status, 'active')));
+				.where(eq(schema.clientSecrets.id, params.secretId));
 
 			// create a new secret
 			await tx.insert(schema.clientSecrets).values({
