@@ -1,7 +1,7 @@
 import { schema } from '@optra/db';
 import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
-import { InferSelectModel, InferInsertModel, eq } from 'drizzle-orm';
+import { InferSelectModel, InferInsertModel, eq, and } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
 
@@ -28,6 +28,7 @@ export type Client = InferSelectModel<(typeof schema)['clients']>;
 export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
 export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'>;
 export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
+export type ClientSecretCreateResult = InferSelectModel<(typeof schema)['clientSecrets']>;
 export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
 export type CreateApiParams = Omit<InsertApiModel, 'id' | 'signingSecretId'> & {
 	scopes?: { name: string; description: string }[];
@@ -40,6 +41,10 @@ export type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces'
 export type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
 export type DataEncryptionKey = InferSelectModel<(typeof schema)['dataEncryptionKeys']>;
 export type SigningSecret = InferSelectModel<(typeof schema)['signingSecrets']>;
+export type RotateClientSecretParams = {
+	clientId: string;
+	expiresAt: Date;
+};
 
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;
@@ -53,6 +58,7 @@ export interface Db {
 	getApiById(id: string): Promise<Api | null>;
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
 	getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null>;
+	rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult>;
 }
 
 export class PlanetScaleDb implements Db {
@@ -68,7 +74,7 @@ export class PlanetScaleDb implements Db {
 
 	async getClientSecretsByClientId(clientId: string) {
 		const secrets = await this.db.query.clientSecrets.findMany({
-			where: eq(schema.clientSecrets.clientId, clientId),
+			where: and(eq(schema.clientSecrets.clientId, clientId), eq(schema.clientSecrets.status, 'active')),
 			columns: {
 				secret: false,
 			},
@@ -223,5 +229,55 @@ export class PlanetScaleDb implements Db {
 		});
 
 		return dek ?? null;
+	}
+
+	async rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult> {
+		const secretId = uid('client_secret');
+		const secretValue = uid();
+		const hashedSecretValue = await hashSHA256(secretValue);
+
+		const now = new Date();
+
+		await this.db.transaction(async (tx) => {
+			// update the old secret to have expiration date
+			await tx
+				.update(schema.clientSecrets)
+				.set({
+					expiresAt: params.expiresAt,
+				})
+				.where(and(eq(schema.clientSecrets.clientId, params.clientId), eq(schema.clientSecrets.status, 'active')));
+
+			// create a new secret
+			await tx.insert(schema.clientSecrets).values({
+				id: secretId,
+				secret: hashedSecretValue,
+				status: 'active',
+				clientId: params.clientId,
+				createdAt: now,
+			});
+
+			// increment version of the client
+			const client = await tx.query.clients.findFirst({
+				where: eq(schema.clients.id, params.clientId),
+			});
+
+			if (!client) throw new Error(`Could not find client ${params.clientId}`);
+
+			await tx
+				.update(schema.clients)
+				.set({
+					version: client.version + 1,
+				})
+				.where(eq(schema.clients.id, params.clientId));
+		});
+
+		return {
+			id: secretId,
+			secret: secretValue,
+			status: 'active',
+			clientId: params.clientId,
+			expiresAt: null,
+			createdAt: now,
+		};
 	}
 }

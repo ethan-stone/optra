@@ -52,10 +52,10 @@ type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
 export const verifyToken = async (token: string, ctx: { logger: Logger }): Promise<VerifyTokenResult> => {
 	const logger = ctx.logger;
 
-	let payload: ReturnType<typeof decode>;
+	let decoded: ReturnType<typeof decode>;
 
 	try {
-		payload = decode(token);
+		decoded = decode(token);
 	} catch (error) {
 		logger.info(`Token is malformed.`);
 
@@ -68,7 +68,9 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 
 	logger.info(`Decoded token payload.`);
 
-	if (!payload.payload) {
+	const payload = decoded.payload;
+
+	if (!payload) {
 		logger.info(`Payload is undefined.`);
 		return {
 			valid: false,
@@ -77,7 +79,7 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	const data = await cache.fetchOrPopulate({ logger }, 'clientById', payload.payload.sub, async (key) => {
+	const data = await cache.fetchOrPopulate({ logger }, 'clientById', payload.sub, async (key) => {
 		const client = await db.getClientById(key);
 
 		if (!client) {
@@ -154,6 +156,22 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 			valid: false,
 			message: 'Token is invalid. Check the reason field to see why.',
 			reason: verifyResult.reason,
+		};
+	}
+
+	if (payload.secret_expires_at && payload.secret_expires_at < Date.now() / 1000) {
+		return {
+			valid: false,
+			message: 'Token is invalid. Check the reason field to see why.',
+			reason: 'SECRET_EXPIRED',
+		};
+	}
+
+	if (payload.version !== client.version) {
+		return {
+			valid: false,
+			message: 'Token is invalid. Check the reason field to see why.',
+			reason: 'VERSION_MISMATCH',
 		};
 	}
 

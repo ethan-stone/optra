@@ -194,6 +194,8 @@ describe('POST /v1/tokens.verifyToken', () => {
 		}
 	});
 
+	it('should return 200 OK with invalid if version mismatch', async () => {});
+
 	it('should return 200 OK with valid if token is valid', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
