@@ -14,6 +14,7 @@ export const ErrorReason = z.enum([
 	'NOT_FOUND',
 	'BAD_REQUEST',
 	'FORBIDDEN',
+	'CONFLICT',
 	'INVALID_CLIENT',
 	'INTERNAL_SERVER_ERROR',
 ]);
@@ -65,6 +66,14 @@ export const errorResponseSchemas = {
 			},
 		},
 	},
+	409: {
+		description: 'Conflict',
+		content: {
+			'application/json': {
+				schema: createErrorSchema(['CONFLICT']).openapi('ErrorConflict'),
+			},
+		},
+	},
 	429: {
 		description: 'Too many requests',
 		content: {
@@ -112,6 +121,8 @@ function reasonToStatus(reason: z.infer<typeof ErrorReason>) {
 			return 400;
 		case 'FORBIDDEN':
 			return 403;
+		case 'CONFLICT':
+			return 409;
 		case 'INTERNAL_SERVER_ERROR':
 			return 500;
 	}

@@ -140,10 +140,13 @@ export function makeV1RotateSecret(app: App) {
 			},
 		});
 
-		return c.json({
-			...newSecret,
-			createdAt: newSecret.createdAt.toISOString(),
-			expiresAt: newSecret.expiresAt?.toISOString() ?? null,
-		});
+		return c.json(
+			{
+				...newSecret,
+				createdAt: newSecret.createdAt.toISOString(),
+				expiresAt: newSecret.expiresAt?.toISOString() ?? null,
+			},
+			200
+		);
 	});
 }

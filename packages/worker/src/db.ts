@@ -35,7 +35,9 @@ export type CreateApiParams = Omit<InsertApiModel, 'id' | 'signingSecretId'> & {
 	encryptedSigningSecret: string;
 	iv: string;
 };
-export type Api = InferSelectModel<(typeof schema)['apis']>;
+export type ApiScope = InferSelectModel<(typeof schema)['apiScopes']>;
+export type CreateApiScopeParams = Omit<InferInsertModel<(typeof schema)['apiScopes']>, 'id'>;
+export type Api = InferSelectModel<(typeof schema)['apis']> & { scopes: ApiScope[] };
 export type Workspace = InferSelectModel<(typeof schema)['workspaces']>;
 export type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
 export type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
@@ -62,6 +64,7 @@ export interface Db {
 	getWorkspaceById(id: string): Promise<Workspace | null>;
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
 	getApiById(id: string): Promise<Api | null>;
+	createApiScope(params: CreateApiScopeParams): Promise<{ id: string }>;
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
 	getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null>;
 	rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult>;
@@ -223,9 +226,23 @@ export class PlanetScaleDb implements Db {
 	async getApiById(id: string): Promise<Api | null> {
 		const api = await this.db.query.apis.findFirst({
 			where: eq(schema.apis.id, id),
+			with: {
+				scopes: true,
+			},
 		});
 
 		return api ?? null;
+	}
+
+	async createApiScope(params: CreateApiScopeParams): Promise<{ id: string }> {
+		const apiScopeId = uid('api_scope');
+
+		await this.db.insert(schema.apiScopes).values({
+			id: apiScopeId,
+			...params,
+		});
+
+		return { id: apiScopeId };
 	}
 
 	async getSigningSecretById(id: string): Promise<SigningSecret | null> {

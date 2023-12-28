@@ -9,6 +9,7 @@ import { makeV1CreateClient } from '@/v1/create-client';
 import { makeV1VerifyToken } from '@/v1/verify-token';
 import { makeV1GetClient } from '@/v1/get-client';
 import { makeV1RotateSecret } from '@/v1/rotate-secret';
+import { makeV1AddApiScope } from './v1/add-api-scope';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -92,6 +93,7 @@ makeV1CreateClient(app);
 makeV1VerifyToken(app);
 makeV1GetClient(app);
 makeV1RotateSecret(app);
+makeV1AddApiScope(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
