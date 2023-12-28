@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { testEnv } from './test-env';
+import { testEnvSchema } from './test-env-schema';
 import { GetOAuthTokenRes } from '@/v1/get-oauth-token';
 
-const env = testEnv.parse(process.env);
+const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/oauth/token', () => {
 	it('should get oauth token', async () => {

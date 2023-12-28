@@ -1,7 +1,7 @@
 import { GetOAuthTokenRes } from '@/v1/get-oauth-token';
 
-export async function getOAuthToken(clientId: string, clientSecret: string): Promise<string> {
-	const req = new Request('http://localhost:8787/v1/oauth/token', {
+export async function getOAuthToken(baseUrl: string, clientId: string, clientSecret: string): Promise<string> {
+	const req = new Request(`${baseUrl}/v1/oauth/token`, {
 		method: 'POST',
 		body: JSON.stringify({
 			grantType: 'client_credentials',

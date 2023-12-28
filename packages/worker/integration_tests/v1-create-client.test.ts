@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { testEnv } from './test-env';
+import { testEnvSchema } from './test-env-schema';
 import { getOAuthToken } from './helpers';
 
-const env = testEnv.parse(process.env);
+const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/clients.createClient', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
@@ -48,7 +48,7 @@ describe('POST /v1/clients.createClient', () => {
 	});
 
 	it('should respond with 403 FORBIDDEN if not root client', async () => {
-		const token = await getOAuthToken(env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
@@ -72,7 +72,7 @@ describe('POST /v1/clients.createClient', () => {
 	});
 
 	it('should respond with 400 BAD_REQUEST if api does not exist', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
@@ -96,7 +96,7 @@ describe('POST /v1/clients.createClient', () => {
 	});
 
 	it('should respond with 400 BAD_REQUEST if api does not exist because root client does not have access to workspace', async () => {
-		const token = await getOAuthToken(env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
@@ -120,7 +120,7 @@ describe('POST /v1/clients.createClient', () => {
 	});
 
 	it('should respond with 200 OK if valid request', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',

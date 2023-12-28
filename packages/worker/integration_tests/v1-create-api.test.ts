@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { testEnv } from './test-env';
+import { testEnvSchema } from './test-env-schema';
 import { getOAuthToken } from './helpers';
 
-const env = testEnv.parse(process.env);
+const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/apis.createApi', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
@@ -48,7 +48,7 @@ describe('POST /v1/apis.createApi', () => {
 	});
 
 	it('should respond with 403 FORBIDDEN if not authorized', async () => {
-		const token = await getOAuthToken(env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
@@ -72,7 +72,7 @@ describe('POST /v1/apis.createApi', () => {
 	});
 
 	it('should respond with 200 OK and create an api', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',

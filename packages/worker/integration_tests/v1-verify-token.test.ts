@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { testEnv } from './test-env';
+import { testEnvSchema } from './test-env-schema';
 import { JwtPayload, sign } from '@/crypto-utils';
 import { getOAuthToken } from './helpers';
 
-const env = testEnv.parse(process.env);
+const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
@@ -33,7 +33,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 				version: 1,
 				secret_expires_at: null,
 			},
-			env.JWT_SECRET
+			'wefwf'
 		);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -86,7 +86,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 				version: 1,
 				secret_expires_at: null,
 			},
-			env.JWT_SECRET
+			'wefwe'
 		);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -111,7 +111,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 
 	// not sure we really have to cover this. The sign function fails if you don't provide an object for the payloasd
 	it.todo('should respond with 200 OK with invalid if signature somehow valid but payload can not be parsed', async () => {
-		const token = await sign(null as unknown as JwtPayload, env.JWT_SECRET);
+		const token = await sign(null as unknown as JwtPayload, 'wef');
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
@@ -142,7 +142,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 				version: 1,
 				secret_expires_at: null,
 			},
-			env.JWT_SECRET
+			'wefwef'
 		);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -166,7 +166,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with invalid if ratelimit exceeded', async () => {
-		const token = await getOAuthToken(env.BASIC_CLIENT_ID_WITH_LOW_RATELIMIT, env.BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT);
+		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID_WITH_LOW_RATELIMIT, env.BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT);
 
 		while (true) {
 			const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -197,7 +197,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 200 OK with invalid if version mismatch', async () => {});
 
 	it('should respond with 200 OK with valid if token is valid', async () => {
-		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',

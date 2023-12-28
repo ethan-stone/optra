@@ -6,11 +6,12 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"test": "dotenv -e .env.test vitest"
+		"test": "tsx ./integration_tests/bootstrap.ts && dotenv -e .env.test vitest"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20231121.0",
 		"@optra/bootstrap": "workspace:^",
+		"tsx": "^4.7.0",
 		"typescript": "^5.0.4",
 		"vite": "^5.0.7",
 		"vitest": "^1.0.4",

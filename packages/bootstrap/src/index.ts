@@ -1,15 +1,7 @@
 import { schema } from "@optra/db";
 import { PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless";
-import { randomBytes, createHash, createCipheriv, webcrypto } from "crypto";
+import { randomBytes, createHash, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
-
-const kmsClient = new KMSClient({
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-  region: "us-east-1",
-});
 
 function uid() {
   return randomBytes(10).toString("hex");
@@ -54,12 +46,16 @@ function generateRandomName() {
   return `${color}${animal}${number}`;
 }
 
-async function newWorkspace(db: PlanetScaleDatabase<typeof schema>) {
+async function newWorkspace(
+  db: PlanetScaleDatabase<typeof schema>,
+  kmsClient: KMSClient,
+  awsKMSKeyArn: string
+) {
   const workspaceId = `ws_` + uid();
 
   const { CiphertextBlob, Plaintext } = await kmsClient.send(
     new GenerateDataKeyCommand({
-      KeyId: process.env.AWS_KMS_KEY_ARN!,
+      KeyId: awsKMSKeyArn,
       KeySpec: "AES_256",
     })
   );
@@ -168,23 +164,31 @@ async function newClient(
 /**
  * This generates an internal workspace and api that represents optra itself
  */
-export async function bootstrap(db: PlanetScaleDatabase<typeof schema>) {
+export async function bootstrap(
+  db: PlanetScaleDatabase<typeof schema>,
+  kmsClient: KMSClient,
+  awsKMSKeyArn: string
+) {
   const {
     workspaceId: internalWorkspaceId,
     dataEncryptionKey: internalDataEncryptionKey,
-  } = await newWorkspace(db);
+  } = await newWorkspace(db, kmsClient, awsKMSKeyArn);
 
   const { apiId: internalApiId } = await newApi(db, {
     workspaceId: internalWorkspaceId,
     dataEncryptionKey: internalDataEncryptionKey,
   });
 
-  const { workspaceId, dataEncryptionKey } = await newWorkspace(db);
+  const { workspaceId, dataEncryptionKey } = await newWorkspace(
+    db,
+    kmsClient,
+    awsKMSKeyArn
+  );
 
   const {
     workspaceId: otherWorkspaceId,
     dataEncryptionKey: otherDataEncryptionKey,
-  } = await newWorkspace(db);
+  } = await newWorkspace(db, kmsClient, awsKMSKeyArn);
 
   const { clientId: rootClientId, clientSecretValue: rootClientSecretValue } =
     await newClient(db, {
