@@ -82,7 +82,7 @@ export class PlanetScaleDb implements Db {
 		const query: (SQL<unknown> | undefined)[] = [eq(schema.clientSecrets.clientId, clientId)];
 
 		if (filters?.status) query.push(eq(schema.clientSecrets.status, filters.status));
-		if (!filters?.excludeExpired) query.push(or(gt(schema.clientSecrets.expiresAt, new Date()), isNull(schema.clientSecrets.expiresAt)));
+		if (filters?.excludeExpired) query.push(or(gt(schema.clientSecrets.expiresAt, new Date()), isNull(schema.clientSecrets.expiresAt)));
 
 		const secrets = await this.db.query.clientSecrets.findMany({
 			where: and(...query),

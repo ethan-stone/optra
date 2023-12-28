@@ -23,8 +23,8 @@ export const clients = mysqlTable(
     rateLimitRefillAmount: int("rate_limit_refill_amount"),
     rateLimitRefillInterval: int("rate_limit_refill_interval"), // in milliseconds
     metadata: json("metadata").$type<Record<string, unknown>>(),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -41,8 +41,8 @@ export const clientSecrets = mysqlTable(
     clientId: varchar("client_id", { length: 36 }).notNull(),
     secret: varchar("secret", { length: 255 }).notNull(),
     status: mysqlEnum("status", ["active", "revoked"]).notNull(),
-    expiresAt: datetime("expires_at", { fsp: 3 }),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+    expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
+    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -59,8 +59,8 @@ export const workspaces = mysqlTable(
     dataEncryptionKeyId: varchar("data_encryption_key_id", {
       length: 36,
     }).notNull(),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -78,8 +78,8 @@ export const apis = mysqlTable(
     name: varchar("name", { length: 255 }).notNull(),
     workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
     signingSecretId: varchar("signing_secret_id", { length: 36 }).notNull(),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -93,8 +93,8 @@ export const signingSecrets = mysqlTable("signing_secrets", {
   secret: varchar("secret", { length: 1024 }).notNull(), // base64 encoded encrypted signing secret
   iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
   algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
-  createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-  updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+  updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
 });
 
 export const apiScopes = mysqlTable(
@@ -104,8 +104,8 @@ export const apiScopes = mysqlTable(
     apiId: varchar("api_id", { length: 36 }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     description: varchar("description", { length: 1024 }).default(""),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -121,8 +121,8 @@ export const clientScopes = mysqlTable(
     id: varchar("id", { length: 36 }).primaryKey(),
     clientId: varchar("client_id", { length: 36 }).notNull(),
     apiScopeId: varchar("api_scope_id", { length: 36 }).notNull(),
-    createdAt: datetime("created_at", { fsp: 3 }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3 }).notNull(),
+    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -135,7 +135,7 @@ export const clientScopes = mysqlTable(
 export const dataEncryptionKeys = mysqlTable("data_encryption_keys", {
   id: varchar("id", { length: 36 }).primaryKey(),
   key: varchar("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
-  createdAt: datetime("created_at", { fsp: 3 }).notNull(),
+  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
 });
 
 export const clientRelations = relations(clients, ({ one, many }) => {
