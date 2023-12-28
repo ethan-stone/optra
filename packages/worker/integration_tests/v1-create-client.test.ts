@@ -26,7 +26,7 @@ describe('POST /v1/clients.createClient', () => {
 		expect((resJson as any).reason).toBe('BAD_REQUEST');
 	});
 
-	it('should response with 401 BAD_JWT if authorization header missing', async () => {
+	it('should respond with 401 BAD_JWT if authorization header missing', async () => {
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -47,7 +47,7 @@ describe('POST /v1/clients.createClient', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should response with 403 FORBIDDEN if not root client', async () => {
+	it('should respond with 403 FORBIDDEN if not root client', async () => {
 		const token = await getOAuthToken(env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
@@ -71,7 +71,7 @@ describe('POST /v1/clients.createClient', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should response with 400 BAD_REQUEST if api does not exist', async () => {
+	it('should respond with 400 BAD_REQUEST if api does not exist', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
@@ -95,7 +95,7 @@ describe('POST /v1/clients.createClient', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should response with 400 BAD_REQUEST if api does not exist because root client does not have access to workspace', async () => {
+	it('should respond with 400 BAD_REQUEST if api does not exist because root client does not have access to workspace', async () => {
 		const token = await getOAuthToken(env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
@@ -119,7 +119,7 @@ describe('POST /v1/clients.createClient', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should response with 200 OK if valid request', async () => {
+	it('should respond with 200 OK if valid request', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {

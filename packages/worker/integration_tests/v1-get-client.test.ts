@@ -81,7 +81,7 @@ describe('GET /v1/clients.getClient', () => {
 		expect((resJson as any).reason).toBe('FORBIDDEN');
 	});
 
-	it('should return 200 OK if client is found', async () => {
+	it('should respond with 200 OK if client is found', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {

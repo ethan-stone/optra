@@ -27,7 +27,7 @@ describe('POST /v1/oauth/token', () => {
 		expect(resJson.tokenType).toBeDefined();
 	});
 
-	it('should respond with 400 bad request if request body is invalid', async () => {
+	it('should respond with 400 BAD_REQUEST if request body is invalid', async () => {
 		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
@@ -41,7 +41,7 @@ describe('POST /v1/oauth/token', () => {
 		expect(res.status).toBe(400);
 	});
 
-	it('should respond with 403 forbidden client is not found', async () => {
+	it('should respond with 403 FORBIDDEN client is not found', async () => {
 		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -59,7 +59,7 @@ describe('POST /v1/oauth/token', () => {
 		expect(res.status).toBe(403);
 	});
 
-	it('should respond with 403 forbidden if no secret matches', async () => {
+	it('should respond with 403 FORBIDDEN if no secret matches', async () => {
 		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({

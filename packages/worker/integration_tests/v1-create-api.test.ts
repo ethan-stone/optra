@@ -5,7 +5,7 @@ import { getOAuthToken } from './helpers';
 const env = testEnv.parse(process.env);
 
 describe('POST /v1/apis.createApi', () => {
-	it('should reject if invalid body', async () => {
+	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
