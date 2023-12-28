@@ -33,3 +33,15 @@ export function generateJsonObject(numKeys: number): Record<string, unknown> {
 
 	return obj;
 }
+
+export async function withRetry<T>(fn: () => Promise<T>, retries: number = 3): Promise<T> {
+	try {
+		return await fn();
+	} catch (e) {
+		if (retries === 0) {
+			throw e;
+		}
+
+		return await withRetry(fn, retries - 1);
+	}
+}

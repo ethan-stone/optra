@@ -27,7 +27,7 @@ describe('POST /v1/clients.rotateSecret', () => {
 	it('should respond with 200 OK using root client', async () => {
 		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const getClientReq = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const getClientReq = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID_FOR_ROTATING}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -39,7 +39,7 @@ describe('POST /v1/clients.rotateSecret', () => {
 		const req = new Request(`${env.BASE_URL}/v1/clients.rotateSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
-				clientId: env.BASIC_CLIENT_ID,
+				clientId: env.BASIC_CLIENT_ID_FOR_ROTATING,
 				expiresIn: 1000 * 60, // 1 minute
 			}),
 			headers: {

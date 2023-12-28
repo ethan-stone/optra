@@ -240,6 +240,14 @@ export async function bootstrap(
     rateLimitRefillInterval: 333,
   });
 
+  const {
+    clientId: basicClientIdForRotating,
+    clientSecretValue: basicClientSecretValueForRotating,
+  } = await newClient(db, {
+    apiId,
+    workspaceId,
+  });
+
   return {
     OPTRA_WORKSPACE_ID: internalWorkspaceId,
     OPTRA_API_ID: internalApiId,
@@ -255,5 +263,7 @@ export async function bootstrap(
     BASIC_CLIENT_ID_WITH_LOW_RATELIMIT: basicClientIdWithLowRateLimit,
     BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT:
       basicClientSecretValueWithLowRateLimit,
+    BASIC_CLIENT_ID_FOR_ROTATING: basicClientIdForRotating,
+    BASIC_CLIENT_SECRET_FOR_ROTATING: basicClientSecretValueForRotating,
   };
 }

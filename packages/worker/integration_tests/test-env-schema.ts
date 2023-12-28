@@ -15,4 +15,6 @@ export const testEnvSchema = z.object({
 	BASIC_CLIENT_SECRET: z.string(),
 	BASIC_CLIENT_ID_WITH_LOW_RATELIMIT: z.string(),
 	BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT: z.string(),
+	BASIC_CLIENT_ID_FOR_ROTATING: z.string(),
+	BASIC_CLIENT_SECRET_FOR_ROTATING: z.string(),
 });
