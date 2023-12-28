@@ -4,6 +4,25 @@ import { HTTPException, errorResponseSchemas } from '@/errors';
 import { db } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
+function getStringSizeInBytes(str: string): number {
+	let sizeInBytes = 0;
+	for (let i = 0; i < str.length; i++) {
+		const charCode = str.charCodeAt(i);
+		if (charCode < 0x80) {
+			sizeInBytes += 1;
+		} else if (charCode < 0x800) {
+			sizeInBytes += 2;
+		} else if (charCode < 0xd800 || charCode >= 0xe000) {
+			sizeInBytes += 3;
+		} else {
+			// Surrogate pair
+			i++;
+			sizeInBytes += 4;
+		}
+	}
+	return sizeInBytes;
+}
+
 const route = createRoute({
 	method: 'post',
 	path: '/v1/clients.createClient',
@@ -23,6 +42,18 @@ const route = createRoute({
 						rateLimitBucketSize: z.number().int().optional(),
 						rateLimitRefillAmount: z.number().int().optional(),
 						rateLimitRefillInterval: z.number().int().optional(),
+						metadata: z
+							.record(z.string().min(1), z.union([z.number(), z.string(), z.boolean()]))
+							.optional()
+							.refine(
+								(value) => {
+									if (value === undefined) return true;
+									const stringified = JSON.stringify(value);
+									const sizeInBytes = getStringSizeInBytes(stringified);
+									return sizeInBytes <= 1024;
+								},
+								{ message: 'Metadata size can not be larger than 1KB' }
+							),
 					}),
 				},
 			},
@@ -48,7 +79,7 @@ export function makeV1CreateClient(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
-		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval } = c.req.valid('json');
+		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata } = c.req.valid('json');
 
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
@@ -98,6 +129,7 @@ export function makeV1CreateClient(app: App) {
 			rateLimitBucketSize,
 			rateLimitRefillAmount,
 			rateLimitRefillInterval,
+			metadata,
 			createdAt: now,
 			updatedAt: now,
 		});

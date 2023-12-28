@@ -23,3 +23,13 @@ export async function getOAuthToken(baseUrl: string, clientId: string, clientSec
 
 	return resJson.accessToken;
 }
+
+export function generateJsonObject(numKeys: number): Record<string, unknown> {
+	const obj: Record<string, unknown> = {};
+
+	for (let i = 0; i < numKeys; i++) {
+		obj[`key-${i}`] = `value-${i}`;
+	}
+
+	return obj;
+}

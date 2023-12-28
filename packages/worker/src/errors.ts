@@ -158,7 +158,11 @@ export function handleError(err: Error, ctx: Context<HonoEnv>): Response {
 	}
 
 	logger.error('An internal server error occurred', {
-		error: err,
+		error: {
+			message: err.message,
+			stack: err.stack,
+			name: err.name,
+		},
 	});
 
 	return ctx.json<ErrorResponse>(

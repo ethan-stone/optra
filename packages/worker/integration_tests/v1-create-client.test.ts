@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { testEnvSchema } from './test-env-schema';
-import { getOAuthToken } from './helpers';
+import { generateJsonObject, getOAuthToken } from './helpers';
 
 const env = testEnvSchema.parse(process.env);
 
@@ -11,6 +11,60 @@ describe('POST /v1/clients.createClient', () => {
 		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		const res = await fetch(req);
+		const resJson = await res.json();
+
+		expect(res.status).toBe(400);
+		expect(resJson).toHaveProperty('reason');
+		expect(resJson).toHaveProperty('message');
+		expect((resJson as any).reason).toBe('BAD_REQUEST');
+	});
+
+	it('should respond with 400 BAD_REQUEST if metadata too large', async () => {
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+
+		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name: 'test',
+				apiId: env.API_ID,
+				metadata: generateJsonObject(1000), // 1000 keys should be larger than 1KB
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		const res = await fetch(req);
+		const resJson = await res.json();
+
+		expect(res.status).toBe(400);
+		expect(resJson).toHaveProperty('reason');
+		expect(resJson).toHaveProperty('message');
+		expect((resJson as any).reason).toBe('BAD_REQUEST');
+	});
+
+	it('should respond with 400 BAD_REQUEST if metadata key values are not just number, string, and boolean', async () => {
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+
+		const req = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name: 'test',
+				apiId: env.API_ID,
+				metadata: {
+					key: {
+						nested: 'value',
+					},
+				}, // nested objects are not valid
+			}),
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
@@ -127,6 +181,7 @@ describe('POST /v1/clients.createClient', () => {
 			body: JSON.stringify({
 				name: 'test',
 				apiId: env.API_ID,
+				metadata: generateJsonObject(10), // 10 keys should be less than 1KB
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -136,6 +191,8 @@ describe('POST /v1/clients.createClient', () => {
 
 		const res = await fetch(req);
 		const resJson = await res.json();
+
+		console.log((resJson as any).clientId);
 
 		expect(res.status).toBe(200);
 		expect(resJson).toHaveProperty('clientId');
