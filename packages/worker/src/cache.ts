@@ -84,6 +84,7 @@ export class InMemoryCache<Namespaces extends Record<string, unknown>> implement
 		}
 
 		logger.info(`Cache miss for ${String(namespace)}:${key}. Populating...`);
+
 		const populated = await populate(key);
 
 		await this.set<Namespace>(namespace, key, populated);
