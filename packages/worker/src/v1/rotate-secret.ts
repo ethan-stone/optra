@@ -1,7 +1,7 @@
 import { App } from '@/app';
 import { verifyAuthHeader, verifyToken } from '@/authorizers';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db } from '@/root';
+import { db, scheduler } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -121,9 +121,19 @@ export function makeV1RotateSecret(app: App) {
 		// if the provided expiresIn is null, set it to 1 minute
 		let expiresIn = providedExpiresIn ?? 1000 * 60;
 
+		const expiresAt = new Date(now.getTime() + expiresIn);
+
 		const newSecret = await db.rotateClientSecret({
 			clientId,
-			expiresAt: new Date(now.getTime() + expiresIn),
+			expiresAt,
+		});
+
+		await scheduler.createOneTimeSchedule({
+			at: expiresAt,
+			eventType: 'secret.expired',
+			payload: {
+				secretId: currentSecret.id,
+			},
 		});
 
 		return c.json({
