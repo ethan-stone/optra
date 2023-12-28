@@ -46,6 +46,16 @@ function generateRandomName() {
   return `${color}${animal}${number}`;
 }
 
+export function generateJsonObject(numKeys: number): Record<string, unknown> {
+  const obj: Record<string, unknown> = {};
+
+  for (let i = 0; i < numKeys; i++) {
+    obj[`key-${i}`] = `value-${i}`;
+  }
+
+  return obj;
+}
+
 async function newWorkspace(
   db: PlanetScaleDatabase<typeof schema>,
   kmsClient: KMSClient,
@@ -146,6 +156,7 @@ async function newClient(
     rateLimitBucketSize: args.rateLimitBucketSize ?? 1000,
     rateLimitRefillAmount: args.rateLimitRefillAmount ?? 10,
     rateLimitRefillInterval: args.rateLimitRefillInterval ?? 10,
+    metadata: generateJsonObject(10),
     createdAt: new Date(),
     updatedAt: new Date(),
   });
@@ -185,10 +196,11 @@ export async function bootstrap(
     awsKMSKeyArn
   );
 
-  const {
-    workspaceId: otherWorkspaceId,
-    dataEncryptionKey: otherDataEncryptionKey,
-  } = await newWorkspace(db, kmsClient, awsKMSKeyArn);
+  const { workspaceId: otherWorkspaceId } = await newWorkspace(
+    db,
+    kmsClient,
+    awsKMSKeyArn
+  );
 
   const { clientId: rootClientId, clientSecretValue: rootClientSecretValue } =
     await newClient(db, {
