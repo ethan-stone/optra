@@ -3,9 +3,10 @@ import { connect } from "@planetscale/database";
 import { drizzle } from "drizzle-orm/planetscale-serverless";
 import { schema } from "@optra/db";
 import { eq } from "drizzle-orm";
+import { Config } from "sst/node/config";
 
 const connection = connect({
-  url: "",
+  url: Config.DRIZZLE_DATABASE_URL,
 });
 
 const db = drizzle(connection, {
@@ -27,7 +28,7 @@ export const handler = async (event: unknown) => {
     .set({
       status: "revoked",
     })
-    .where(eq(schema.clientSecrets, secretId));
+    .where(eq(schema.clientSecrets.id, secretId));
 
   console.log(`Revoked secret ${secretId}`);
 };

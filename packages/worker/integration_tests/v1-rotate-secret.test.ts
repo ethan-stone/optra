@@ -40,7 +40,7 @@ describe('POST /v1/clients.rotateSecret', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
-				expiresIn: 1000 * 60 * 60 * 24 * 7, // 7 days from now
+				expiresIn: 1000 * 60, // 1 minute
 			}),
 			headers: {
 				'Content-Type': 'application/json',
