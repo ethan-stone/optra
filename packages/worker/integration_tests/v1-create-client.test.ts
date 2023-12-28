@@ -192,8 +192,6 @@ describe('POST /v1/clients.createClient', () => {
 		const res = await fetch(req);
 		const resJson = await res.json();
 
-		console.log((resJson as any).clientId);
-
 		expect(res.status).toBe(200);
 		expect(resJson).toHaveProperty('clientId');
 		expect(resJson).toHaveProperty('clientSecret');
