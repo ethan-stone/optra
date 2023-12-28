@@ -65,6 +65,7 @@ export interface Db {
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
 	getApiById(id: string): Promise<Api | null>;
 	createApiScope(params: CreateApiScopeParams): Promise<{ id: string }>;
+	deleteApiScopeById(id: string): Promise<void>;
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
 	getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null>;
 	rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult>;
@@ -251,6 +252,10 @@ export class PlanetScaleDb implements Db {
 		});
 
 		return secret ?? null;
+	}
+
+	async deleteApiScopeById(id: string): Promise<void> {
+		await this.db.delete(schema.apiScopes).where(eq(schema.apiScopes.id, id));
 	}
 
 	async getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null> {

@@ -6,7 +6,7 @@ import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
 	method: 'post',
-	path: '/v1/apis.addScope',
+	path: '/v1/apis.removeScope',
 	request: {
 		body: {
 			required: true,
@@ -14,9 +14,8 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						apiId: z.string(),
-						scope: z.object({
-							name: z.string(),
-							description: z.string(),
+						scopeId: z.string().openapi({
+							description: 'The id or name of the scope to remove.',
 						}),
 					}),
 				},
@@ -25,12 +24,10 @@ const route = createRoute({
 	},
 	responses: {
 		200: {
-			description: 'Response from adding a scope to an api',
+			description: 'Response from removing a scope from an api',
 			content: {
 				'application/json': {
-					schema: z.object({
-						id: z.string(),
-					}),
+					schema: z.null(),
 				},
 			},
 		},
@@ -38,7 +35,7 @@ const route = createRoute({
 	},
 });
 
-export function makeV1AddApiScope(app: App) {
+export function makeV1RemoveApiScope(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
@@ -62,7 +59,7 @@ export function makeV1AddApiScope(app: App) {
 			});
 		}
 
-		const { apiId, scope } = c.req.valid('json');
+		const { apiId, scopeId } = c.req.valid('json');
 
 		const api = await db.getApiById(apiId);
 
@@ -82,33 +79,19 @@ export function makeV1AddApiScope(app: App) {
 			});
 		}
 
-		const existingScope = api.scopes.find((s) => s.name === scope.name);
+		// find scope with matching name or id
+		const existingScope = api.scopes.find((s) => s.id === scopeId || s.name === scopeId);
 
-		if (existingScope) {
-			logger.info(`Scope with name ${scope.name} already exists on api ${apiId}`);
-			throw new HTTPException({
-				reason: 'CONFLICT',
-				message: 'Scope with provided name already exists',
-			});
+		// if it doesn't exist then return early with a successful response
+		if (!existingScope) {
+			logger.info(`Could not find scope ${scopeId} on api ${apiId}. This isn't an error.`);
+			return c.json(null, 200);
 		}
 
-		const now = new Date();
+		await db.deleteApiScopeById(existingScope.id);
 
-		const { id } = await db.createApiScope({
-			apiId: apiId,
-			name: scope.name,
-			description: scope.description,
-			createdAt: now,
-			updatedAt: now,
-		});
+		logger.info(`Removed scope ${existingScope.id} from api ${apiId}`);
 
-		logger.info(`Created scope ${id} on api ${apiId}`);
-
-		return c.json(
-			{
-				id,
-			},
-			200
-		);
+		return c.json(null, 200);
 	});
 }

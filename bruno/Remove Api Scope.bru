@@ -1,0 +1,22 @@
+meta {
+  name: Remove Api Scope
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base_url}}/v1/apis.removeScope
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwt}}
+}
+
+body:json {
+  {
+    "apiId": "api_2f1ef23ceb135afead3b",
+    "scopeId": "api_scope_9C6ekafdDRnd8VVbNRRQc"
+  }
+}
