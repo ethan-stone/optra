@@ -43,7 +43,7 @@ const route = createRoute({
 						rateLimitRefillAmount: z.number().int().optional(),
 						rateLimitRefillInterval: z.number().int().optional(),
 						metadata: z
-							.record(z.string().min(1), z.union([z.number(), z.string(), z.boolean()]))
+							.record(z.unknown())
 							.optional()
 							.refine(
 								(value) => {
