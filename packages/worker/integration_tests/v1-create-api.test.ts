@@ -26,7 +26,7 @@ describe('POST /v1/apis.createApi', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should return 401 BAD_JWT if authorization header missing', async () => {
+	it('should respond with 401 BAD_JWT if authorization header missing', async () => {
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -47,7 +47,7 @@ describe('POST /v1/apis.createApi', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should return 403 FORBIDDEN if not authorized', async () => {
+	it('should respond with 403 FORBIDDEN if not authorized', async () => {
 		const token = await getOAuthToken(env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
@@ -71,7 +71,7 @@ describe('POST /v1/apis.createApi', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should successfully create an api', async () => {
+	it('should respond with 200 OK and create an api', async () => {
 		const token = await getOAuthToken(env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
