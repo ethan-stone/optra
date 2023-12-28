@@ -48,8 +48,6 @@ const route = createRoute({
 	},
 });
 
-// TODO: need to come up with a good interface for all these encryption and decryption operations
-
 export function makeV1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');

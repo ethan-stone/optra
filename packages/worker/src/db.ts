@@ -1,7 +1,7 @@
 import { schema } from '@optra/db';
 import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
-import { InferSelectModel, InferInsertModel, eq, and } from 'drizzle-orm';
+import { InferSelectModel, InferInsertModel, eq, and, gt, or, isNull } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
 
@@ -74,7 +74,11 @@ export class PlanetScaleDb implements Db {
 
 	async getClientSecretsByClientId(clientId: string) {
 		const secrets = await this.db.query.clientSecrets.findMany({
-			where: and(eq(schema.clientSecrets.clientId, clientId), eq(schema.clientSecrets.status, 'active')),
+			where: and(
+				eq(schema.clientSecrets.clientId, clientId),
+				eq(schema.clientSecrets.status, 'active'),
+				or(gt(schema.clientSecrets.expiresAt, new Date()), isNull(schema.clientSecrets.expiresAt))
+			),
 			columns: {
 				secret: false,
 			},

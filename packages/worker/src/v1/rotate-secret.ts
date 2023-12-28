@@ -14,9 +14,9 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						clientId: z.string(),
-						expiresAt: z.string().datetime().nullable().openapi({
-							description: 'When the secret should expire. If not provided, or is a time in the past, the secret will expire immediately.',
-						}), // milliseconds since epoch
+						expiresIn: z.number().int().positive().nullable().openapi({
+							description: 'How long until the secret should expire in milliseconds. If not provided, the secret will expire immediately.',
+						}),
 					}),
 				},
 			},
@@ -65,7 +65,7 @@ export function makeV1RotateSecret(app: App) {
 			});
 		}
 
-		const { clientId, expiresAt: providedExpiresAt } = c.req.valid('json');
+		const { clientId, expiresIn: providedExpiresIn } = c.req.valid('json');
 
 		// this is the client of which we are rotating the secret
 		const secretClient = await db.getClientById(clientId);
@@ -118,17 +118,12 @@ export function makeV1RotateSecret(app: App) {
 
 		const now = new Date();
 
-		// if the provided expiresAt is in the past, set it to 1 minute from now
-		let expiresAt = providedExpiresAt ? new Date(providedExpiresAt) : new Date(now.getTime() + 1000 * 60);
-
-		// if the provided expiresAt is in the past, set it to 1 minute from now
-		if (providedExpiresAt && new Date(providedExpiresAt) < now) {
-			expiresAt = new Date(now.getTime() + 1000 * 60);
-		}
+		// if the provided expiresIn is null, set it to 1 minute
+		let expiresIn = providedExpiresIn ?? 1000 * 60;
 
 		const newSecret = await db.rotateClientSecret({
 			clientId,
-			expiresAt: expiresAt,
+			expiresAt: new Date(now.getTime() + expiresIn),
 		});
 
 		return c.json({

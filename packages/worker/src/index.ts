@@ -1,13 +1,14 @@
 import { createApp } from '@/app';
 import { initialize } from '@/root';
 import { Env, envSchema } from '@/env';
-import { makeV1GetOAuthToken } from './v1/get-oauth-token';
-import { makeV1CreateApi } from './v1/create-api';
+import { makeV1GetOAuthToken } from '@/v1/get-oauth-token';
+import { makeV1CreateApi } from '@/v1/create-api';
 import { uid } from '@/uid';
 import { Logger } from '@/logger';
-import { makeV1CreateClient } from './v1/create-client';
-import { makeV1VerifyToken } from './v1/verify-token';
-import { makeV1GetClient } from './v1/get-client';
+import { makeV1CreateClient } from '@/v1/create-client';
+import { makeV1VerifyToken } from '@/v1/verify-token';
+import { makeV1GetClient } from '@/v1/get-client';
+import { makeV1RotateSecret } from '@/v1/rotate-secret';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -90,6 +91,7 @@ makeV1CreateApi(app);
 makeV1CreateClient(app);
 makeV1VerifyToken(app);
 makeV1GetClient(app);
+makeV1RotateSecret(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
