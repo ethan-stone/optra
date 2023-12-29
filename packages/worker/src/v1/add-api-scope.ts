@@ -66,16 +66,8 @@ export function makeV1AddApiScope(app: App) {
 
 		const api = await db.getApiById(apiId);
 
-		if (!api) {
-			logger.info(`Could not find api ${apiId}`);
-			throw new HTTPException({
-				message: `Could not find api ${apiId}`,
-				reason: 'NOT_FOUND',
-			});
-		}
-
-		if (verifiedToken.client.forWorkspaceId !== api.workspaceId) {
-			logger.info(`Client ${verifiedToken.client.id} is not allowed to modify api ${apiId}`);
+		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
+			logger.info(`Could not find api ${apiId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
 			throw new HTTPException({
 				message: `Could not find api ${apiId}`,
 				reason: 'NOT_FOUND',
