@@ -42,6 +42,10 @@ const route = createRoute({
 						rateLimitBucketSize: z.number().int().optional(),
 						rateLimitRefillAmount: z.number().int().optional(),
 						rateLimitRefillInterval: z.number().int().optional(),
+						scopes: z.array(z.string()).optional().openapi({
+							description:
+								'Default scope names that will be assigned to the client. If some of the scopes do not exist for they api they will be ignored.',
+						}),
 						metadata: z
 							.record(z.unknown())
 							.optional()
@@ -53,7 +57,8 @@ const route = createRoute({
 									return sizeInBytes <= 1024;
 								},
 								{ message: 'Metadata size can not be larger than 1KB' }
-							),
+							)
+							.openapi({ description: 'Metadata that will be attached to the client. Can be at most 1KB' }),
 					}),
 				},
 			},
@@ -79,7 +84,7 @@ export function makeV1CreateClient(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
-		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata } = c.req.valid('json');
+		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata, scopes } = c.req.valid('json');
 
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
@@ -119,6 +124,8 @@ export function makeV1CreateClient(app: App) {
 			});
 		}
 
+		const matchingScopes = api.scopes.filter((scope) => (scopes ? scopes.includes(scope.name) : false));
+
 		const now = new Date();
 
 		const { id, secret } = await db.createBasicClient({
@@ -130,6 +137,7 @@ export function makeV1CreateClient(app: App) {
 			rateLimitRefillAmount,
 			rateLimitRefillInterval,
 			metadata,
+			apiScopes: matchingScopes.map((scope) => scope.id),
 			createdAt: now,
 			updatedAt: now,
 		});

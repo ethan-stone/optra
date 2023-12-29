@@ -26,7 +26,8 @@ type InsertClientModel = InferInsertModel<(typeof schema)['clients']>;
 
 export type Client = InferSelectModel<(typeof schema)['clients']>;
 export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
-export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'>;
+export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & { apiScopes?: string[] };
+export type CreateClientScopeParams = Omit<InferInsertModel<(typeof schema)['clientScopes']>, 'id'>;
 export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
 export type ClientSecretCreateResult = InferSelectModel<(typeof schema)['clientSecrets']>;
 export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
@@ -60,6 +61,7 @@ export interface Db {
 	getClientSecretValueById(secretId: string): Promise<string | null>;
 	createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }>;
 	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }>;
+	createClientScope(params: CreateClientScopeParams): Promise<{ id: string }>;
 	createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }>;
 	getWorkspaceById(id: string): Promise<Workspace | null>;
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
@@ -77,6 +79,9 @@ export class PlanetScaleDb implements Db {
 	async getClientById(id: string) {
 		const client = await this.db.query.clients.findFirst({
 			where: eq(schema.clients.id, id),
+			with: {
+				scopes: true,
+			},
 		});
 
 		return client ?? null;
@@ -141,6 +146,8 @@ export class PlanetScaleDb implements Db {
 		const secretId = uid('client_secret');
 		const secretValue = uid();
 
+		const now = new Date();
+
 		await this.db.transaction(async (tx) => {
 			await tx.insert(schema.clients).values({
 				id: clientId,
@@ -152,13 +159,38 @@ export class PlanetScaleDb implements Db {
 				clientId: clientId,
 				secret: await hashSHA256(secretValue),
 				status: 'active',
-				createdAt: new Date(),
+				createdAt: now,
 			});
+
+			if (params.apiScopes) {
+				for (const apiScope of params.apiScopes) {
+					await tx.insert(schema.clientScopes).values({
+						id: uid('client_scope'),
+						apiScopeId: apiScope,
+						clientId: clientId,
+						createdAt: now,
+						updatedAt: now,
+					});
+				}
+			}
 		});
 
 		return {
 			id: clientId,
 			secret: secretValue,
+		};
+	}
+
+	async createClientScope(params: CreateClientScopeParams): Promise<{ id: string }> {
+		const clientScopeId = uid('client_scope');
+
+		await this.db.insert(schema.clientScopes).values({
+			id: clientScopeId,
+			...params,
+		});
+
+		return {
+			id: clientScopeId,
 		};
 	}
 
