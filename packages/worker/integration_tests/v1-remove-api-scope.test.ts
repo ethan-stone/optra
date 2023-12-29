@@ -94,14 +94,14 @@ describe('POST /v1/apis.removeScope', () => {
 		expect(res.status).toBe(200);
 	});
 
-	it('should respond with 200 OK if scope exists and is deleted', async () => {
+	it('should respond with 200 OK if scope does not exist', async () => {
 		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
-				scopeId: 'example-scope', // inside bootstrap the apis are created with a scope named 'example-scope'
+				scopeId: 'does-not-exist',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -114,14 +114,32 @@ describe('POST /v1/apis.removeScope', () => {
 		expect(res.status).toBe(200);
 	});
 
-	it('should respond with 200 OK if scope does not exist', async () => {
+	it('should respond with 200 OK if scope exists and is deleted', async () => {
 		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+
+		// add a new scope before handle to not conflict with other tests
+		const addScopeReq = new Request(`${env.BASE_URL}/v1/apis.addScope`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiId: env.API_ID,
+				scope: {
+					name: 'another-scope',
+					description: 'new-scope-description',
+				},
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		await fetch(addScopeReq);
 
 		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
-				scopeId: 'does-not-exist',
+				scopeId: 'another-scope', // inside bootstrap the apis are created with a scope named 'example-scope'
 			}),
 			headers: {
 				'Content-Type': 'application/json',
