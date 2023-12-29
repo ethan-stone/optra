@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { testEnvSchema } from './test-env-schema';
-import { JwtPayload, sign } from '@/crypto-utils';
 import { getOAuthToken } from './helpers';
 
 const env = testEnvSchema.parse(process.env);
