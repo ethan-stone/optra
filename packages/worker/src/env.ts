@@ -13,6 +13,7 @@ export const envSchema = z.object({
 	AWS_SECRET_EXPIRED_TARGET_ARN: z.string(),
 	AWS_SCHEDULER_ROLE_ARN: z.string(),
 	AWS_SCHEDULE_FAILED_DQL: z.string(),
+	JWKS_BUCKET: z.custom<R2Bucket>((bucket) => typeof bucket === 'object'),
 });
 
 export type Env = z.infer<typeof envSchema>;

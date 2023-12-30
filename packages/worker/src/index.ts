@@ -11,6 +11,7 @@ import { v1GetClient } from '@/v1/get-client';
 import { v1RotateSecret } from '@/v1/rotate-secret';
 import { v1AddApiScope } from '@/v1/add-api-scope';
 import { v1RemoveApiScope } from '@/v1/remove-api-scope';
+import { testR2 } from '@/v1/test-storage';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -96,6 +97,7 @@ v1GetClient(app);
 v1RotateSecret(app);
 v1AddApiScope(app);
 v1RemoveApiScope(app);
+testR2(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

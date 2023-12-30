@@ -2,6 +2,7 @@ name = "worker"
 main = "src/index.ts"
 compatibility_date = "2023-11-21"
 compatibility_flags = [ "nodejs_compat" ]
+account_id = "ef2049072c297ac2caf34423b1929c4e"
 
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
@@ -18,9 +19,10 @@ compatibility_flags = [ "nodejs_compat" ]
 
 # Bind an R2 Bucket. Use R2 to store arbitrarily large blobs of data, such as files.
 # Docs: https://developers.cloudflare.com/r2/api/workers/workers-api-usage/
-# [[r2_buckets]]
-# binding = "MY_BUCKET"
-# bucket_name = "my-bucket"
+[[r2_buckets]]
+binding = "JWKS_BUCKET"
+bucket_name = "jwks"
+preview_bucket_name = "jwks-dev"
 
 # Bind a Queue producer. Use this binding to schedule an arbitrary task that may be processed later by a Queue consumer.
 # Docs: https://developers.cloudflare.com/queues/get-started
