@@ -49,7 +49,7 @@ const route = createRoute({
 	},
 });
 
-export function makeV1VerifyToken(app: App) {
+export function v1VerifyToken(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 

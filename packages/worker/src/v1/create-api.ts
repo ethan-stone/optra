@@ -57,7 +57,7 @@ const route = createRoute({
 	},
 });
 
-export function makeV1CreateApi(app: App) {
+export function v1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 

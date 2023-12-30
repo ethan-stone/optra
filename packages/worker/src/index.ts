@@ -1,16 +1,16 @@
 import { createApp } from '@/app';
 import { initialize } from '@/root';
 import { Env, envSchema } from '@/env';
-import { makeV1GetOAuthToken } from '@/v1/get-oauth-token';
-import { makeV1CreateApi } from '@/v1/create-api';
+import { v1GetOAuthToken } from '@/v1/get-oauth-token';
+import { v1CreateApi } from '@/v1/create-api';
 import { uid } from '@/uid';
 import { Logger } from '@/logger';
-import { makeV1CreateClient } from '@/v1/create-client';
-import { makeV1VerifyToken } from '@/v1/verify-token';
-import { makeV1GetClient } from '@/v1/get-client';
-import { makeV1RotateSecret } from '@/v1/rotate-secret';
-import { makeV1AddApiScope } from '@/v1/add-api-scope';
-import { makeV1RemoveApiScope } from '@/v1/remove-api-scope';
+import { v1CreateClient } from '@/v1/create-client';
+import { v1VerifyToken } from '@/v1/verify-token';
+import { v1GetClient } from '@/v1/get-client';
+import { v1RotateSecret } from '@/v1/rotate-secret';
+import { v1AddApiScope } from '@/v1/add-api-scope';
+import { v1RemoveApiScope } from '@/v1/remove-api-scope';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -88,14 +88,14 @@ app.use('*', async (c, next) => {
 	}
 });
 
-makeV1GetOAuthToken(app);
-makeV1CreateApi(app);
-makeV1CreateClient(app);
-makeV1VerifyToken(app);
-makeV1GetClient(app);
-makeV1RotateSecret(app);
-makeV1AddApiScope(app);
-makeV1RemoveApiScope(app);
+v1GetOAuthToken(app);
+v1CreateApi(app);
+v1CreateClient(app);
+v1VerifyToken(app);
+v1GetClient(app);
+v1RotateSecret(app);
+v1AddApiScope(app);
+v1RemoveApiScope(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

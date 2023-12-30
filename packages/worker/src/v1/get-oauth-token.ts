@@ -46,7 +46,7 @@ const route = createRoute({
 	},
 });
 
-export function makeV1GetOAuthToken(app: App) {
+export function v1GetOAuthToken(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 

@@ -38,7 +38,7 @@ const route = createRoute({
 	},
 });
 
-export function makeV1AddApiScope(app: App) {
+export function v1AddApiScope(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
