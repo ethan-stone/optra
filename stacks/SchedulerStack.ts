@@ -1,4 +1,4 @@
-import { StackContext, Function, Config } from "sst/constructs";
+import { StackContext, Function, Config, Queue } from "sst/constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 
 export function SchedulerStack({ stack }: StackContext) {
@@ -18,7 +18,7 @@ export function SchedulerStack({ stack }: StackContext) {
     })
   );
 
-  const handleSecretExpiredSchedule = new Function(
+  const handleSecretExpired = new Function(
     stack,
     "HandleSecretExpiredSchedule",
     {
@@ -27,23 +27,49 @@ export function SchedulerStack({ stack }: StackContext) {
     }
   );
 
+  // dlq if handling of secret expired events fails
+  const secretExpiredMessageDLQ = new Queue(
+    stack,
+    "SecretExpiredMessageDLQ",
+    {}
+  );
+
+  // queue to handle secret expired events
+  const secretExpiredMessageQueue = new Queue(
+    stack,
+    "SecretExpiredMessageQueue",
+    {
+      consumer: handleSecretExpired,
+      cdk: {
+        queue: {
+          deadLetterQueue: {
+            queue: secretExpiredMessageDLQ.cdk.queue,
+            maxReceiveCount: 3,
+          },
+        },
+      },
+    }
+  );
+
+  // dlq if event bridge scheduler fails to send message to the SecretExpiredQueue
+  const scheduleFailedDLQ = new Queue(
+    stack,
+    "SecretExpiredScheduleFailedDLQ",
+    {}
+  );
+
   const schedulerRole = new iam.Role(stack, "SchedulerRole", {
     assumedBy: new iam.ServicePrincipal("scheduler.amazonaws.com"),
-    inlinePolicies: {
-      SchedulerPolicy: new iam.PolicyDocument({
-        statements: [
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ["lambda:InvokeFunction"],
-            resources: [handleSecretExpiredSchedule.functionArn],
-          }),
-        ],
-      }),
-    },
   });
 
+  secretExpiredMessageQueue.cdk.queue.grantSendMessages(schedulerRole);
+  scheduleFailedDLQ.cdk.queue.grantSendMessages(schedulerRole);
+
   stack.addOutputs({
-    HandleSecretExpiredScheduleArn: handleSecretExpiredSchedule.functionArn,
+    HandleSecretExpiredArn: handleSecretExpired.functionArn,
     SchedulerRoleArn: schedulerRole.roleArn,
+    SecretExpiredMessageQueue: secretExpiredMessageQueue.queueArn,
+    SecretExpiredMessageDLQ: secretExpiredMessageDLQ.queueArn,
+    ScheduleFailedDLQ: scheduleFailedDLQ.queueArn,
   });
 }

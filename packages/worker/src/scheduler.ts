@@ -19,6 +19,7 @@ type AWSEventSchedulerConfig = {
 		arn: string;
 	};
 	roleArn: string;
+	dlqArn: string;
 };
 
 export class AWSEventScheduler implements Scheduler {
@@ -36,6 +37,8 @@ export class AWSEventScheduler implements Scheduler {
 	async createOneTimeSchedule(params: CreateOneTimeScheduleParams) {
 		const target = this.mapEventTypeToTarget(params.eventType);
 
+		const payload = SecretExpiredScheduledEvent.parse(params.payload);
+
 		const command = new CreateScheduleCommand({
 			Name: `secret-expired-${params.payload.secretId}`,
 			Description: `Secret expired: ${params.payload.secretId}`,
@@ -43,8 +46,11 @@ export class AWSEventScheduler implements Scheduler {
 			State: 'ENABLED',
 			Target: {
 				Arn: target.arn,
-				Input: JSON.stringify(params.payload),
+				Input: JSON.stringify(payload),
 				RoleArn: this.config.roleArn,
+				DeadLetterConfig: {
+					Arn: this.config.dlqArn,
+				},
 			},
 			FlexibleTimeWindow: { Mode: 'OFF' },
 			ActionAfterCompletion: 'DELETE',

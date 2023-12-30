@@ -22,6 +22,7 @@ export function initialize(env: {
 	awsKMSKeyArn: string;
 	awsSecretExpiredTargetArn: string;
 	awsSchedulerRoleArn: string;
+	awsScheduleFailedDLQ: string;
 }) {
 	if (hasInitialized) {
 		return;
@@ -60,6 +61,7 @@ export function initialize(env: {
 			secretExpiredTarget: {
 				arn: env.awsSecretExpiredTargetArn,
 			},
+			dlqArn: env.awsScheduleFailedDLQ,
 		}
 	);
 

@@ -119,6 +119,7 @@ export default {
 			awsKMSKeyArn: env.AWS_KMS_KEY_ARN,
 			awsSecretExpiredTargetArn: env.AWS_SECRET_EXPIRED_TARGET_ARN,
 			awsSchedulerRoleArn: env.AWS_SCHEDULER_ROLE_ARN,
+			awsScheduleFailedDLQ: env.AWS_SCHEDULE_FAILED_DQL,
 		});
 
 		return app.fetch(request, parsedEnv.data, ctx);
