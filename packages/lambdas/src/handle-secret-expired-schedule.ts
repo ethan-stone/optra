@@ -5,7 +5,11 @@ import { schema } from "@optra/db";
 import { eq } from "drizzle-orm";
 import { Config } from "sst/node/config";
 import { SQSEvent } from "aws-lambda";
-import { z } from "zod";
+import { DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+
+const sqsClient = new SQSClient({
+  region: "us-east-1",
+});
 
 const connection = connect({
   url: Config.DRIZZLE_DATABASE_URL,
@@ -41,6 +45,13 @@ export const handler = async (event: SQSEvent) => {
         status: "revoked",
       })
       .where(eq(schema.clientSecrets.id, secretId));
+
+    await sqsClient.send(
+      new DeleteMessageCommand({
+        QueueUrl: Config.SECRET_EXPIRED_MESSAGE_QUEUE_URL,
+        ReceiptHandle: record.receiptHandle,
+      })
+    );
 
     console.log(`Revoked secret ${secretId}`);
   }

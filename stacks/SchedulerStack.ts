@@ -18,15 +18,6 @@ export function SchedulerStack({ stack }: StackContext) {
     })
   );
 
-  const handleSecretExpired = new Function(
-    stack,
-    "HandleSecretExpiredSchedule",
-    {
-      bind: [DRIZZLE_DATABASE_URL],
-      handler: "packages/lambdas/src/handle-secret-expired-schedule.handler",
-    }
-  );
-
   // dlq if handling of secret expired events fails
   const secretExpiredMessageDLQ = new Queue(
     stack,
@@ -39,7 +30,6 @@ export function SchedulerStack({ stack }: StackContext) {
     stack,
     "SecretExpiredMessageQueue",
     {
-      consumer: handleSecretExpired,
       cdk: {
         queue: {
           deadLetterQueue: {
@@ -62,6 +52,28 @@ export function SchedulerStack({ stack }: StackContext) {
     assumedBy: new iam.ServicePrincipal("scheduler.amazonaws.com"),
   });
 
+  const SECRET_EXPIRED_MESSAGE_QUEUE_URL = new Config.Parameter(
+    stack,
+    "SECRET_EXPIRED_MESSAGE_QUEUE_URL",
+    {
+      value: secretExpiredMessageQueue.queueUrl,
+    }
+  );
+
+  const handleSecretExpired = new Function(
+    stack,
+    "HandleSecretExpiredSchedule",
+    {
+      bind: [DRIZZLE_DATABASE_URL, SECRET_EXPIRED_MESSAGE_QUEUE_URL],
+      handler: "packages/lambdas/src/handle-secret-expired-schedule.handler",
+    }
+  );
+
+  secretExpiredMessageQueue.addConsumer(stack, {
+    function: handleSecretExpired,
+  });
+
+  secretExpiredMessageQueue.cdk.queue.grantConsumeMessages(handleSecretExpired);
   secretExpiredMessageQueue.cdk.queue.grantSendMessages(schedulerRole);
   scheduleFailedDLQ.cdk.queue.grantSendMessages(schedulerRole);
 
