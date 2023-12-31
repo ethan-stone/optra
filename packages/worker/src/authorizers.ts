@@ -159,6 +159,8 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 				const publicKeys: Uint8Array[] = [];
 
 				for (const key of jwks.keys) {
+					console.log('-------------------------------------------------------------------------------');
+					console.log(key);
 					const importedKey = await crypto.subtle.importKey(
 						'jwk',
 						key,
@@ -202,7 +204,7 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 
 	const { client, algorithm } = data;
 
-	let verifyResult: Awaited<ReturnType<typeof verify>>;
+	let verifyResult: Awaited<ReturnType<typeof verify>> | null = null;
 
 	logger.info(`Verifying token signature.`);
 
@@ -224,13 +226,16 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 				// If the token is valid with any of the public keys, we can stop checking.
 				if (verifyResult.valid) break;
 			}
-			// if the loop completes then none of the public keys were valid.
-			verifyResult = {
-				reason: 'INVALID_CLIENT',
-				valid: false,
-			};
-			break;
 		}
+	}
+
+	if (!verifyResult) {
+		logger.info(`Token is invalid. Reason: INVALID_SIGNATURE`);
+		return {
+			valid: false,
+			message: 'Token is invalid. Check the reason field to see why.',
+			reason: 'INVALID_SIGNATURE',
+		};
 	}
 
 	if (!verifyResult.valid) {
