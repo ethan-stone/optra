@@ -1,0 +1,22 @@
+meta {
+  name: Add Client Scope
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/v1/clients.addScope
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwt}}
+}
+
+body:json {
+  {
+    "clientId": "client_xdeX7ihrbNimJ4Z9X23Kx",
+    "scopeId": "write:file"
+  }
+}

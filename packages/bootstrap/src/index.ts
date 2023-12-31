@@ -210,6 +210,15 @@ async function newApi(
     updatedAt: new Date(),
   });
 
+  await db.insert(schema.apiScopes).values({
+    id: `api_scope_` + uid(),
+    apiId: apiId,
+    name: "another-example-scope",
+    description: "Just another example scope",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
   return { apiId };
 }
 

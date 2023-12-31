@@ -29,6 +29,7 @@ export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspac
 export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & { apiScopes?: string[] };
 export type CreateClientScopeParams = Omit<InferInsertModel<(typeof schema)['clientScopes']>, 'id'>;
 export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
+export type ClientScope = InferSelectModel<(typeof schema)['clientScopes']>;
 export type ClientSecretCreateResult = InferSelectModel<(typeof schema)['clientSecrets']>;
 export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
 export type CreateApiParams = Omit<InsertApiModel, 'id' | 'signingSecretId'> & {
@@ -60,6 +61,7 @@ export interface Db {
 	getClientById(id: string): Promise<Client | null>;
 	getClientSecretsByClientId(clientId: string, filters?: GetClientSecretsByClientIdFilter): Promise<ClientSecret[]>;
 	getClientSecretValueById(secretId: string): Promise<string | null>;
+	getClientScopesByClientId(clientId: string): Promise<ClientScope[]>;
 	createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }>;
 	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }>;
 	createClientScope(params: CreateClientScopeParams): Promise<{ id: string }>;
@@ -115,6 +117,14 @@ export class PlanetScaleDb implements Db {
 		});
 
 		return secrets?.secret ?? null;
+	}
+
+	async getClientScopesByClientId(clientId: string): Promise<ClientScope[]> {
+		const scopes = await this.db.query.clientScopes.findMany({
+			where: eq(schema.clientScopes.clientId, clientId),
+		});
+
+		return scopes;
 	}
 
 	async createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }> {
