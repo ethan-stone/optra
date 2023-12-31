@@ -226,7 +226,7 @@ export class PlanetScaleDb implements Db {
 				id: signingSecretId,
 				secret: params.encryptedSigningSecret,
 				iv: params.iv,
-				algorithm: 'hsa256',
+				algorithm: params.algorithm,
 				updatedAt: new Date(),
 				createdAt: new Date(),
 			});

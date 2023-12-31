@@ -134,29 +134,68 @@ export function v1GetOAuthToken(app: App) {
 			Buffer.from(signingSecret.iv, 'base64')
 		);
 
-		// sign the jwt with the signing secret
-		const jwt = await sign(
-			{
-				exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
-				iat: Math.floor(now.getTime() / 1000),
-				sub: client.id,
-				secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
-				version: client.version,
-			},
-			Buffer.from(decryptResult.decryptedData).toString('base64'),
-			'HS256'
-		);
+		switch (signingSecret.algorithm) {
+			case 'hsa256': {
+				// sign the jwt with the signing secret
+				const jwt = await sign(
+					{
+						exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
+						iat: Math.floor(now.getTime() / 1000),
+						sub: client.id,
+						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
+						version: client.version,
+					},
+					Buffer.from(decryptResult.decryptedData).toString('base64'),
+					'HS256'
+				);
 
-		logger.info(`Created JWT for client ${clientId}`);
+				logger.info(`Created JWT for client ${clientId}`);
 
-		return c.json(
-			{
-				accessToken: jwt,
-				tokenType: 'Bearer',
-				expiresIn: 60 * 60 * 24 * 30,
-				scope: null,
-			},
-			200
-		);
+				return c.json(
+					{
+						accessToken: jwt,
+						tokenType: 'Bearer',
+						expiresIn: 60 * 60 * 24 * 30,
+						scope: null,
+					},
+					200
+				);
+			}
+
+			case 'rsa256': {
+				const privateKey =
+					'-----BEGIN PRIVATE KEY-----\n' + Buffer.from(decryptResult.decryptedData).toString('base64') + '\n-----END PRIVATE KEY-----';
+
+				const jwt = await sign(
+					{
+						exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
+						iat: Math.floor(now.getTime() / 1000),
+						sub: client.id,
+						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
+						version: client.version,
+					},
+					privateKey,
+					'RS256'
+				);
+
+				return c.json(
+					{
+						accessToken: jwt,
+						tokenType: 'Bearer',
+						expiresIn: 60 * 60 * 24 * 30,
+						scope: null,
+					},
+					200
+				);
+			}
+
+			default: {
+				logger.error(`Unknown signing secret algorithm ${signingSecret.algorithm}`);
+				throw new HTTPException({
+					message: 'An internal error occurred.',
+					reason: 'INTERNAL_SERVER_ERROR',
+				});
+			}
+		}
 	});
 }
