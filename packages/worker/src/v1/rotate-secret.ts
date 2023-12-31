@@ -55,7 +55,7 @@ export function v1RotateSecret(app: App) {
 			});
 		}
 
-		const verifiedToken = await verifyToken(verifiedAuthHeader.token, { logger });
+		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c);
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason: ${verifiedToken.reason}`);

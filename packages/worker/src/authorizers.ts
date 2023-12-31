@@ -1,9 +1,10 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
 import { cache, db, keyManagementService, tokenBuckets } from '@/root';
 import { Client } from '@/db';
-import { Logger } from '@/logger';
 import { TokenBucket } from '@/ratelimit';
 import { Buffer } from '@/buffer';
+import { Context } from 'hono';
+import { HonoEnv } from '@/app';
 
 export type VerifyAuthHeaderResult =
 	| {
@@ -49,8 +50,8 @@ type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
  * Use this to validate that the jwt is valid and belongs to a root client.
  * @param authorization Value of the Authorization header.
  */
-export const verifyToken = async (token: string, ctx: { logger: Logger }): Promise<VerifyTokenResult> => {
-	const logger = ctx.logger;
+export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise<VerifyTokenResult> => {
+	const logger = ctx.get('logger');
 
 	let decoded: ReturnType<typeof decode>;
 
@@ -110,6 +111,8 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 
 		logger.info(`Fetched api ${api.id} from client.`);
 
+		logger.info(`Fetched signing secret ${api.signingSecretId} from api.`);
+
 		const signingSecret = await db.getSigningSecretById(api.signingSecretId);
 
 		if (!signingSecret) {
@@ -118,22 +121,63 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 			return null;
 		}
 
-		logger.info(`Fetched signing secret ${signingSecret.id} from api.`);
+		switch (signingSecret.algorithm) {
+			case 'hsa256': {
+				logger.info(`Decrypting signing secret for api ${api.id}`);
 
-		const decryptResult = await keyManagementService.decryptWithDataKey(
-			workspace.dataEncryptionKeyId,
-			Buffer.from(signingSecret.secret, 'base64'),
-			Buffer.from(signingSecret.iv, 'base64')
-		);
+				const decryptResult = await keyManagementService.decryptWithDataKey(
+					workspace.dataEncryptionKeyId,
+					Buffer.from(signingSecret.secret, 'base64'),
+					Buffer.from(signingSecret.iv, 'base64')
+				);
 
-		logger.info(`Decrypted signing secret.`);
+				logger.info(`Decrypted signing secret.`);
 
-		return {
-			api,
-			client,
-			decryptedSigningSecret: decryptResult.decryptedData,
-			workspace,
-		};
+				return {
+					algorithm: 'hsa256',
+					api,
+					client,
+					decryptedSigningSecret: decryptResult.decryptedData,
+					workspace,
+				};
+			}
+			case 'rsa256': {
+				logger.info(`Fetching public key for api ${api.id}`);
+
+				const publicJWKS = await ctx.env.JWKS_BUCKET.get(`${workspace.id}/${api.name}/.well-known/jwks.json`);
+
+				logger.info(`Fetched public key for api ${api.id}`);
+
+				if (!publicJWKS) {
+					logger.error(`Public key for api ${api.id} not found.`);
+
+					return null;
+				}
+
+				const jwks = JSON.parse(await publicJWKS.text()) as { keys: JsonWebKey[] };
+
+				const importedKey = await crypto.subtle.importKey(
+					'jwk',
+					jwks.keys[0],
+					{
+						name: 'RSASSA-PKCS1-v1_5',
+						hash: { name: 'SHA-256' },
+					},
+					true,
+					['verify']
+				);
+
+				const exportedKey = await crypto.subtle.exportKey('spki', importedKey);
+
+				return {
+					algorithm: 'rsa256',
+					api,
+					client,
+					workspace,
+					publicKey: new Uint8Array(exportedKey),
+				};
+			}
+		}
 	});
 
 	if (!data) {
@@ -144,12 +188,29 @@ export const verifyToken = async (token: string, ctx: { logger: Logger }): Promi
 		};
 	}
 
-	const { client, decryptedSigningSecret } = data;
+	const { client, algorithm } = data;
 
-	const verifyResult = await verify(token, Buffer.from(decryptedSigningSecret).toString('base64'), {
-		algorithm: 'HS256',
-		throwError: false,
-	});
+	let verifyResult: Awaited<ReturnType<typeof verify>>;
+
+	logger.info(`Verifying token signature.`);
+
+	switch (algorithm) {
+		case 'hsa256': {
+			verifyResult = await verify(token, Buffer.from(data.decryptedSigningSecret).toString('base64'), {
+				algorithm: 'HS256',
+				throwError: false,
+			});
+			break;
+		}
+		case 'rsa256': {
+			const publicKeyStr = '-----BEGIN PUBLIC KEY-----\n' + Buffer.from(data.publicKey).toString('base64') + '\n-----END PUBLIC KEY-----';
+			verifyResult = await verify(token, publicKeyStr, {
+				algorithm: 'RS256',
+				throwError: false,
+			});
+			break;
+		}
+	}
 
 	if (!verifyResult.valid) {
 		return {

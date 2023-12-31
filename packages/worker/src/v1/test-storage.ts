@@ -1,5 +1,4 @@
 import { App } from '@/app';
-import { uid } from '@/uid';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({

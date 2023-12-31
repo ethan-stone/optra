@@ -7,12 +7,22 @@ type CacheRecord<Value> = {
 };
 
 export type CacheNamespaces = {
-	clientById: {
-		client: Client;
-		api: Api;
-		workspace: Workspace;
-		decryptedSigningSecret: Uint8Array;
-	} | null;
+	clientById:
+		| {
+				algorithm: 'hsa256';
+				client: Client;
+				api: Api;
+				workspace: Workspace;
+				decryptedSigningSecret: Uint8Array;
+		  }
+		| {
+				algorithm: 'rsa256';
+				client: Client;
+				api: Api;
+				workspace: Workspace;
+				publicKey: Uint8Array;
+		  }
+		| null;
 };
 
 export interface Cache<Namespaces extends Record<string, unknown>> {
