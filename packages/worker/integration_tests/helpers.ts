@@ -1,5 +1,21 @@
 import { GetOAuthTokenRes } from '@/v1/get-oauth-token';
 
+export function generateRandomName() {
+	// Arrays of animals and colors
+	const animals = ['Lion', 'Tiger', 'Bear', 'Elephant', 'Panther', 'Giraffe'];
+	const colors = ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange'];
+
+	// Randomly select an animal and a color
+	const animal = animals[Math.floor(Math.random() * animals.length)];
+	const color = colors[Math.floor(Math.random() * colors.length)];
+
+	// Generate a random six-digit number
+	const number = Math.floor(Math.random() * 900000) + 100000;
+
+	// Concatenate them to form the name
+	return `${color}${animal}${number}`;
+}
+
 export async function getOAuthToken(baseUrl: string, clientId: string, clientSecret: string): Promise<string> {
 	const req = new Request(`${baseUrl}/v1/oauth/token`, {
 		method: 'POST',

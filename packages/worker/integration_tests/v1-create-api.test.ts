@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { testEnvSchema } from './test-env-schema';
-import { getOAuthToken } from './helpers';
+import { generateRandomName, getOAuthToken } from './helpers';
 
 const env = testEnvSchema.parse(process.env);
 
@@ -54,7 +54,7 @@ describe('POST /v1/apis.createApi', () => {
 		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
 			body: JSON.stringify({
-				name: 'test',
+				name: generateRandomName(),
 				scopes: [],
 				algorithm: 'hsa256',
 			}),
@@ -73,13 +73,15 @@ describe('POST /v1/apis.createApi', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should respond with 200 OK and create an api', async () => {
+	it('should respond with 409 CONFLICT if api with name already exists', async () => {
 		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
+		const name = generateRandomName();
+
+		const req1 = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
 			body: JSON.stringify({
-				name: 'test',
+				name,
 				scopes: [
 					{
 						name: 'test',
@@ -87,6 +89,90 @@ describe('POST /v1/apis.createApi', () => {
 					},
 				],
 				algorithm: 'hsa256',
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		// first request should succeed
+		const res1 = await fetch(req1);
+		const res1Json = await res1.json();
+
+		expect(res1.status).toBe(200);
+		expect(res1Json).toHaveProperty('id');
+
+		const req2 = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name,
+				scopes: [
+					{
+						name: 'test',
+						description: 'this is a test api scope',
+					},
+				],
+				algorithm: 'hsa256',
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		// second request should fail
+		const res2 = await fetch(req2);
+		const res2Json = await res2.json();
+
+		expect(res2.status).toBe(409);
+		expect(res2Json).toHaveProperty('reason');
+		expect((res2Json as any).reason).toBe('CONFLICT');
+		expect(res2Json).toHaveProperty('message');
+	});
+
+	it('should respond with 200 OK and create an api with hsa256', async () => {
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+
+		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name: generateRandomName(),
+				scopes: [
+					{
+						name: 'test',
+						description: 'this is a test api scope',
+					},
+				],
+				algorithm: 'hsa256',
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		const res = await fetch(req);
+		const resJson = await res.json();
+
+		expect(res.status).toBe(200);
+		expect(resJson).toHaveProperty('id');
+	});
+
+	it('should respond with 200 OK and create an api with rsa256', async () => {
+		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+
+		const req = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name: generateRandomName(),
+				scopes: [
+					{
+						name: 'test',
+						description: 'this is a test api scope',
+					},
+				],
+				algorithm: 'rsa256',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
