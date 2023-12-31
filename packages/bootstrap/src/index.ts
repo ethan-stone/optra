@@ -2,6 +2,7 @@ import { schema } from "@optra/db";
 import { PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless";
 import { randomBytes, createHash, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 function uid() {
   return randomBytes(10).toString("hex");
@@ -94,31 +95,106 @@ async function newWorkspace(
 
 async function newApi(
   db: PlanetScaleDatabase<typeof schema>,
-  args: { workspaceId: string; dataEncryptionKey: string }
+  s3Client: S3Client,
+  args: {
+    workspaceId: string;
+    dataEncryptionKey: string;
+    algorithm: "hsa256" | "rsa256";
+  }
 ) {
   const apiId = `api_` + uid();
 
+  const apiName = generateRandomName();
+
   const signingSecretId = `signing_secret_` + uid();
 
-  const signingSecretPlain = webcrypto.getRandomValues(new Uint8Array(32));
+  switch (args.algorithm) {
+    case "hsa256": {
+      const signingSecret = await webcrypto.subtle.generateKey(
+        {
+          name: "HMAC",
+          hash: { name: "SHA-256" },
+        },
+        true,
+        ["sign", "verify"]
+      );
 
-  const { encryptedData, iv } = await encrypt(
-    signingSecretPlain,
-    Buffer.from(args.dataEncryptionKey, "base64")
-  );
+      const exportedSigningSecret = Buffer.from(
+        await webcrypto.subtle.exportKey("raw", signingSecret)
+      ).toString("base64");
 
-  await db.insert(schema.signingSecrets).values({
-    id: signingSecretId,
-    secret: Buffer.from(encryptedData).toString("base64"),
-    iv: Buffer.from(iv).toString("base64"),
-    algorithm: "hsa256",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+      const { encryptedData, iv } = await encrypt(
+        Buffer.from(exportedSigningSecret, "base64"),
+        Buffer.from(args.dataEncryptionKey, "base64")
+      );
+
+      await db.insert(schema.signingSecrets).values({
+        id: signingSecretId,
+        secret: Buffer.from(encryptedData).toString("base64"),
+        iv: Buffer.from(iv).toString("base64"),
+        algorithm: "hsa256",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      break;
+    }
+
+    case "rsa256": {
+      const keyPair = await webcrypto.subtle.generateKey(
+        {
+          name: "RSASSA-PKCS1-v1_5",
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: { name: "SHA-256" },
+        },
+        true,
+        ["sign", "verify"]
+      );
+
+      const publicKey = await webcrypto.subtle.exportKey(
+        "jwk",
+        keyPair.publicKey
+      );
+
+      const privateKey = await webcrypto.subtle.exportKey(
+        "pkcs8",
+        keyPair.privateKey
+      );
+
+      const { encryptedData, iv } = await encrypt(
+        Buffer.from(privateKey),
+        Buffer.from(args.dataEncryptionKey, "base64")
+      );
+
+      await db.insert(schema.signingSecrets).values({
+        id: signingSecretId,
+        secret: Buffer.from(encryptedData).toString("base64"),
+        iv: Buffer.from(iv).toString("base64"),
+        algorithm: "rsa256",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: "jwks-dev",
+          Key: `${args.workspaceId}/${apiName.replace(
+            /\s/g,
+            "-"
+          )}/.well-known/jwks.json`,
+          Body: JSON.stringify({ keys: [publicKey] }),
+          ContentType: "application/json",
+        })
+      );
+
+      break;
+    }
+  }
 
   await db.insert(schema.apis).values({
     id: apiId,
-    name: generateRandomName(),
+    name: apiName,
     signingSecretId: signingSecretId,
     workspaceId: args.workspaceId,
     updatedAt: new Date(),
@@ -187,6 +263,7 @@ async function newClient(
 export async function bootstrap(
   db: PlanetScaleDatabase<typeof schema>,
   kmsClient: KMSClient,
+  s3Client: S3Client,
   awsKMSKeyArn: string
 ) {
   const {
@@ -194,9 +271,10 @@ export async function bootstrap(
     dataEncryptionKey: internalDataEncryptionKey,
   } = await newWorkspace(db, kmsClient, awsKMSKeyArn);
 
-  const { apiId: internalApiId } = await newApi(db, {
+  const { apiId: internalApiId } = await newApi(db, s3Client, {
     workspaceId: internalWorkspaceId,
     dataEncryptionKey: internalDataEncryptionKey,
+    algorithm: "rsa256",
   });
 
   const { workspaceId, dataEncryptionKey } = await newWorkspace(
@@ -227,9 +305,10 @@ export async function bootstrap(
     forWorkspaceId: otherWorkspaceId,
   });
 
-  const { apiId } = await newApi(db, {
+  const { apiId } = await newApi(db, s3Client, {
     workspaceId,
     dataEncryptionKey: dataEncryptionKey,
+    algorithm: "rsa256",
   });
 
   const { clientId: basicClientId, clientSecretValue: basicClientSecretValue } =

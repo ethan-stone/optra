@@ -182,7 +182,12 @@ export function v1CreateApi(app: App) {
 					`${workspace.id}/${name.replace(/\s/g, '-')}/.well-known/jwks.json`,
 					JSON.stringify({
 						keys: [publicKey],
-					})
+					}),
+					{
+						httpMetadata: {
+							contentType: 'application/json',
+						},
+					}
 				);
 
 				logger.info(`Successufly created api with id ${id}`);

@@ -3,6 +3,7 @@ import { bootstrap } from "./index";
 import { connect } from "@planetscale/database";
 import { drizzle } from "drizzle-orm/planetscale-serverless";
 import { KMSClient } from "@aws-sdk/client-kms";
+import { S3Client } from "@aws-sdk/client-s3";
 
 function format(obj: Record<string, any>): string {
   return Object.entries(obj)
@@ -27,7 +28,21 @@ async function main() {
     region: "us-east-1",
   });
 
-  const data = await bootstrap(db, kmsClient, process.env.AWS_KMS_KEY_ARN!);
+  const s3Client = new S3Client({
+    credentials: {
+      accessKeyId: process.env.CF_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.CF_SECRET_ACCESS_KEY!,
+    },
+    endpoint: process.env.CF_R2_ENDPOINT!,
+    region: "auto",
+  });
+
+  const data = await bootstrap(
+    db,
+    kmsClient,
+    s3Client,
+    process.env.AWS_KMS_KEY_ARN!
+  );
 
   console.log(format(data));
 }
