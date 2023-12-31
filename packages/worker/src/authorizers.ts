@@ -159,8 +159,6 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 				const publicKeys: Uint8Array[] = [];
 
 				for (const key of jwks.keys) {
-					console.log('-------------------------------------------------------------------------------');
-					console.log(key);
 					const importedKey = await crypto.subtle.importKey(
 						'jwk',
 						key,
