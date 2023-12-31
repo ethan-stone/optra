@@ -33,6 +33,7 @@ export type ClientSecretCreateResult = InferSelectModel<(typeof schema)['clientS
 export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
 export type CreateApiParams = Omit<InsertApiModel, 'id' | 'signingSecretId'> & {
 	scopes?: { name: string; description: string }[];
+	algorithm: 'hsa256' | 'rsa256';
 	encryptedSigningSecret: string;
 	iv: string;
 };

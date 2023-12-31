@@ -20,6 +20,7 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						name: z.string(),
+						algorithm: z.enum(['hsa256', 'rsa256']),
 						scopes: z
 							.array(
 								z.object({
@@ -61,7 +62,7 @@ export function v1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
-		const { name, scopes } = c.req.valid('json');
+		const { name, scopes, algorithm } = c.req.valid('json');
 
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
@@ -104,14 +105,27 @@ export function v1CreateApi(app: App) {
 		const now = new Date();
 
 		// Generate a plaintext signing secret.
-		const signingSecretPlain = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');
+		const signingSecret = await crypto.subtle.generateKey(
+			{
+				name: 'HMAC',
+				hash: { name: 'SHA-256' },
+			},
+			true,
+			['sign', 'verify']
+		);
+
+		const exportedSigningSecret = Buffer.from(await crypto.subtle.exportKey('raw', signingSecret)).toString('base64');
 
 		// Encrypt the signing secret with the data encryption key for the workspace.
-		const encryptResult = await keyManagementService.encryptWithDataKey(workspace.dataEncryptionKeyId, Buffer.from(signingSecretPlain));
+		const encryptResult = await keyManagementService.encryptWithDataKey(
+			workspace.dataEncryptionKeyId,
+			Buffer.from(exportedSigningSecret, 'base64')
+		);
 
 		const { id } = await db.createApi({
 			encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 			iv: Buffer.from(encryptResult.iv).toString('base64'),
+			algorithm,
 			name: name,
 			scopes: scopes,
 			workspaceId: verifiedToken.client.forWorkspaceId,

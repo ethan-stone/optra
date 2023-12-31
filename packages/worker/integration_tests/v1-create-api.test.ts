@@ -32,6 +32,7 @@ describe('POST /v1/apis.createApi', () => {
 			body: JSON.stringify({
 				name: 'test',
 				scopes: [],
+				algorithm: 'hsa256',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -55,6 +56,7 @@ describe('POST /v1/apis.createApi', () => {
 			body: JSON.stringify({
 				name: 'test',
 				scopes: [],
+				algorithm: 'hsa256',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -78,6 +80,13 @@ describe('POST /v1/apis.createApi', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
+				scopes: [
+					{
+						name: 'test',
+						description: 'this is a test api scope',
+					},
+				],
+				algorithm: 'hsa256',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
