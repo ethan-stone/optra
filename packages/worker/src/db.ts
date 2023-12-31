@@ -67,6 +67,7 @@ export interface Db {
 	getWorkspaceById(id: string): Promise<Workspace | null>;
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
 	getApiById(id: string): Promise<Api | null>;
+	getApiByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null>;
 	createApiScope(params: CreateApiScopeParams): Promise<{ id: string }>;
 	deleteApiScopeById(id: string): Promise<void>;
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
@@ -260,6 +261,17 @@ export class PlanetScaleDb implements Db {
 	async getApiById(id: string): Promise<Api | null> {
 		const api = await this.db.query.apis.findFirst({
 			where: eq(schema.apis.id, id),
+			with: {
+				scopes: true,
+			},
+		});
+
+		return api ?? null;
+	}
+
+	async getApiByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null> {
+		const api = await this.db.query.apis.findFirst({
+			where: and(eq(schema.apis.workspaceId, workspaceId), eq(schema.apis.name, name)),
 			with: {
 				scopes: true,
 			},

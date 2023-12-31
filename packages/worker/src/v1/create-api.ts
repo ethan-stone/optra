@@ -102,39 +102,99 @@ export function v1CreateApi(app: App) {
 			});
 		}
 
+		const existingApi = await db.getApiByWorkspaceAndName(workspace.id, name);
+
+		if (existingApi) {
+			logger.info(`Api with name ${name} already exists in workspace ${workspace.id}`);
+			throw new HTTPException({
+				reason: 'CONFLICT',
+				message: 'An api with this name already exists in this workspace.',
+			});
+		}
+
 		const now = new Date();
 
-		// Generate a plaintext signing secret.
-		const signingSecret = await crypto.subtle.generateKey(
-			{
-				name: 'HMAC',
-				hash: { name: 'SHA-256' },
-			},
-			true,
-			['sign', 'verify']
-		);
+		switch (algorithm) {
+			case 'hsa256': {
+				// Generate a plaintext signing secret.
+				const signingSecret = await crypto.subtle.generateKey(
+					{
+						name: 'HMAC',
+						hash: { name: 'SHA-256' },
+					},
+					true,
+					['sign', 'verify']
+				);
 
-		const exportedSigningSecret = Buffer.from(await crypto.subtle.exportKey('raw', signingSecret)).toString('base64');
+				const exportedSigningSecret = Buffer.from(await crypto.subtle.exportKey('raw', signingSecret)).toString('base64');
 
-		// Encrypt the signing secret with the data encryption key for the workspace.
-		const encryptResult = await keyManagementService.encryptWithDataKey(
-			workspace.dataEncryptionKeyId,
-			Buffer.from(exportedSigningSecret, 'base64')
-		);
+				// Encrypt the signing secret with the data encryption key for the workspace.
+				const encryptResult = await keyManagementService.encryptWithDataKey(
+					workspace.dataEncryptionKeyId,
+					Buffer.from(exportedSigningSecret, 'base64')
+				);
 
-		const { id } = await db.createApi({
-			encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
-			iv: Buffer.from(encryptResult.iv).toString('base64'),
-			algorithm,
-			name: name,
-			scopes: scopes,
-			workspaceId: verifiedToken.client.forWorkspaceId,
-			createdAt: now,
-			updatedAt: now,
-		});
+				const { id } = await db.createApi({
+					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
+					iv: Buffer.from(encryptResult.iv).toString('base64'),
+					algorithm,
+					name: name,
+					scopes: scopes,
+					workspaceId: verifiedToken.client.forWorkspaceId,
+					createdAt: now,
+					updatedAt: now,
+				});
 
-		logger.info(`Successufly created api with id ${id}`);
+				logger.info(`Successufly created api with id ${id}`);
 
-		return c.json({ id });
+				return c.json({ id }, 200);
+			}
+			case 'rsa256': {
+				const keyPair = await crypto.subtle.generateKey(
+					{
+						name: 'RSASSA-PKCS1-v1_5',
+						modulusLength: 2048,
+						publicExponent: new Uint8Array([1, 0, 1]),
+						hash: { name: 'SHA-256' },
+					},
+					true,
+					['sign', 'verify']
+				);
+
+				const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+				const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+
+				const encryptResult = await keyManagementService.encryptWithDataKey(workspace.dataEncryptionKeyId, Buffer.from(privateKey));
+
+				const { id } = await db.createApi({
+					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
+					iv: Buffer.from(encryptResult.iv).toString('base64'),
+					algorithm,
+					name: name,
+					scopes: scopes,
+					workspaceId: verifiedToken.client.forWorkspaceId,
+					createdAt: now,
+					updatedAt: now,
+				});
+
+				// upload the public key to R2
+				await c.env.JWKS_BUCKET.put(
+					`${workspace.id}/${name.replace(/\s/g, '-')}/.well-known/jwks.json`,
+					JSON.stringify({
+						keys: [publicKey],
+					})
+				);
+
+				logger.info(`Successufly created api with id ${id}`);
+
+				return c.json({ id }, 200);
+			}
+			default: {
+				throw new HTTPException({
+					message: 'Invalid algorithm',
+					reason: 'BAD_REQUEST',
+				});
+			}
+		}
 	});
 }

@@ -84,13 +84,17 @@ export const apis = mysqlTable(
   (table) => {
     return {
       workspaceIdIdx: index("workspace_id_idx").on(table.workspaceId),
+      workspaceApiNameIdx: unique("workspace_id_name_idx").on(
+        table.workspaceId,
+        table.name
+      ),
     };
   }
 );
 
 export const signingSecrets = mysqlTable("signing_secrets", {
   id: varchar("id", { length: 36 }).primaryKey(),
-  secret: varchar("secret", { length: 1024 }).notNull(), // base64 encoded encrypted signing secret
+  secret: varchar("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
   iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
   algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
   createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
