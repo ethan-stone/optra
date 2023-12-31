@@ -20,7 +20,7 @@ export type CacheNamespaces = {
 				client: Client;
 				api: Api;
 				workspace: Workspace;
-				publicKey: Uint8Array;
+				publicKeys: Uint8Array[]; // it is possible for an api to have multiple public keys at the same time
 		  }
 		| null;
 };

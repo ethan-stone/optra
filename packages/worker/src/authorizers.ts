@@ -156,25 +156,37 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 
 				const jwks = JSON.parse(await publicJWKS.text()) as { keys: JsonWebKey[] };
 
-				const importedKey = await crypto.subtle.importKey(
-					'jwk',
-					jwks.keys[0],
-					{
-						name: 'RSASSA-PKCS1-v1_5',
-						hash: { name: 'SHA-256' },
-					},
-					true,
-					['verify']
-				);
+				const publicKeys: Uint8Array[] = [];
 
-				const exportedKey = await crypto.subtle.exportKey('spki', importedKey);
+				for (const key of jwks.keys) {
+					const importedKey = await crypto.subtle.importKey(
+						'jwk',
+						key,
+						{
+							name: 'RSASSA-PKCS1-v1_5',
+							hash: { name: 'SHA-256' },
+						},
+						true,
+						['verify']
+					);
+
+					const exportedKey = await crypto.subtle.exportKey('spki', importedKey);
+
+					publicKeys.push(new Uint8Array(exportedKey));
+				}
+
+				// if somehow there are no public keys, this is fatal
+				if (publicKeys.length === 0) {
+					logger.error(`Public key for api ${api.id} not found.`);
+					return null;
+				}
 
 				return {
 					algorithm: 'rsa256',
 					api,
 					client,
 					workspace,
-					publicKey: new Uint8Array(exportedKey),
+					publicKeys,
 				};
 			}
 		}
@@ -203,11 +215,20 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 			break;
 		}
 		case 'rsa256': {
-			const publicKeyStr = '-----BEGIN PUBLIC KEY-----\n' + Buffer.from(data.publicKey).toString('base64') + '\n-----END PUBLIC KEY-----';
-			verifyResult = await verify(token, publicKeyStr, {
-				algorithm: 'RS256',
-				throwError: false,
-			});
+			for (const publicKey of data.publicKeys) {
+				const publicKeyStr = '-----BEGIN PUBLIC KEY-----\n' + Buffer.from(publicKey).toString('base64') + '\n-----END PUBLIC KEY-----';
+				verifyResult = await verify(token, publicKeyStr, {
+					algorithm: 'RS256',
+					throwError: false,
+				});
+				// If the token is valid with any of the public keys, we can stop checking.
+				if (verifyResult.valid) break;
+			}
+			// if the loop completes then none of the public keys were valid.
+			verifyResult = {
+				reason: 'INVALID_CLIENT',
+				valid: false,
+			};
 			break;
 		}
 	}
