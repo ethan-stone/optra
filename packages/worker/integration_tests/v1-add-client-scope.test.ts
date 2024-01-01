@@ -33,7 +33,7 @@ describe('POST /v1/clients.addScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: 'non-existent-client-id',
-				scopeId: 'test-scope',
+				scopeName: 'test-scope',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ describe('POST /v1/clients.addScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
-				scopeId: 'non-existent-scope',
+				scopeName: 'non-existent-scope',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ describe('POST /v1/clients.addScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
-				scopeId: 'non-existent-scope',
+				scopeName: 'non-existent-scope',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ describe('POST /v1/clients.addScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
-				scopeId: 'example-scope',
+				scopeName: 'example-scope',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ describe('POST /v1/clients.addScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
-				scopeId: 'example-scope',
+				scopeName: 'example-scope',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ describe('POST /v1/clients.addScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
-				scopeId: 'another-example-scope',
+				scopeName: 'another-example-scope',
 			}),
 			headers: {
 				'Content-Type': 'application/json',

@@ -33,7 +33,7 @@ describe('POST /v1/apis.removeScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: 'non-existent-api-id',
-				scopeId: 'non-existent-scope-id',
+				scopeName: 'non-existent-scope-id',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ describe('POST /v1/apis.removeScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
-				scopeId: 'non-existent-scope-id',
+				scopeName: 'non-existent-scope-id',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ describe('POST /v1/apis.removeScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
-				scopeId: 'does-not-exist',
+				scopeName: 'does-not-exist',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ describe('POST /v1/apis.removeScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
-				scopeId: 'does-not-exist',
+				scopeName: 'does-not-exist',
 			}),
 			headers: {
 				'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ describe('POST /v1/apis.removeScope', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
-				scopeId: 'another-scope', // inside bootstrap the apis are created with a scope named 'example-scope'
+				scopeName: 'another-scope', // inside bootstrap the apis are created with a scope named 'example-scope'
 			}),
 			headers: {
 				'Content-Type': 'application/json',

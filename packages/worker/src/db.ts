@@ -65,6 +65,7 @@ export interface Db {
 	createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }>;
 	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }>;
 	createClientScope(params: CreateClientScopeParams): Promise<{ id: string }>;
+	deleteClientScopeByApiScopeId(id: string): Promise<void>;
 	createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }>;
 	getWorkspaceById(id: string): Promise<Workspace | null>;
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
@@ -204,6 +205,10 @@ export class PlanetScaleDb implements Db {
 		return {
 			id: clientScopeId,
 		};
+	}
+
+	async deleteClientScopeByApiScopeId(apiScopeId: string): Promise<void> {
+		await this.db.delete(schema.clientScopes).where(eq(schema.clientScopes.apiScopeId, apiScopeId));
 	}
 
 	async createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }> {

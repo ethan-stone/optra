@@ -6,14 +6,19 @@ import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
 	method: 'post',
-	path: '/v1/apis.removeScope',
+	path: '/v1/clients.removeScope',
+	security: [
+		{
+			outh2: [],
+		},
+	],
 	request: {
 		body: {
 			required: true,
 			content: {
 				'application/json': {
 					schema: z.object({
-						apiId: z.string(),
+						clientId: z.string(),
 						scopeName: z.string().openapi({
 							description: 'The name of the scope to remove.',
 						}),
@@ -35,7 +40,7 @@ const route = createRoute({
 	},
 });
 
-export function v1RemoveApiScope(app: App) {
+export function v1RemoveClientScope(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
@@ -59,30 +64,48 @@ export function v1RemoveApiScope(app: App) {
 			});
 		}
 
-		const { apiId, scopeName } = c.req.valid('json');
+		const { clientId, scopeName } = c.req.valid('json');
 
-		const api = await db.getApiById(apiId);
+		logger.info(`Fetching client ${clientId}`);
 
-		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
-			logger.info(`Could not find api ${apiId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
+		const client = await db.getClientById(clientId);
+
+		if (!client || verifiedToken.client.forWorkspaceId !== client.workspaceId) {
+			logger.info(`Could not find client ${clientId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
 			throw new HTTPException({
-				message: `Could not find api ${apiId}`,
+				message: `Could not find client ${clientId}`,
 				reason: 'NOT_FOUND',
 			});
 		}
 
-		// find scope with matching name or id
-		const existingScope = api.scopes.find((s) => s.name === scopeName);
+		logger.info(`Fetched client ${client.id}`);
 
-		// if it doesn't exist then return early with a successful response
-		if (!existingScope) {
-			logger.info(`Could not find scope ${scopeName} on api ${apiId}. This isn't an error.`);
+		logger.info(`Fetching api ${client.apiId}`);
+
+		const api = await db.getApiById(client.apiId);
+
+		if (!api) {
+			logger.info(`Could not find api ${client.apiId}`);
+			throw new HTTPException({
+				message: `Could not find api ${client.apiId}`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		logger.info(`Fetched api ${api.id}`);
+
+		const scope = api.scopes.find((s) => s.name === scopeName);
+
+		if (!scope) {
+			logger.error(`Could not find scope ${scopeName} on api ${api.id}. This isn't an error.`);
 			return c.json(null, 200);
 		}
 
-		await db.deleteApiScopeById(existingScope.id);
+		logger.info(`Removing scope ${scope.name} from client ${client.id}`);
 
-		logger.info(`Removed scope ${existingScope.id} from api ${apiId}`);
+		await db.deleteClientScopeByApiScopeId(scope.id);
+
+		logger.info(`Removed scope ${scope.name} from client ${client.id}`);
 
 		return c.json(null, 200);
 	});

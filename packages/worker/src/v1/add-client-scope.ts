@@ -19,7 +19,7 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						clientId: z.string(),
-						scopeId: z.string().openapi({
+						scopeName: z.string().openapi({
 							description: 'The scope id or name from the api to add to the client.',
 						}),
 					}),
@@ -64,7 +64,7 @@ export function v1AddClientScope(app: App) {
 			});
 		}
 
-		const { clientId, scopeId } = c.req.valid('json');
+		const { clientId, scopeName } = c.req.valid('json');
 
 		const client = await db.getClientById(clientId);
 
@@ -86,15 +86,15 @@ export function v1AddClientScope(app: App) {
 			});
 		}
 
-		logger.info(`Checking if api ${api.id} has scope ${scopeId}`);
+		logger.info(`Checking if api ${api.id} has scope ${scopeName}`);
 
-		const scope = api.scopes.find((s) => s.id === scopeId || s.name === scopeId);
+		const scope = api.scopes.find((s) => s.name === scopeName);
 
 		if (!scope) {
-			logger.info(`Could not find scope ${scopeId} on api ${api.id}`);
+			logger.info(`Could not find scope ${scopeName} on api ${api.id}`);
 			// consider making this a bad request instead of not found
 			throw new HTTPException({
-				message: `Could not find scope ${scopeId} on api ${api.id}`,
+				message: `Could not find scope ${scopeName} on api ${api.id}`,
 				reason: 'NOT_FOUND',
 			});
 		}
