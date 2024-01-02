@@ -24,7 +24,7 @@ export function createConnection(url: string) {
 
 type InsertClientModel = InferInsertModel<(typeof schema)['clients']>;
 
-export type Client = InferSelectModel<(typeof schema)['clients']>;
+export type Client = InferSelectModel<(typeof schema)['clients']> & { scopes?: string[] };
 export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
 export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & { apiScopes?: string[] };
 export type CreateClientScopeParams = Omit<InferInsertModel<(typeof schema)['clientScopes']>, 'id'>;
@@ -81,15 +81,23 @@ export interface Db {
 export class PlanetScaleDb implements Db {
 	constructor(private readonly db: PlanetScaleDatabase<typeof schema>) {}
 
-	async getClientById(id: string) {
+	async getClientById(id: string): Promise<Client | null> {
 		const client = await this.db.query.clients.findFirst({
 			where: eq(schema.clients.id, id),
 			with: {
-				scopes: true,
+				scopes: {
+					with: {
+						apiScope: true,
+					},
+				},
 			},
 		});
 
-		return client ?? null;
+		if (!client) return null;
+
+		const scopes = client.scopes.map((s) => s.apiScope.name);
+
+		return client ? { ...client, scopes } : null;
 	}
 
 	async getClientSecretsByClientId(clientId: string, filters: GetClientSecretsByClientIdFilter = {}): Promise<ClientSecret[]> {

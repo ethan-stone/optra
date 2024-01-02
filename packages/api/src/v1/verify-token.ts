@@ -12,6 +12,7 @@ const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
 		rateLimitBucketSize: z.number().int().nullish(),
 		rateLimitRefillAmount: z.number().int().nullish(),
 		rateLimitRefillInterval: z.number().int().nullish(),
+		scopes: z.array(z.string()).nullish(),
 	}),
 	z.object({
 		valid: z.literal(false),
@@ -94,6 +95,7 @@ export function v1VerifyToken(app: App) {
 				rateLimitBucketSize: verifiedToken.client.rateLimitBucketSize,
 				rateLimitRefillAmount: verifiedToken.client.rateLimitRefillAmount,
 				rateLimitRefillInterval: verifiedToken.client.rateLimitRefillInterval,
+				scopes: verifiedToken.client.scopes,
 			},
 			200
 		);
