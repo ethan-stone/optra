@@ -11,6 +11,7 @@ export const ErrorReason = z.enum([
 	'RATELIMIT_EXCEEDED',
 	'SECRET_EXPIRED',
 	'VERSION_MISMATCH',
+	'MISSING_SCOPES',
 	'NOT_FOUND',
 	'BAD_REQUEST',
 	'FORBIDDEN',
@@ -111,6 +112,7 @@ function reasonToStatus(reason: z.infer<typeof ErrorReason>) {
 		case 'EXPIRED':
 		case 'SECRET_EXPIRED':
 		case 'VERSION_MISMATCH':
+		case 'MISSING_SCOPES':
 		case 'INVALID_CLIENT':
 			return 401;
 		case 'RATELIMIT_EXCEEDED':

@@ -46,11 +46,18 @@ type VerifyTokenSuccess = {
 
 type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
 
+type VerifyTokenOptions = {
+	requiredScopes?: {
+		method: 'one' | 'all';
+		names: string[];
+	} | null;
+};
+
 /**
  * Use this to validate that the jwt is valid and belongs to a root client.
  * @param authorization Value of the Authorization header.
  */
-export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise<VerifyTokenResult> => {
+export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?: VerifyTokenOptions): Promise<VerifyTokenResult> => {
 	const logger = ctx.get('logger');
 
 	let decoded: ReturnType<typeof decode>;
@@ -88,6 +95,8 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 
 			return null;
 		}
+
+		const clientScopes = await db.getClientScopesByClientId(client.id);
 
 		logger.info(`Fetched client ${client.id} from payload.`);
 
@@ -137,6 +146,7 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 					algorithm: 'hsa256',
 					api,
 					client,
+					clientScopes,
 					decryptedSigningSecret: decryptResult.decryptedData,
 					workspace,
 				};
@@ -185,6 +195,7 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 					algorithm: 'rsa256',
 					api,
 					client,
+					clientScopes,
 					workspace,
 					publicKeys,
 				};
@@ -201,6 +212,44 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>): Promise
 	}
 
 	const { client, algorithm } = data;
+
+	if (options?.requiredScopes) {
+		if (options.requiredScopes.method === 'one') {
+			const hasAtLeastOneScope = options.requiredScopes.names.some((name) => {
+				const apiScope = data.api.scopes.find((scope) => scope.name === name);
+
+				if (!apiScope) return false;
+
+				return data.clientScopes.some((clientScope) => clientScope.apiScopeId === apiScope.id);
+			});
+
+			if (!hasAtLeastOneScope) {
+				return {
+					valid: false,
+					reason: 'MISSING_SCOPES',
+					message: 'Token is missing one or more required scopes.',
+				};
+			}
+		}
+
+		if (options.requiredScopes.method === 'all') {
+			const hasAllScopes = options.requiredScopes.names.every((name) => {
+				const apiScope = data.api.scopes.find((scope) => scope.name === name);
+
+				if (!apiScope) return false;
+
+				return data.clientScopes.some((clientScope) => clientScope.apiScopeId === apiScope.id);
+			});
+
+			if (!hasAllScopes) {
+				return {
+					valid: false,
+					reason: 'MISSING_SCOPES',
+					message: 'Token is missing one or more required scopes.',
+				};
+			}
+		}
+	}
 
 	let verifyResult: Awaited<ReturnType<typeof verify>> | null = null;
 

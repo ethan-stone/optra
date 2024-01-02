@@ -1,4 +1,4 @@
-import { Api, Client, Workspace } from '@/db';
+import { Api, Client, ClientScope, Workspace } from '@/db';
 import { Logger } from '@/logger';
 
 type CacheRecord<Value> = {
@@ -11,6 +11,7 @@ export type CacheNamespaces = {
 		| {
 				algorithm: 'hsa256';
 				client: Client;
+				clientScopes: ClientScope[];
 				api: Api;
 				workspace: Workspace;
 				decryptedSigningSecret: Uint8Array;
@@ -18,6 +19,7 @@ export type CacheNamespaces = {
 		| {
 				algorithm: 'rsa256';
 				client: Client;
+				clientScopes: ClientScope[];
 				api: Api;
 				workspace: Workspace;
 				publicKeys: Uint8Array[]; // it is possible for an api to have multiple public keys at the same time

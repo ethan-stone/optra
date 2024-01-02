@@ -31,6 +31,15 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						token: z.string(),
+						requiredScopes: z
+							.object({
+								method: z.enum(['one', 'all']).openapi({
+									description:
+										'The method to use when checking scopes. "one" means that the token must have at least one of the scopes. "all" means that the token must have all of the scopes.',
+								}),
+								names: z.array(z.string()).openapi({ description: 'The names of the scopes to check for.' }),
+							})
+							.nullish(),
 					}),
 				},
 			},
@@ -55,9 +64,11 @@ export function v1VerifyToken(app: App) {
 
 		logger.info(`Verifying token`);
 
-		const { token } = c.req.valid('json');
+		const { token, requiredScopes } = c.req.valid('json');
 
-		const verifiedToken = await verifyToken(token, c);
+		const verifiedToken = await verifyToken(token, c, {
+			requiredScopes,
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
