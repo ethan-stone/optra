@@ -18,7 +18,9 @@ export type JwtPayload = {
 	iat: number;
 	exp: number;
 	version: number;
-	secret_expires_at: number | undefined | null;
+	secret_expires_at?: number | undefined | null;
+	metadata?: Record<string, unknown> | undefined | null;
+	scopes?: string[] | undefined | null;
 };
 
 /**

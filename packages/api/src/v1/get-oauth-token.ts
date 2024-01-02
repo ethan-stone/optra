@@ -144,6 +144,8 @@ export function v1GetOAuthToken(app: App) {
 						sub: client.id,
 						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
 						version: client.version,
+						scopes: client.scopes,
+						metadata: client.metadata,
 					},
 					Buffer.from(decryptResult.decryptedData).toString('base64'),
 					'HS256'
@@ -173,6 +175,8 @@ export function v1GetOAuthToken(app: App) {
 						sub: client.id,
 						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
 						version: client.version,
+						scopes: client.scopes,
+						metadata: client.metadata,
 					},
 					privateKey,
 					'RS256'
