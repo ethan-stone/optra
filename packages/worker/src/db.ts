@@ -155,9 +155,9 @@ export class PlanetScaleDb implements Db {
 	}
 
 	async createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }> {
-		const clientId = uid('client');
+		const clientId = params.prefix ? params.prefix + '_' + uid() : uid('client');
 		const secretId = uid('client_secret');
-		const secretValue = uid();
+		const secretValue = params.prefix ? params.prefix + '_' + uid(undefined, 48) : uid(undefined, 48);
 
 		const now = new Date();
 
@@ -331,8 +331,17 @@ export class PlanetScaleDb implements Db {
 	}
 
 	async rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult> {
+		// increment version of the client
+		const client = await this.db.query.clients.findFirst({
+			where: eq(schema.clients.id, params.clientId),
+		});
+
+		if (!client) throw new Error(`Could not find client ${params.clientId}`);
+
+		const prefix = client.prefix;
+
 		const secretId = uid('client_secret');
-		const secretValue = uid();
+		const secretValue = prefix ? prefix + '_' + uid(undefined, 48) : uid(undefined, 48);
 		const hashedSecretValue = await hashSHA256(secretValue);
 
 		const now = new Date();
@@ -354,13 +363,6 @@ export class PlanetScaleDb implements Db {
 				clientId: params.clientId,
 				createdAt: now,
 			});
-
-			// increment version of the client
-			const client = await tx.query.clients.findFirst({
-				where: eq(schema.clients.id, params.clientId),
-			});
-
-			if (!client) throw new Error(`Could not find client ${params.clientId}`);
 
 			await tx
 				.update(schema.clients)

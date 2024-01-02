@@ -39,6 +39,7 @@ const route = createRoute({
 					schema: z.object({
 						name: z.string(),
 						apiId: z.string(),
+						prefix: z.string().max(12).optional(),
 						rateLimitBucketSize: z.number().int().optional(),
 						rateLimitRefillAmount: z.number().int().optional(),
 						rateLimitRefillInterval: z.number().int().optional(),
@@ -84,7 +85,8 @@ export function v1CreateClient(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
-		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata, scopes } = c.req.valid('json');
+		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata, scopes, prefix } =
+			c.req.valid('json');
 
 		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
 
@@ -132,6 +134,7 @@ export function v1CreateClient(app: App) {
 			apiId,
 			name,
 			version: 1,
+			prefix,
 			workspaceId: verifiedToken.client.forWorkspaceId,
 			rateLimitBucketSize,
 			rateLimitRefillAmount,
