@@ -13,6 +13,7 @@ import { v1AddApiScope } from '@/v1/add-api-scope';
 import { v1RemoveApiScope } from '@/v1/remove-api-scope';
 import { testR2 } from '@/v1/test-storage';
 import { v1AddClientScope } from '@/v1/add-client-scope';
+import { v1RemoveClientScope } from '@/v1/remove-client-scope';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -99,6 +100,7 @@ v1RotateSecret(app);
 v1AddApiScope(app);
 v1RemoveApiScope(app);
 v1AddClientScope(app);
+v1RemoveClientScope(app);
 testR2(app);
 
 export default {

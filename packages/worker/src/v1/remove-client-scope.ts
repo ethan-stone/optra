@@ -85,10 +85,10 @@ export function v1RemoveClientScope(app: App) {
 		const api = await db.getApiById(client.apiId);
 
 		if (!api) {
-			logger.info(`Could not find api ${client.apiId}`);
+			logger.info(`Could not find api ${client.apiId} for client ${client.id}. This shouldn't happen.`);
 			throw new HTTPException({
-				message: `Could not find api ${client.apiId}`,
-				reason: 'NOT_FOUND',
+				message: 'An internal error occurred.',
+				reason: 'INTERNAL_SERVER_ERROR',
 			});
 		}
 
