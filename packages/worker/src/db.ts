@@ -315,7 +315,11 @@ export class PlanetScaleDb implements Db {
 	}
 
 	async deleteApiScopeById(id: string): Promise<void> {
-		await this.db.delete(schema.apiScopes).where(eq(schema.apiScopes.id, id));
+		await this.db.transaction(async (tx) => {
+			await tx.delete(schema.apiScopes).where(eq(schema.apiScopes.id, id));
+
+			await tx.delete(schema.clientScopes).where(eq(schema.clientScopes.apiScopeId, id));
+		});
 	}
 
 	async getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null> {
