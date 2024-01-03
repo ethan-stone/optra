@@ -41,7 +41,7 @@ const route = createRoute({
 	},
 });
 
-export function v1RotateSecret(app: App) {
+export function v1RotateClientSecret(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
