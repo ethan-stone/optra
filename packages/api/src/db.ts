@@ -71,6 +71,7 @@ export interface Db {
 	createApi(params: CreateApiParams): Promise<{ id: string }>;
 	getApiById(id: string): Promise<Api | null>;
 	getApiByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null>;
+	deleteApiById(id: string): Promise<void>;
 	createApiScope(params: CreateApiScopeParams): Promise<{ id: string }>;
 	deleteApiScopeById(id: string): Promise<void>;
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
@@ -301,6 +302,10 @@ export class PlanetScaleDb implements Db {
 		});
 
 		return api ?? null;
+	}
+
+	async deleteApiById(id: string): Promise<void> {
+		throw new Error('Not implemented');
 	}
 
 	async createApiScope(params: CreateApiScopeParams): Promise<{ id: string }> {
