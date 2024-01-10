@@ -1,4 +1,7 @@
 import { Axiom } from '@axiomhq/js';
+import { BaselimeLogger } from '@baselime/edge-logger';
+import { Context } from 'hono';
+import { HonoEnv } from '@/app';
 
 export type Fields = {
 	[key: string]: unknown;
@@ -20,10 +23,13 @@ export type LoggerOptions =
 			axiomToken: string;
 			axiomDataset: string;
 			axiomOrgId: string;
+			baseLimeApiKey: string;
+			executionCtx: ExecutionContext;
 	  };
 
 export class Logger implements Logger {
 	private axiom?: Axiom;
+	private baselime?: BaselimeLogger;
 	private opts: LoggerOptions;
 	public readonly defaultFields: Fields = {};
 
@@ -35,6 +41,13 @@ export class Logger implements Logger {
 			this.axiom = new Axiom({
 				token: this.opts.axiomToken,
 				orgId: this.opts.axiomOrgId,
+			});
+
+			this.baselime = new BaselimeLogger({
+				apiKey: this.opts.baseLimeApiKey,
+				ctx: this.opts.executionCtx,
+				service: 'api',
+				dataset: 'cloudflare',
 			});
 		}
 	}
@@ -58,6 +71,10 @@ export class Logger implements Logger {
 					...f,
 				},
 			]);
+		}
+
+		if (this.opts.env === 'production' && this.baselime) {
+			this.baselime.log(message, f);
 		}
 	}
 
@@ -89,6 +106,12 @@ export class Logger implements Logger {
 		if (this.axiom) {
 			await this.axiom.flush().catch((err) => {
 				console.error('Could not flush logs to axiom', err);
+			});
+		}
+
+		if (this.baselime) {
+			await this.baselime.flush().catch((err) => {
+				console.error('Could not flush logs to baselime', err);
 			});
 		}
 	}
