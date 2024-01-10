@@ -1,7 +1,5 @@
 import { Axiom } from '@axiomhq/js';
 import { BaselimeLogger } from '@baselime/edge-logger';
-import { Context } from 'hono';
-import { HonoEnv } from '@/app';
 
 export type Fields = {
 	[key: string]: unknown;
@@ -17,14 +15,19 @@ export interface Logger {
 export type LoggerOptions =
 	| {
 			env: 'development';
+			service: string;
+			namespace: string;
+			dataset: string;
+			requestId: string;
 	  }
 	| {
 			env: 'production';
-			axiomToken: string;
-			axiomDataset: string;
-			axiomOrgId: string;
 			baseLimeApiKey: string;
 			executionCtx: ExecutionContext;
+			service: string;
+			namespace: string;
+			dataset: string;
+			requestId: string;
 	  };
 
 export class Logger implements Logger {
@@ -35,19 +38,23 @@ export class Logger implements Logger {
 
 	constructor(opts: LoggerOptions, defaultFields: Fields = {}) {
 		this.opts = opts;
-		this.defaultFields = defaultFields;
+
+		this.defaultFields = {
+			service: opts.service,
+			namespace: opts.namespace,
+			dataset: opts.dataset,
+			requestId: opts.requestId,
+			...defaultFields,
+		};
 
 		if (this.opts.env === 'production') {
-			this.axiom = new Axiom({
-				token: this.opts.axiomToken,
-				orgId: this.opts.axiomOrgId,
-			});
-
 			this.baselime = new BaselimeLogger({
 				apiKey: this.opts.baseLimeApiKey,
 				ctx: this.opts.executionCtx,
-				service: 'api',
-				dataset: 'cloudflare',
+				service: this.opts.service,
+				namespace: this.opts.namespace,
+				dataset: this.opts.dataset,
+				requestId: this.opts.requestId,
 			});
 		}
 	}
@@ -63,15 +70,6 @@ export class Logger implements Logger {
 		}
 
 		logFn(message, JSON.stringify(f));
-
-		if (this.opts.env === 'production' && this.axiom) {
-			this.axiom.ingest(this.opts.axiomDataset, [
-				{
-					message,
-					...f,
-				},
-			]);
-		}
 
 		if (this.opts.env === 'production' && this.baselime) {
 			this.baselime.log(message, f);

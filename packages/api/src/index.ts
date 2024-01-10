@@ -33,40 +33,28 @@ app.use('*', async (c, next) => {
 
 		let logger: Logger;
 
-		if (c.env.ENVIRONMENT === 'production' && (!c.env.AXIOM_TOKEN || !c.env.AXIOM_TOKEN || !c.env.AXIOM_ORG_ID)) {
+		if (c.env.ENVIRONMENT === 'production' && !c.env.BASELIME_API_KEY) {
 			throw new Error('Missing Axiom environment variables for production');
 		}
 
-		if (c.env.ENVIRONMENT === 'production' && c.env.AXIOM_TOKEN && c.env.AXIOM_DATASET && c.env.AXIOM_ORG_ID && c.env.BASELIME_API_KEY) {
-			logger = new Logger(
-				{
-					env: c.env.ENVIRONMENT,
-					axiomToken: c.env.AXIOM_TOKEN,
-					axiomDataset: c.env.AXIOM_DATASET,
-					axiomOrgId: c.env.AXIOM_ORG_ID,
-					baseLimeApiKey: c.env.BASELIME_API_KEY,
-					executionCtx: c.executionCtx,
-				},
-				{
-					app: 'api',
-					requestId: reqId,
-					path: c.req.path,
-					method: c.req.method,
-					namespace: c.req.method + ' ' + c.req.path,
-				}
-			);
+		if (c.env.ENVIRONMENT === 'production' && c.env.BASELIME_API_KEY) {
+			logger = new Logger({
+				env: c.env.ENVIRONMENT,
+				baseLimeApiKey: c.env.BASELIME_API_KEY,
+				executionCtx: c.executionCtx,
+				dataset: 'api-logs',
+				namespace: c.req.method + ' ' + c.req.path,
+				service: 'api',
+				requestId: reqId,
+			});
 		} else {
-			logger = new Logger(
-				{
-					env: 'development',
-				},
-				{
-					app: 'api',
-					requestId: reqId,
-					path: c.req.path,
-					method: c.req.method,
-				}
-			);
+			logger = new Logger({
+				env: 'development',
+				dataset: 'api-logs',
+				namespace: c.req.method + ' ' + c.req.path,
+				service: 'api',
+				requestId: reqId,
+			});
 		}
 
 		c.set('logger', logger);
