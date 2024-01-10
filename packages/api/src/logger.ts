@@ -31,7 +31,6 @@ export type LoggerOptions =
 	  };
 
 export class Logger implements Logger {
-	private axiom?: Axiom;
 	private baselime?: BaselimeLogger;
 	private opts: LoggerOptions;
 	public readonly defaultFields: Fields = {};
@@ -79,7 +78,7 @@ export class Logger implements Logger {
 	info(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'info',
-			_time: Date.now(),
+			time: Date.now(),
 			...fields,
 		});
 	}
@@ -87,7 +86,7 @@ export class Logger implements Logger {
 	warn(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'warn',
-			_time: Date.now(),
+			time: Date.now(),
 			...fields,
 		});
 	}
@@ -95,18 +94,12 @@ export class Logger implements Logger {
 	error(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'error',
-			_time: Date.now(),
+			time: Date.now(),
 			...fields,
 		});
 	}
 
 	async flush(): Promise<void> {
-		if (this.axiom) {
-			await this.axiom.flush().catch((err) => {
-				console.error('Could not flush logs to axiom', err);
-			});
-		}
-
 		if (this.baselime) {
 			await this.baselime.flush().catch((err) => {
 				console.error('Could not flush logs to baselime', err);
