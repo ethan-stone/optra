@@ -97,7 +97,7 @@ export function v1RemoveClientScope(app: App) {
 		const scope = api.scopes.find((s) => s.name === scopeName);
 
 		if (!scope) {
-			logger.error(`Could not find scope ${scopeName} on api ${api.id}. This isn't an error.`);
+			logger.info(`Could not find scope ${scopeName} on api ${api.id}. This isn't an error.`);
 			return c.json(null, 200);
 		}
 
