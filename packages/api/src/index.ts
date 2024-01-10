@@ -27,6 +27,8 @@ import { v1RemoveClientScope } from '@/v1/remove-client-scope';
 export const app = createApp();
 
 app.use('*', async (c, next) => {
+	const start = Date.now();
+
 	try {
 		const reqId = uid('req', 14);
 		c.set('reqId', reqId);
@@ -75,7 +77,11 @@ app.use('*', async (c, next) => {
 	} finally {
 		const logger = c.get('logger');
 
-		logger.info('Request finished');
+		const duration = Date.now() - start;
+
+		logger.info('Request finished', {
+			duration,
+		});
 
 		c.executionCtx.waitUntil(logger.flush());
 	}
