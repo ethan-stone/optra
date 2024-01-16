@@ -76,7 +76,7 @@ export async function createClient(
 	args: {
 		apiId: string;
 	}
-): Promise<{ id: string }> {
+): Promise<{ clientId: string }> {
 	const req = new Request(`${baseUrl}/v1/clients.createClient`, {
 		method: 'POST',
 		body: JSON.stringify({
@@ -97,7 +97,7 @@ export async function createClient(
 
 	const resJson = await res.json();
 
-	return { id: (resJson as any).id };
+	return { clientId: (resJson as any).clientId };
 }
 
 export function generateJsonObject(numKeys: number): Record<string, unknown> {
