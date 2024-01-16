@@ -312,7 +312,7 @@ export class PlanetScaleDb implements Db {
 	}
 
 	async deleteApiById(id: string): Promise<void> {
-		throw new Error('Not implemented');
+		await this.db.update(schema.apis).set({ deletedAt: new Date() }).where(eq(schema.apis.id, id));
 	}
 
 	async createApiScope(params: CreateApiScopeParams): Promise<{ id: string }> {

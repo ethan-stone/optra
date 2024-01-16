@@ -40,6 +40,66 @@ export async function getOAuthToken(baseUrl: string, clientId: string, clientSec
 	return resJson.accessToken;
 }
 
+export async function createApi(
+	baseUrl: string,
+	token: string,
+	args: {
+		algorithm: 'hsa256' | 'rsa256';
+	}
+): Promise<{ id: string }> {
+	const req = new Request(`${baseUrl}/v1/apis.createApi`, {
+		method: 'POST',
+		body: JSON.stringify({
+			name: generateRandomName(),
+			algorithm: args.algorithm,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	const res = await fetch(req);
+
+	if (res.status !== 200) {
+		throw new Error(`Failed to create client. Optra-Request-Id: ${res.headers.get('Optra-Request-Id')}`);
+	}
+
+	const resJson = await res.json();
+
+	return { id: (resJson as any).id };
+}
+
+export async function createClient(
+	baseUrl: string,
+	token: string,
+	args: {
+		apiId: string;
+	}
+): Promise<{ id: string }> {
+	const req = new Request(`${baseUrl}/v1/clients.createClient`, {
+		method: 'POST',
+		body: JSON.stringify({
+			name: generateRandomName(),
+			apiId: args.apiId,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	const res = await fetch(req);
+
+	if (res.status !== 200) {
+		throw new Error(`Failed to create client. Optra-Request-Id: ${res.headers.get('Optra-Request-Id')}`);
+	}
+
+	const resJson = await res.json();
+
+	return { id: (resJson as any).id };
+}
+
 export function generateJsonObject(numKeys: number): Record<string, unknown> {
 	const obj: Record<string, unknown> = {};
 

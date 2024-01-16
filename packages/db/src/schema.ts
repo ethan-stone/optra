@@ -82,6 +82,7 @@ export const apis = mysqlTable(
     signingSecretId: varchar("signing_secret_id", { length: 36 }).notNull(),
     createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+    deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
   },
   (table) => {
     return {

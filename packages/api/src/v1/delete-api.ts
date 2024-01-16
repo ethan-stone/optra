@@ -72,5 +72,9 @@ export function v1DeleteApi(app: App) {
 				reason: 'NOT_FOUND',
 			});
 		}
+
+		await db.deleteApiById(id);
+
+		return c.json(null, 200);
 	});
 }

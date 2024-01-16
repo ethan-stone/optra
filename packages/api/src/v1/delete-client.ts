@@ -24,7 +24,7 @@ const route = createRoute({
 			description: 'Response from deleting a client',
 			content: {
 				'application/json': {
-					schema: z.object({}),
+					schema: z.null(),
 				},
 			},
 		},
@@ -69,6 +69,6 @@ export function v1DeleteClient(app: App) {
 
 		await db.deleteClientById(id);
 
-		return c.json({}, 200);
+		return c.json(null, 200);
 	});
 }
