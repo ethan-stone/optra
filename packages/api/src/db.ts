@@ -1,4 +1,4 @@
-import { schema } from '@optra/db';
+import * as schema from '@optra/db/schema';
 import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
 import { InferSelectModel, InferInsertModel, eq, and, gt, or, isNull, SQL, desc } from 'drizzle-orm';
@@ -6,7 +6,7 @@ import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
 
 export * from 'drizzle-orm';
-export * from '@optra/db';
+export * from '@optra/db/index';
 
 export function createConnection(url: string) {
 	const connection = connect({
@@ -59,6 +59,7 @@ type GetClientSecretsByClientIdFilter = {
 
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;
+	deleteClientById(id: string): Promise<void>;
 	getClientSecretsByClientId(clientId: string, filters?: GetClientSecretsByClientIdFilter): Promise<ClientSecret[]>;
 	getClientSecretValueById(secretId: string): Promise<string | null>;
 	getClientScopesByClientId(clientId: string): Promise<ClientScope[]>;
@@ -80,7 +81,9 @@ export interface Db {
 }
 
 export class PlanetScaleDb implements Db {
-	constructor(private readonly db: PlanetScaleDatabase<typeof schema>) {}
+	constructor(private readonly db: PlanetScaleDatabase<typeof schema>) {
+		this.db.query;
+	}
 
 	async getClientById(id: string): Promise<Client | null> {
 		const client = await this.db.query.clients.findFirst({
@@ -99,6 +102,10 @@ export class PlanetScaleDb implements Db {
 		const scopes = client.scopes.map((s) => s.apiScope.name);
 
 		return client ? { ...client, scopes } : null;
+	}
+
+	async deleteClientById(id: string): Promise<void> {
+		await this.db.update(schema.clients).set({ deletedAt: new Date() }).where(eq(schema.clients.id, id));
 	}
 
 	async getClientSecretsByClientId(clientId: string, filters: GetClientSecretsByClientIdFilter = {}): Promise<ClientSecret[]> {

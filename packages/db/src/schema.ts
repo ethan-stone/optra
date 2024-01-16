@@ -26,6 +26,7 @@ export const clients = mysqlTable(
     metadata: json("metadata").$type<Record<string, unknown>>(),
     createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+    deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
   },
   (table) => {
     return {

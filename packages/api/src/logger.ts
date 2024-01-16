@@ -78,7 +78,6 @@ export class Logger implements Logger {
 	info(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'info',
-			time: Date.now(),
 			...fields,
 		});
 	}
@@ -86,7 +85,6 @@ export class Logger implements Logger {
 	warn(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'warn',
-			time: Date.now(),
 			...fields,
 		});
 	}
@@ -94,7 +92,6 @@ export class Logger implements Logger {
 	error(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'error',
-			time: Date.now(),
 			...fields,
 		});
 	}

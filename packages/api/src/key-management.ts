@@ -1,5 +1,5 @@
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
-import { schema } from '@optra/db';
+import * as schema from '@optra/db/schema';
 import { PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
 import { eq } from '@/db';
 import { Buffer } from '@/buffer';

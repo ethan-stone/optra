@@ -1,5 +1,5 @@
 import { bootstrap } from '@optra/bootstrap';
-import { schema } from '@optra/db';
+import * as schema from '@optra/db/schema';
 import { connect } from '@planetscale/database';
 import {
 	DRIZZLE_DATABASE_URL,
