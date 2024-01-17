@@ -67,55 +67,46 @@ export function v1RotateClientSecret(app: App) {
 
 		const { clientId, expiresIn: providedExpiresIn } = c.req.valid('json');
 
-		// this is the client of which we are rotating the secret
-		const secretClient = await db.getClientById(clientId);
+		const clientFromToken = await db.getClientById(verifiedToken.client.id);
 
-		if (!secretClient) {
-			logger.info(`Could not find client ${clientId}`);
-			throw new HTTPException({
-				message: `Could not find client ${clientId}`,
-				reason: 'NOT_FOUND',
-			});
-		}
-
-		const secrets = await db.getClientSecretsByClientId(clientId, {
-			status: 'active',
-			excludeExpired: true,
-		});
-
-		if (secrets.length === 2) {
-			throw new HTTPException({
-				message: `Client ${clientId} already has 2 secrets`,
-				reason: 'BAD_REQUEST',
-			});
-		}
-
-		if (secrets.length === 0) {
-			logger.error(`Client ${clientId} has no secrets. This should never happen.`);
-			throw new HTTPException({
-				message: `an internal error occurred.`,
-				reason: 'INTERNAL_SERVER_ERROR',
-			});
-		}
-
-		const currentSecret = secrets[0];
-
-		const callingClient = await db.getClientById(currentSecret.clientId);
-
-		if (!callingClient) {
-			logger.error(`Client ${currentSecret.clientId} not found despite being verified. This should never happen.`);
+		if (!clientFromToken) {
+			logger.error(`Client ${verifiedToken.client.id} not found despite being verified. This should never happen.`);
 			throw new HTTPException({
 				message: `An internal error occurred.`,
 				reason: 'INTERNAL_SERVER_ERROR',
 			});
 		}
 
+		// this is the client of which we are rotating the secret
+		const clientFromRequestParams = await db.getClientById(clientId);
+
 		// root clients can rotate secrets for any client in their workspace
 		// non-root clients can only rotate secrets for themselves
-		if (callingClient.workspaceId !== secretClient.workspaceId && callingClient.id !== secretClient.id) {
+		if (
+			!clientFromRequestParams ||
+			(clientFromToken.forWorkspaceId !== clientFromRequestParams.workspaceId && clientFromToken.id !== clientFromRequestParams.id)
+		) {
+			logger.info(`Client ${clientId} does not exist or client ${clientFromToken} is not allowed to rotate secrets for client ${clientId}`);
 			throw new HTTPException({
 				message: `Client ${verifiedToken.client.id} is not allowed to rotate secrets for client ${clientId}`,
-				reason: 'FORBIDDEN',
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		if (clientFromRequestParams.currentClientSecretId && clientFromRequestParams.nextClientSecretId) {
+			throw new HTTPException({
+				message: `Client ${clientId} already has 2 secrets`,
+				reason: 'BAD_REQUEST',
+			});
+		}
+
+		const currentSecret = await db.getClientSecretById(clientFromRequestParams.currentClientSecretId);
+
+		if (!currentSecret) {
+			logger.error(`Client ${clientId} does not have a current secret despite being verified. This should never happen.`);
+			throw new HTTPException({
+				message: `An internal error occurred.`,
+				reason: 'INTERNAL_SERVER_ERROR',
 			});
 		}
 
@@ -143,6 +134,7 @@ export function v1RotateClientSecret(app: App) {
 		return c.json(
 			{
 				...newSecret,
+				clientId: clientFromRequestParams.id,
 				createdAt: newSecret.createdAt.toISOString(),
 				expiresAt: newSecret.expiresAt?.toISOString() ?? null,
 			},

@@ -25,8 +25,11 @@ export function createConnection(url: string) {
 type InsertClientModel = InferInsertModel<(typeof schema)['clients']>;
 
 export type Client = InferSelectModel<(typeof schema)['clients']> & { scopes?: string[] };
-export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
-export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId'> & { apiScopes?: string[] };
+export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId' | 'currentClientSecretId' | 'nextClientSecretId'> &
+	Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
+export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId' | 'currentClientSecretId' | 'nextClientSecretId'> & {
+	apiScopes?: string[];
+};
 export type CreateClientScopeParams = Omit<InferInsertModel<(typeof schema)['clientScopes']>, 'id'>;
 export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
 export type ClientScope = InferSelectModel<(typeof schema)['clientScopes']>;
@@ -52,16 +55,11 @@ export type RotateClientSecretParams = {
 	expiresAt: Date;
 };
 
-type GetClientSecretsByClientIdFilter = {
-	status?: 'active' | 'revoked';
-	excludeExpired?: boolean;
-};
-
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;
 	deleteClientById(id: string): Promise<void>;
-	getClientSecretsByClientId(clientId: string, filters?: GetClientSecretsByClientIdFilter): Promise<ClientSecret[]>;
 	getClientSecretValueById(secretId: string): Promise<string | null>;
+	getClientSecretById(secretId: string): Promise<ClientSecret | null>;
 	getClientScopesByClientId(clientId: string): Promise<ClientScope[]>;
 	createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }>;
 	createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }>;
@@ -108,23 +106,6 @@ export class PlanetScaleDb implements Db {
 		await this.db.update(schema.clients).set({ deletedAt: new Date() }).where(eq(schema.clients.id, id));
 	}
 
-	async getClientSecretsByClientId(clientId: string, filters: GetClientSecretsByClientIdFilter = {}): Promise<ClientSecret[]> {
-		const query: (SQL<unknown> | undefined)[] = [eq(schema.clientSecrets.clientId, clientId)];
-
-		if (filters?.status) query.push(eq(schema.clientSecrets.status, filters.status));
-		if (filters?.excludeExpired) query.push(or(gt(schema.clientSecrets.expiresAt, new Date()), isNull(schema.clientSecrets.expiresAt)));
-
-		const secrets = await this.db.query.clientSecrets.findMany({
-			where: and(...query),
-			columns: {
-				secret: false,
-			},
-			orderBy: desc(schema.clientSecrets.createdAt),
-		});
-
-		return secrets;
-	}
-
 	async getClientSecretValueById(id: string): Promise<string | null> {
 		const secrets = await this.db.query.clientSecrets.findFirst({
 			where: eq(schema.clientSecrets.id, id),
@@ -134,6 +115,17 @@ export class PlanetScaleDb implements Db {
 		});
 
 		return secrets?.secret ?? null;
+	}
+
+	async getClientSecretById(id: string): Promise<ClientSecret | null> {
+		const secret = await this.db.query.clientSecrets.findFirst({
+			where: eq(schema.clientSecrets.id, id),
+			columns: {
+				secret: false,
+			},
+		});
+
+		return secret ?? null;
 	}
 
 	async getClientScopesByClientId(clientId: string): Promise<ClientScope[]> {
@@ -152,12 +144,12 @@ export class PlanetScaleDb implements Db {
 		await this.db.transaction(async (tx) => {
 			await tx.insert(schema.clients).values({
 				id: clientId,
+				currentClientSecretId: secretId,
 				...params,
 			});
 
 			await tx.insert(schema.clientSecrets).values({
 				id: secretId,
-				clientId: clientId,
 				secret: secretValue,
 				status: 'active',
 				createdAt: new Date(),
@@ -180,12 +172,12 @@ export class PlanetScaleDb implements Db {
 		await this.db.transaction(async (tx) => {
 			await tx.insert(schema.clients).values({
 				id: clientId,
+				currentClientSecretId: secretId,
 				...params,
 			});
 
 			await tx.insert(schema.clientSecrets).values({
 				id: secretId,
-				clientId: clientId,
 				secret: await hashSHA256(secretValue),
 				status: 'active',
 				createdAt: now,
@@ -380,14 +372,15 @@ export class PlanetScaleDb implements Db {
 				id: secretId,
 				secret: hashedSecretValue,
 				status: 'active',
-				clientId: params.clientId,
 				createdAt: now,
 			});
 
+			// set the new secret as the next client secret
 			await tx
 				.update(schema.clients)
 				.set({
 					version: client.version + 1,
+					nextClientSecretId: secretId,
 				})
 				.where(eq(schema.clients.id, params.clientId));
 		});
@@ -396,7 +389,6 @@ export class PlanetScaleDb implements Db {
 			id: secretId,
 			secret: secretValue,
 			status: 'active',
-			clientId: params.clientId,
 			expiresAt: null,
 			createdAt: now,
 		};

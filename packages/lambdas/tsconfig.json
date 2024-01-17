@@ -5,7 +5,8 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@optra/core/*": ["../core/src/*"]
+      "@optra/core/*": ["../core/src/*"],
+      "@optra/db/*": ["../db/src/*"]
     }
   }
 }

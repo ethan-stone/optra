@@ -20,6 +20,10 @@ export const clients = mysqlTable(
     workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
     forWorkspaceId: varchar("for_workspace_id", { length: 36 }),
     apiId: varchar("api_id", { length: 36 }).notNull(),
+    currentClientSecretId: varchar("current_client_secret_id", {
+      length: 36,
+    }).notNull(),
+    nextClientSecretId: varchar("next_client_secret_id", { length: 36 }),
     rateLimitBucketSize: int("rate_limit_bucket_size"),
     rateLimitRefillAmount: int("rate_limit_refill_amount"),
     rateLimitRefillInterval: int("rate_limit_refill_interval"), // in milliseconds
@@ -36,22 +40,13 @@ export const clients = mysqlTable(
   }
 );
 
-export const clientSecrets = mysqlTable(
-  "client_secrets",
-  {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    clientId: varchar("client_id", { length: 100 }).notNull(),
-    secret: varchar("secret", { length: 255 }).notNull(),
-    status: mysqlEnum("status", ["active", "revoked"]).notNull(),
-    expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
-    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-  },
-  (table) => {
-    return {
-      clientIdIdx: index("client_id_idx").on(table.clientId),
-    };
-  }
-);
+export const clientSecrets = mysqlTable("client_secrets", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  secret: varchar("secret", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["active", "revoked"]).notNull(),
+  expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
+  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+});
 
 export const workspaces = mysqlTable(
   "workspaces",
@@ -148,6 +143,16 @@ export const dataEncryptionKeys = mysqlTable("data_encryption_keys", {
 export const clientRelations = relations(clients, ({ one, many }) => {
   return {
     secrets: many(clientSecrets),
+    currentClientSecret: one(clientSecrets, {
+      relationName: "current_client_secret_relation",
+      fields: [clients.currentClientSecretId],
+      references: [clientSecrets.id],
+    }),
+    nextClientSecret: one(clientSecrets, {
+      relationName: "next_client_secret_relation",
+      fields: [clients.nextClientSecretId],
+      references: [clientSecrets.id],
+    }),
     scopes: many(clientScopes),
     workspace: one(workspaces, {
       relationName: "workspace_client_relation",
@@ -163,15 +168,6 @@ export const clientRelations = relations(clients, ({ one, many }) => {
       relationName: "api_client_relation",
       fields: [clients.apiId],
       references: [apis.id],
-    }),
-  };
-});
-
-export const clientSecretsRelations = relations(clientSecrets, ({ one }) => {
-  return {
-    client: one(clients, {
-      fields: [clientSecrets.clientId],
-      references: [clients.id],
     }),
   };
 });

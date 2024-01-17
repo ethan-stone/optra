@@ -65,15 +65,13 @@ export function v1GetOAuthToken(app: App) {
 
 		logger.info(`Got client ${clientId}`);
 
-		const secrets = await db.getClientSecretsByClientId(client.id, {
-			excludeExpired: true,
-			status: 'active',
-		});
+		const secretIds = [client.currentClientSecretId];
+		if (client.nextClientSecretId) secretIds.push(client.nextClientSecretId);
 
 		let matchedClientSecret: ClientSecret | null = null;
 
-		for (const secret of secrets) {
-			const secretValue = await db.getClientSecretValueById(secret.id);
+		for (const secretId of secretIds) {
+			const secretValue = await db.getClientSecretValueById(secretId);
 
 			if (!secretValue) {
 				throw new HTTPException({
@@ -85,7 +83,7 @@ export function v1GetOAuthToken(app: App) {
 			const hashedClientSecret = await hashSHA256(clientSecret);
 
 			if (hashedClientSecret === secretValue) {
-				matchedClientSecret = secret;
+				matchedClientSecret = await db.getClientSecretById(secretId);
 				break;
 			}
 		}

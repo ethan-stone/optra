@@ -247,6 +247,7 @@ async function newClient(
     version: 1,
     workspaceId: args.workspaceId,
     forWorkspaceId: args.forWorkspaceId,
+    currentClientSecretId: clientSecretId,
     rateLimitBucketSize: args.rateLimitBucketSize ?? 1000,
     rateLimitRefillAmount: args.rateLimitRefillAmount ?? 10,
     rateLimitRefillInterval: args.rateLimitRefillInterval ?? 10,
@@ -257,7 +258,6 @@ async function newClient(
 
   await db.insert(schema.clientSecrets).values({
     id: clientSecretId,
-    clientId: clientId,
     secret: clientSecretHash,
     status: "active",
     createdAt: new Date(),
