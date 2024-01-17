@@ -54,10 +54,13 @@ export const handler = async (event: SQSEvent) => {
         );
       }
 
-      await tx.update(schema.clients).set({
-        currentClientSecretId: client.nextClientSecretId,
-        nextClientSecretId: null,
-      });
+      await tx
+        .update(schema.clients)
+        .set({
+          currentClientSecretId: client.nextClientSecretId,
+          nextClientSecretId: null,
+        })
+        .where(eq(schema.clients.id, client.id));
 
       await tx
         .update(schema.clientSecrets)
