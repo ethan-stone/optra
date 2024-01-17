@@ -87,7 +87,7 @@ export class PlanetScaleDb implements Db {
 
 	async getClientById(id: string): Promise<Client | null> {
 		const client = await this.db.query.clients.findFirst({
-			where: eq(schema.clients.id, id),
+			where: and(eq(schema.clients.id, id), isNull(schema.clients.deletedAt)),
 			with: {
 				scopes: {
 					with: {
@@ -291,7 +291,7 @@ export class PlanetScaleDb implements Db {
 
 	async getApiById(id: string): Promise<Api | null> {
 		const api = await this.db.query.apis.findFirst({
-			where: eq(schema.apis.id, id),
+			where: and(eq(schema.apis.id, id), isNull(schema.apis.deletedAt)),
 			with: {
 				scopes: true,
 			},
@@ -302,7 +302,7 @@ export class PlanetScaleDb implements Db {
 
 	async getApiByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null> {
 		const api = await this.db.query.apis.findFirst({
-			where: and(eq(schema.apis.workspaceId, workspaceId), eq(schema.apis.name, name)),
+			where: and(eq(schema.apis.workspaceId, workspaceId), eq(schema.apis.name, name), isNull(schema.apis.deletedAt)),
 			with: {
 				scopes: true,
 			},
