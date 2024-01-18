@@ -195,7 +195,7 @@ async function newApi(
   await db.insert(schema.apis).values({
     id: apiId,
     name: apiName,
-    signingSecretId: signingSecretId,
+    currentSigningSecretId: signingSecretId,
     workspaceId: args.workspaceId,
     updatedAt: new Date(),
     createdAt: new Date(),

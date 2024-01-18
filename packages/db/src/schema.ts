@@ -74,7 +74,12 @@ export const apis = mysqlTable(
     id: varchar("id", { length: 36 }).primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
-    signingSecretId: varchar("signing_secret_id", { length: 36 }).notNull(),
+    currentSigningSecretId: varchar("current_signing_secret_id", {
+      length: 36,
+    }).notNull(),
+    nextSigningSecretId: varchar("next_signing_secret_id", {
+      length: 36,
+    }),
     createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
     deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
@@ -194,8 +199,12 @@ export const apisRelations = relations(apis, ({ one, many }) => {
     }),
     scopes: many(apiScopes),
     clients: many(clients),
-    signingSecret: one(signingSecrets, {
-      fields: [apis.signingSecretId],
+    currentSigningSecret: one(signingSecrets, {
+      fields: [apis.currentSigningSecretId],
+      references: [signingSecrets.id],
+    }),
+    nextSigningSecret: one(signingSecrets, {
+      fields: [apis.nextSigningSecretId],
       references: [signingSecrets.id],
     }),
   };

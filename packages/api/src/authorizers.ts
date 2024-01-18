@@ -120,12 +120,12 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 
 		logger.info(`Fetched api ${api.id} from client.`);
 
-		logger.info(`Fetched signing secret ${api.signingSecretId} from api.`);
+		logger.info(`Fetched signing secret ${api.currentSigningSecretId} from api.`);
 
-		const signingSecret = await db.getSigningSecretById(api.signingSecretId);
+		const signingSecret = await db.getSigningSecretById(api.currentSigningSecretId);
 
 		if (!signingSecret) {
-			logger.info(`Signing secret with id ${api.signingSecretId} not found despite being verified. This is fatal`);
+			logger.info(`Signing secret with id ${api.currentSigningSecretId} not found despite being verified. This is fatal`);
 
 			return null;
 		}

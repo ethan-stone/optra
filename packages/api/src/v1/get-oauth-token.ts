@@ -114,10 +114,10 @@ export function v1GetOAuthToken(app: App) {
 			});
 		}
 
-		const signingSecret = await db.getSigningSecretById(api.signingSecretId);
+		const signingSecret = await db.getSigningSecretById(api.currentSigningSecretId);
 
 		if (!signingSecret) {
-			logger.info(`Could not find signing secret ${api.signingSecretId} for api ${api.id}`);
+			logger.info(`Could not find signing secret ${api.currentSigningSecretId} for api ${api.id}`);
 
 			throw new HTTPException({
 				reason: 'INTERNAL_SERVER_ERROR',

@@ -35,7 +35,7 @@ export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets'
 export type ClientScope = InferSelectModel<(typeof schema)['clientScopes']>;
 export type ClientSecretCreateResult = InferSelectModel<(typeof schema)['clientSecrets']>;
 export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
-export type CreateApiParams = Omit<InsertApiModel, 'id' | 'signingSecretId'> & {
+export type CreateApiParams = Omit<InsertApiModel, 'id' | 'currentSigningSecretId' | 'nextSigningSecretId'> & {
 	scopes?: { name: string; description: string }[];
 	algorithm: 'hsa256' | 'rsa256';
 	encryptedSigningSecret: string;
@@ -256,7 +256,7 @@ export class PlanetScaleDb implements Db {
 
 			await tx.insert(schema.apis).values({
 				id: apiId,
-				signingSecretId: signingSecretId,
+				currentSigningSecretId: signingSecretId,
 				...params,
 			});
 
