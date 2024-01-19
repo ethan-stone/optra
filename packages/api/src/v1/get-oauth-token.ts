@@ -146,7 +146,7 @@ export function v1GetOAuthToken(app: App) {
 						metadata: client.metadata,
 					},
 					Buffer.from(decryptResult.decryptedData).toString('base64'),
-					'HS256'
+					{ algorithm: 'HS256', header: { typ: 'JWT', kid: api.currentSigningSecretId } }
 				);
 
 				logger.info(`Created JWT for client ${clientId}`);
@@ -177,7 +177,7 @@ export function v1GetOAuthToken(app: App) {
 						metadata: client.metadata,
 					},
 					privateKey,
-					'RS256'
+					{ algorithm: 'RS256', header: { typ: 'JWT', kid: api.currentSigningSecretId } }
 				);
 
 				return c.json(

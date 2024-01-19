@@ -14,7 +14,14 @@ export type CacheNamespaces = {
 				clientScopes: ClientScope[];
 				api: Api;
 				workspace: Workspace;
-				decryptedSigningSecret: Uint8Array;
+				currentSigningSecret: {
+					id: string;
+					decryptedSigningSecret: Uint8Array;
+				};
+				nextSigningSecret?: {
+					id: string;
+					decryptedSigningSecret: Uint8Array;
+				};
 		  }
 		| {
 				algorithm: 'rsa256';

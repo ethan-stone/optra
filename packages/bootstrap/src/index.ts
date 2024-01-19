@@ -106,7 +106,7 @@ async function newApi(
 
   const apiName = generateRandomName();
 
-  const signingSecretId = `signing_secret_` + uid();
+  const signingSecretId = `ssk` + uid();
 
   switch (args.algorithm) {
     case "hsa256": {
@@ -183,7 +183,9 @@ async function newApi(
             /\s/g,
             "-"
           )}/.well-known/jwks.json`,
-          Body: JSON.stringify({ keys: [publicKey] }),
+          Body: JSON.stringify({
+            keys: [{ ...publicKey, kid: signingSecretId }],
+          }),
           ContentType: "application/json",
         })
       );
@@ -234,7 +236,7 @@ async function newClient(
   }
 ) {
   const clientId = `client_` + uid();
-  const clientSecretId = `client_secret_` + uid();
+  const clientSecretId = `csk_` + uid();
   const clientSecretValue = uid();
   const clientSecretHash = createHash("sha256")
     .update(clientSecretValue)

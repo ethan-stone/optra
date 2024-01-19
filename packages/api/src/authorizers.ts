@@ -1,6 +1,6 @@
 import { InvalidReason, decode, verify } from '@/crypto-utils';
 import { cache, db, keyManagementService, tokenBuckets } from '@/root';
-import { Client } from '@/db';
+import { Client, SigningSecret } from '@/db';
 import { TokenBucket } from '@/ratelimit';
 import { Buffer } from '@/buffer';
 import { Context } from 'hono';
@@ -77,9 +77,10 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 	logger.info(`Decoded token payload.`);
 
 	const payload = decoded.payload;
+	const header = decoded.header;
 
-	if (!payload) {
-		logger.info(`Payload is undefined.`);
+	if (!payload || !header) {
+		logger.info(`Payload and/or header is undefined.`);
 		return {
 			valid: false,
 			message: 'JWT is malformed.',
@@ -122,23 +123,35 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 
 		logger.info(`Fetched signing secret ${api.currentSigningSecretId} from api.`);
 
-		const signingSecret = await db.getSigningSecretById(api.currentSigningSecretId);
+		let nextSigningSecret: SigningSecret | null = null;
 
-		if (!signingSecret) {
-			logger.info(`Signing secret with id ${api.currentSigningSecretId} not found despite being verified. This is fatal`);
+		const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
+		if (api.nextSigningSecretId) nextSigningSecret = await db.getSigningSecretById(api.nextSigningSecretId);
+
+		if (!currentSigningSecret) {
+			logger.info(`Somehow current signing secret ${api.currentSigningSecretId} for api ${api.id} does not exist. This is fatal`);
 
 			return null;
 		}
 
-		switch (signingSecret.algorithm) {
+		switch (currentSigningSecret.algorithm) {
 			case 'hsa256': {
 				logger.info(`Decrypting signing secret for api ${api.id}`);
 
-				const decryptResult = await keyManagementService.decryptWithDataKey(
+				const currentSigningSecretDecryptResult = await keyManagementService.decryptWithDataKey(
 					workspace.dataEncryptionKeyId,
-					Buffer.from(signingSecret.secret, 'base64'),
-					Buffer.from(signingSecret.iv, 'base64')
+					Buffer.from(currentSigningSecret.secret, 'base64'),
+					Buffer.from(currentSigningSecret.iv, 'base64')
 				);
+
+				let nextSigningSecretDecryptResult: Awaited<ReturnType<typeof keyManagementService.decryptWithDataKey>> | null = null;
+
+				if (nextSigningSecret)
+					nextSigningSecretDecryptResult = await keyManagementService.decryptWithDataKey(
+						workspace.dataEncryptionKeyId,
+						Buffer.from(nextSigningSecret.secret, 'base64'),
+						Buffer.from(nextSigningSecret.iv, 'base64')
+					);
 
 				logger.info(`Decrypted signing secret.`);
 
@@ -147,7 +160,13 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 					api,
 					client,
 					clientScopes,
-					decryptedSigningSecret: decryptResult.decryptedData,
+					currentSigningSecret: {
+						id: currentSigningSecret.id,
+						decryptedSigningSecret: currentSigningSecretDecryptResult.decryptedData,
+					},
+					nextSigningSecret: nextSigningSecret
+						? { id: nextSigningSecret.id, decryptedSigningSecret: nextSigningSecretDecryptResult!.decryptedData }
+						: undefined,
 					workspace,
 				};
 			}
@@ -164,7 +183,7 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 					return null;
 				}
 
-				const jwks = JSON.parse(await publicJWKS.text()) as { keys: JsonWebKey[] };
+				const jwks = JSON.parse(await publicJWKS.text()) as { keys: (JsonWebKey & { kid: string })[] };
 
 				const publicKeys: Uint8Array[] = [];
 
@@ -257,10 +276,25 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 
 	switch (algorithm) {
 		case 'hsa256': {
-			verifyResult = await verify(token, Buffer.from(data.decryptedSigningSecret).toString('base64'), {
-				algorithm: 'HS256',
-				throwError: false,
-			});
+			if (header.kid === data.currentSigningSecret.id) {
+				logger.info(`Verifying token signature with current signing secret.`);
+				verifyResult = await verify(token, Buffer.from(data.currentSigningSecret.decryptedSigningSecret).toString('base64'), {
+					algorithm: 'HS256',
+					throwError: false,
+				});
+				break;
+			}
+
+			if (data.nextSigningSecret && header.kid === data.nextSigningSecret.id) {
+				logger.info(`Verifying token signature with next signing secret.`);
+				verifyResult = await verify(token, Buffer.from(data.currentSigningSecret.decryptedSigningSecret).toString('base64'), {
+					algorithm: 'HS256',
+					throwError: false,
+				});
+				break;
+			}
+
+			logger.info(`Token has an unknown signing secret id.`);
 			break;
 		}
 		case 'rsa256': {

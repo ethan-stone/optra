@@ -67,7 +67,7 @@ export interface Db {
 	deleteClientScopeByApiScopeId(id: string): Promise<void>;
 	createWorkspace(params: CreateWorkspaceParams): Promise<{ id: string }>;
 	getWorkspaceById(id: string): Promise<Workspace | null>;
-	createApi(params: CreateApiParams): Promise<{ id: string }>;
+	createApi(params: CreateApiParams): Promise<{ id: string; currentSigningSecretId: string }>;
 	getApiById(id: string): Promise<Api | null>;
 	getApiByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null>;
 	deleteApiById(id: string): Promise<void>;
@@ -138,7 +138,7 @@ export class PlanetScaleDb implements Db {
 
 	async createRootClient(params: CreateRootClientParams): Promise<{ id: string; secret: string }> {
 		const clientId = uid('client');
-		const secretId = uid('client_secret');
+		const secretId = uid('csk');
 		const secretValue = uid();
 
 		await this.db.transaction(async (tx) => {
@@ -164,7 +164,7 @@ export class PlanetScaleDb implements Db {
 
 	async createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }> {
 		const clientId = params.prefix ? params.prefix + '_' + uid() : uid('client');
-		const secretId = uid('client_secret');
+		const secretId = uid('csk');
 		const secretValue = params.prefix ? params.prefix + '_' + uid(undefined, 48) : uid(undefined, 48);
 
 		const now = new Date();
@@ -240,9 +240,9 @@ export class PlanetScaleDb implements Db {
 		return workspace ?? null;
 	}
 
-	async createApi(params: CreateApiParams): Promise<{ id: string }> {
+	async createApi(params: CreateApiParams): Promise<{ id: string; currentSigningSecretId: string }> {
 		const apiId = uid('api');
-		const signingSecretId = uid('signing_secret');
+		const signingSecretId = uid('ssk');
 
 		await this.db.transaction(async (tx) => {
 			await tx.insert(schema.signingSecrets).values({
@@ -278,6 +278,7 @@ export class PlanetScaleDb implements Db {
 
 		return {
 			id: apiId,
+			currentSigningSecretId: signingSecretId,
 		};
 	}
 
@@ -352,7 +353,7 @@ export class PlanetScaleDb implements Db {
 
 		const prefix = client.prefix;
 
-		const secretId = uid('client_secret');
+		const secretId = uid('csk');
 		const secretValue = prefix ? prefix + '_' + uid(undefined, 48) : uid(undefined, 48);
 		const hashedSecretValue = await hashSHA256(secretValue);
 

@@ -145,7 +145,7 @@ export function v1CreateApi(app: App) {
 					updatedAt: now,
 				});
 
-				logger.info(`Successufly created api with id ${id}`);
+				logger.info(`Successfully created api with id ${id}`);
 
 				return c.json({ id }, 200);
 			}
@@ -166,7 +166,7 @@ export function v1CreateApi(app: App) {
 
 				const encryptResult = await keyManagementService.encryptWithDataKey(workspace.dataEncryptionKeyId, Buffer.from(privateKey));
 
-				const { id } = await db.createApi({
+				const { id, currentSigningSecretId } = await db.createApi({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 					iv: Buffer.from(encryptResult.iv).toString('base64'),
 					algorithm,
@@ -181,7 +181,12 @@ export function v1CreateApi(app: App) {
 				await c.env.JWKS_BUCKET.put(
 					`${workspace.id}/${name.replace(/\s/g, '-')}/.well-known/jwks.json`,
 					JSON.stringify({
-						keys: [publicKey],
+						keys: [
+							{
+								...publicKey,
+								kid: currentSigningSecretId,
+							},
+						],
 					}),
 					{
 						httpMetadata: {
@@ -190,7 +195,7 @@ export function v1CreateApi(app: App) {
 					}
 				);
 
-				logger.info(`Successufly created api with id ${id}`);
+				logger.info(`Successfully created api with id ${id}`);
 
 				return c.json({ id }, 200);
 			}

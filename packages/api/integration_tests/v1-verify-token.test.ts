@@ -33,7 +33,14 @@ describe('POST /v1/tokens.verifyToken', () => {
 				version: 1,
 				secret_expires_at: null,
 			},
-			'wefwf'
+			'wefwf',
+			{
+				algorithm: 'HS256',
+				header: {
+					kid: 'wefwef',
+					typ: 'JWT',
+				},
+			}
 		);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -86,7 +93,14 @@ describe('POST /v1/tokens.verifyToken', () => {
 				version: 1,
 				secret_expires_at: null,
 			},
-			'wefwe'
+			'wefwe',
+			{
+				algorithm: 'HS256',
+				header: {
+					kid: 'wefwef',
+					typ: 'JWT',
+				},
+			}
 		);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -111,26 +125,23 @@ describe('POST /v1/tokens.verifyToken', () => {
 
 	// not sure we really have to cover this. The sign function fails if you don't provide an object for the payload
 	it.todo('should respond with 200 OK with invalid if signature somehow valid but payload can not be parsed', async () => {
-		const token = await sign(null as unknown as JwtPayload, 'wef');
-
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
-			method: 'POST',
-			body: JSON.stringify({
-				token,
-			}),
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-
-		const res = await fetch(req);
-		const resJson = await res.json();
-
-		expect(res.status).toBe(200);
-		expect(resJson).toHaveProperty('valid');
-		expect((resJson as any).valid).toBeFalsy();
-		expect(resJson).toHaveProperty('reason');
-		expect((resJson as any).reason).toBe('INVALID_SIGNATURE');
+		// const token = await sign(null as unknown as JwtPayload, 'wef');
+		// const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		// 	method: 'POST',
+		// 	body: JSON.stringify({
+		// 		token,
+		// 	}),
+		// 	headers: {
+		// 		'Content-Type': 'application/json',
+		// 	},
+		// });
+		// const res = await fetch(req);
+		// const resJson = await res.json();
+		// expect(res.status).toBe(200);
+		// expect(resJson).toHaveProperty('valid');
+		// expect((resJson as any).valid).toBeFalsy();
+		// expect(resJson).toHaveProperty('reason');
+		// expect((resJson as any).reason).toBe('INVALID_SIGNATURE');
 	});
 
 	it('should respond with 200 OK with invalid if client does not exist', async () => {
@@ -142,7 +153,14 @@ describe('POST /v1/tokens.verifyToken', () => {
 				version: 1,
 				secret_expires_at: null,
 			},
-			'wefwef'
+			'wefwef',
+			{
+				algorithm: 'HS256',
+				header: {
+					kid: 'wefwef',
+					typ: 'JWT',
+				},
+			}
 		);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
@@ -378,6 +396,8 @@ describe('POST /v1/tokens.verifyToken', () => {
 
 		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
+
+		console.log(client);
 
 		const token = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
 
