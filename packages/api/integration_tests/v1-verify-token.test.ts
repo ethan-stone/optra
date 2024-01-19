@@ -397,8 +397,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
-		console.log(client);
-
 		const token = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
 
 		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
