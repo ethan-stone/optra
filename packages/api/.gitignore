@@ -174,3 +174,5 @@ dist
 .env.test
 
 integration_tests/env.ts
+load_tests/credentials.json
+load_tests/access-token.json
