@@ -114,9 +114,10 @@ export function v1GetOAuthToken(app: App) {
 			});
 		}
 
-		const signingSecret = await db.getSigningSecretById(api.currentSigningSecretId);
+		const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
+		const nextSigningSecret = api.nextSigningSecretId ? await db.getSigningSecretById(api.nextSigningSecretId) : null;
 
-		if (!signingSecret) {
+		if (!currentSigningSecret) {
 			logger.info(`Could not find signing secret ${api.currentSigningSecretId} for api ${api.id}`);
 
 			throw new HTTPException({
@@ -125,14 +126,17 @@ export function v1GetOAuthToken(app: App) {
 			});
 		}
 
+		// prioritize the next signing secret if it exists
+		const signingSecretToUse = nextSigningSecret ? nextSigningSecret : currentSigningSecret;
+
 		// decrypt the signing secret
 		const decryptResult = await keyManagementService.decryptWithDataKey(
 			workspace.dataEncryptionKeyId,
-			Buffer.from(signingSecret.secret, 'base64'),
-			Buffer.from(signingSecret.iv, 'base64')
+			Buffer.from(signingSecretToUse.secret, 'base64'),
+			Buffer.from(signingSecretToUse.iv, 'base64')
 		);
 
-		switch (signingSecret.algorithm) {
+		switch (signingSecretToUse.algorithm) {
 			case 'hsa256': {
 				// sign the jwt with the signing secret
 				const jwt = await sign(
@@ -146,7 +150,7 @@ export function v1GetOAuthToken(app: App) {
 						metadata: client.metadata,
 					},
 					Buffer.from(decryptResult.decryptedData).toString('base64'),
-					{ algorithm: 'HS256', header: { typ: 'JWT', kid: api.currentSigningSecretId } }
+					{ algorithm: 'HS256', header: { typ: 'JWT', kid: signingSecretToUse.id } }
 				);
 
 				logger.info(`Created JWT for client ${clientId}`);
@@ -177,7 +181,7 @@ export function v1GetOAuthToken(app: App) {
 						metadata: client.metadata,
 					},
 					privateKey,
-					{ algorithm: 'RS256', header: { typ: 'JWT', kid: api.currentSigningSecretId } }
+					{ algorithm: 'RS256', header: { typ: 'JWT', kid: signingSecretToUse.id } }
 				);
 
 				return c.json(
@@ -192,7 +196,7 @@ export function v1GetOAuthToken(app: App) {
 			}
 
 			default: {
-				logger.error(`Unknown signing secret algorithm ${signingSecret.algorithm}`);
+				logger.error(`Unknown signing secret algorithm ${signingSecretToUse.algorithm}`);
 				throw new HTTPException({
 					message: 'An internal error occurred.',
 					reason: 'INTERNAL_SERVER_ERROR',
