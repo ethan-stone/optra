@@ -1,7 +1,7 @@
 import * as schema from '@optra/db/schema';
 import { connect } from '@planetscale/database';
 import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
-import { InferSelectModel, InferInsertModel, eq, and, gt, or, isNull, SQL, desc } from 'drizzle-orm';
+import { InferSelectModel, InferInsertModel, eq, and, isNull } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
 
@@ -53,6 +53,11 @@ export type RotateClientSecretParams = {
 	clientId: string;
 	secretId: string;
 	expiresAt: Date;
+};
+
+type GetClientSecretsByClientIdFilter = {
+	status?: 'active' | 'revoked';
+	excludeExpired?: boolean;
 };
 
 export interface Db {

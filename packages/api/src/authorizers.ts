@@ -173,17 +173,21 @@ export const verifyToken = async (token: string, ctx: Context<HonoEnv>, options?
 			case 'rsa256': {
 				logger.info(`Fetching public key for api ${api.id}`);
 
-				const publicJWKS = await ctx.env.JWKS_BUCKET.get(`${workspace.id}/${api.name}/.well-known/jwks.json`);
+				const url = `https://pub-a5afc02c7f8144f0b982fd75f6846a06.r2.dev/${workspace.id}/${api.name}/.well-known/jwks.json`;
 
-				logger.info(`Fetched public key for api ${api.id}`);
+				const req = new Request(url, {
+					method: 'GET',
+				});
 
-				if (!publicJWKS) {
-					logger.error(`Public key for api ${api.id} not found.`);
+				const res = await fetch(req);
+
+				if (res.status !== 200) {
+					logger.error(`Public keys for api ${api.id} could not be retrieved.`);
 
 					return null;
 				}
 
-				const jwks = JSON.parse(await publicJWKS.text()) as { keys: (JsonWebKey & { kid: string })[] };
+				const jwks = JSON.parse(await res.text()) as { keys: (JsonWebKey & { kid: string })[] };
 
 				const publicKeys: Uint8Array[] = [];
 
