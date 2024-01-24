@@ -15,6 +15,7 @@ import { v1AddClientScope } from '@/v1/add-client-scope';
 import { v1RemoveClientScope } from '@/v1/remove-client-scope';
 import { v1DeleteClient } from './v1/delete-client';
 import { v1DeleteApi } from './v1/delete-api';
+import { v1GetApi } from './v1/get-api';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -101,6 +102,7 @@ v1AddClientScope(app);
 v1RemoveClientScope(app);
 v1DeleteApi(app);
 v1DeleteClient(app);
+v1GetApi(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
