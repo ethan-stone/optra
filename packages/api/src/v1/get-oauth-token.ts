@@ -2,7 +2,7 @@ import { App } from '@/app';
 import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
-import { db, keyManagementService } from '@/root';
+import { analytics, db, keyManagementService } from '@/root';
 import { HTTPException, errorResponseSchemas } from '@/errors';
 import { Buffer } from '@/buffer';
 
@@ -155,6 +155,17 @@ export function v1GetOAuthToken(app: App) {
 
 				logger.info(`Created JWT for client ${clientId}`);
 
+				c.executionCtx.waitUntil(
+					analytics.publish('token.issued', [
+						{
+							apiId: client.apiId,
+							clientId: client.id,
+							workspaceId: client.workspaceId,
+							timestamp: Date.now(),
+						},
+					])
+				);
+
 				return c.json(
 					{
 						accessToken: jwt,
@@ -182,6 +193,17 @@ export function v1GetOAuthToken(app: App) {
 					},
 					privateKey,
 					{ algorithm: 'RS256', header: { typ: 'JWT', kid: signingSecretToUse.id } }
+				);
+
+				c.executionCtx.waitUntil(
+					analytics.publish('token.issued', [
+						{
+							apiId: client.apiId,
+							clientId: client.id,
+							workspaceId: client.workspaceId,
+							timestamp: Date.now(),
+						},
+					])
 				);
 
 				return c.json(

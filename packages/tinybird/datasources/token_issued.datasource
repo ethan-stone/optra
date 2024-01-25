@@ -1,12 +1,11 @@
 VERSION 0
 
 DESCRIPTION >
-    Events for a token verification request. This does not include instances where the token is invalid because it was malformed or the signature was invalid.
+    Events for when a token is successfully issued. 
 
 SCHEMA >
     `apiId` String `json:$.apiId`,
     `clientId` String `json:$.clientId`,
-    `deniedReason` Nullable(String) `json:$.deniedReason`,
     `timestamp` Int64 `json:$.timestamp`,
     `workspaceId` String `json:$.workspaceId`
 
