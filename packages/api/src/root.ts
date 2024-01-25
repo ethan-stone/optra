@@ -5,12 +5,14 @@ import { KMSClient } from '@aws-sdk/client-kms';
 import { Cache, CacheNamespaces, InMemoryCache } from '@/cache';
 import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
+import { TokenService } from '@/token-service';
 
 export let db: Db;
 export const tokenBuckets: Map<string, TokenBucket> = new Map();
 export let keyManagementService: KeyManagementService;
 export let cache: Cache<CacheNamespaces>;
 export let scheduler: Scheduler;
+export let tokenService: TokenService;
 
 let hasInitialized = false;
 
@@ -64,6 +66,8 @@ export function initialize(env: {
 			dlqArn: env.awsScheduleFailedDLQ,
 		}
 	);
+
+	tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets);
 
 	hasInitialized = true;
 }

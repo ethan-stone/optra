@@ -1,6 +1,6 @@
 import { App } from '@/app';
-import { verifyToken } from '@/authorizers';
 import { ErrorReason, errorResponseSchemas } from '@/errors';
+import { tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
@@ -67,7 +67,7 @@ export function v1VerifyToken(app: App) {
 
 		const { token, requiredScopes } = c.req.valid('json');
 
-		const verifiedToken = await verifyToken(token, c, {
+		const verifiedToken = await tokenService.verifyToken(token, c, {
 			requiredScopes,
 		});
 

@@ -1,7 +1,6 @@
 import { App } from '@/app';
-import { verifyAuthHeader, verifyToken } from '@/authorizers';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db } from '@/root';
+import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -43,7 +42,7 @@ export function v1DeleteApi(app: App) {
 
 		const { id } = c.req.valid('json');
 
-		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
+		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
 		if (!verifiedAuthHeader.valid) {
 			logger.info('Could not parse Authorization header');
@@ -53,7 +52,7 @@ export function v1DeleteApi(app: App) {
 			});
 		}
 
-		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c);
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);

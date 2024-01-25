@@ -1,7 +1,6 @@
 import { App } from '@/app';
-import { verifyAuthHeader, verifyToken } from '@/authorizers';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db, keyManagementService } from '@/root';
+import { db, keyManagementService, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 import { Buffer } from '@/buffer';
 
@@ -64,7 +63,7 @@ export function v1CreateApi(app: App) {
 
 		const { name, scopes, algorithm } = c.req.valid('json');
 
-		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
+		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
 		if (!verifiedAuthHeader.valid) {
 			logger.info('Could not parse Authorization header');
@@ -74,7 +73,7 @@ export function v1CreateApi(app: App) {
 			});
 		}
 
-		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c);
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);

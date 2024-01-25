@@ -1,7 +1,6 @@
 import { App } from '@/app';
-import { verifyAuthHeader, verifyToken } from '@/authorizers';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db } from '@/root';
+import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 function getStringSizeInBytes(str: string): number {
@@ -88,7 +87,7 @@ export function v1CreateClient(app: App) {
 		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata, scopes, prefix } =
 			c.req.valid('json');
 
-		const verifiedAuthHeader = await verifyAuthHeader(c.req.header('Authorization'));
+		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
 		if (!verifiedAuthHeader.valid) {
 			logger.info('Could not parse Authorization header');
@@ -98,7 +97,7 @@ export function v1CreateClient(app: App) {
 			});
 		}
 
-		const verifiedToken = await verifyToken(verifiedAuthHeader.token, c);
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason ${verifiedToken.reason}`);
