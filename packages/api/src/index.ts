@@ -127,6 +127,7 @@ export default {
 			awsSecretExpiredTargetArn: env.AWS_SECRET_EXPIRED_TARGET_ARN,
 			awsSchedulerRoleArn: env.AWS_SCHEDULER_ROLE_ARN,
 			awsScheduleFailedDLQ: env.AWS_SCHEDULE_FAILED_DQL,
+			tinyBirdApiKey: env.TINY_BIRD_API_KEY,
 		});
 
 		return app.fetch(request, parsedEnv.data, ctx);

@@ -6,6 +6,7 @@ import { KeyManagementService } from '@/key-management';
 import { Cache, CacheNamespaces } from '@/cache';
 import { TokenBucket } from '@/ratelimit';
 import { Buffer } from '@/buffer';
+import { Analytics } from '@/analytics';
 
 export type VerifyAuthHeaderResult =
 	| {
@@ -47,7 +48,8 @@ export class TokenService implements TokenService {
 		private readonly db: Db,
 		private readonly keyManagementService: KeyManagementService,
 		private readonly cache: Cache<CacheNamespaces>,
-		private readonly tokenBuckets: Map<string, TokenBucket>
+		private readonly tokenBuckets: Map<string, TokenBucket>,
+		private readonly analytics: Analytics
 	) {}
 
 	async verifyAuthHeader(header: string | null | undefined): Promise<VerifyAuthHeaderResult> {
@@ -73,6 +75,7 @@ export class TokenService implements TokenService {
 		const cache = this.cache;
 		const keyManagementService = this.keyManagementService;
 		const tokenBuckets = this.tokenBuckets;
+		const analytics = this.analytics;
 
 		let decoded: ReturnType<typeof decode>;
 
@@ -261,6 +264,18 @@ export class TokenService implements TokenService {
 				});
 
 				if (!hasAtLeastOneScope) {
+					ctx.executionCtx.waitUntil(
+						analytics.publish('token.verified', [
+							{
+								apiId: client.apiId,
+								clientId: client.id,
+								workspaceId: client.workspaceId,
+								timestamp: Date.now(),
+								deniedReason: 'MISSING_SCOPES',
+							},
+						])
+					);
+
 					return {
 						valid: false,
 						reason: 'MISSING_SCOPES',
@@ -279,6 +294,18 @@ export class TokenService implements TokenService {
 				});
 
 				if (!hasAllScopes) {
+					ctx.executionCtx.waitUntil(
+						analytics.publish('token.verified', [
+							{
+								apiId: client.apiId,
+								clientId: client.id,
+								workspaceId: client.workspaceId,
+								timestamp: Date.now(),
+								deniedReason: 'MISSING_SCOPES',
+							},
+						])
+					);
+
 					return {
 						valid: false,
 						reason: 'MISSING_SCOPES',
@@ -338,6 +365,20 @@ export class TokenService implements TokenService {
 		}
 
 		if (!verifyResult.valid) {
+			if (verifyResult.reason === 'EXPIRED' || verifyResult.reason === 'MISSING_SCOPES') {
+				ctx.executionCtx.waitUntil(
+					analytics.publish('token.verified', [
+						{
+							apiId: client.apiId,
+							clientId: client.id,
+							workspaceId: client.workspaceId,
+							timestamp: Date.now(),
+							deniedReason: verifyResult.reason,
+						},
+					])
+				);
+			}
+
 			return {
 				valid: false,
 				message: 'Token is invalid. Check the reason field to see why.',
@@ -346,6 +387,18 @@ export class TokenService implements TokenService {
 		}
 
 		if (payload.secret_expires_at && payload.secret_expires_at < Date.now() / 1000) {
+			ctx.executionCtx.waitUntil(
+				analytics.publish('token.verified', [
+					{
+						apiId: client.apiId,
+						clientId: client.id,
+						workspaceId: client.workspaceId,
+						timestamp: Date.now(),
+						deniedReason: 'SECRET_EXPIRED',
+					},
+				])
+			);
+
 			return {
 				valid: false,
 				message: 'Token is invalid. Check the reason field to see why.',
@@ -354,6 +407,18 @@ export class TokenService implements TokenService {
 		}
 
 		if (payload.version !== client.version) {
+			ctx.executionCtx.waitUntil(
+				analytics.publish('token.verified', [
+					{
+						apiId: client.apiId,
+						clientId: client.id,
+						workspaceId: client.workspaceId,
+						timestamp: Date.now(),
+						deniedReason: 'VERSION_MISMATCH',
+					},
+				])
+			);
+
 			return {
 				valid: false,
 				message: 'Token is invalid. Check the reason field to see why.',
@@ -388,6 +453,19 @@ export class TokenService implements TokenService {
 
 		if (!tokenBucket.getTokens(1)) {
 			logger.info(`Client ${client.id} has exceeded their rate limit`);
+
+			ctx.executionCtx.waitUntil(
+				analytics.publish('token.verified', [
+					{
+						apiId: client.apiId,
+						clientId: client.id,
+						workspaceId: client.workspaceId,
+						timestamp: Date.now(),
+						deniedReason: 'RATELIMIT_EXCEEDED',
+					},
+				])
+			);
+
 			return {
 				valid: false,
 				message: 'You have exceeded your rate limit.',
@@ -396,6 +474,18 @@ export class TokenService implements TokenService {
 		}
 
 		logger.info(`Client ${client.id} has not exceeded their rate limit. Token is valid.`);
+
+		ctx.executionCtx.waitUntil(
+			analytics.publish('token.verified', [
+				{
+					apiId: client.apiId,
+					clientId: client.id,
+					workspaceId: client.workspaceId,
+					timestamp: Date.now(),
+					deniedReason: null,
+				},
+			])
+		);
 
 		return { valid: true, client };
 	}

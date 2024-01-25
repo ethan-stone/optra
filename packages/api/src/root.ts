@@ -6,6 +6,7 @@ import { Cache, CacheNamespaces, InMemoryCache } from '@/cache';
 import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
+import { Analytics, NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
 
 export let db: Db;
 export const tokenBuckets: Map<string, TokenBucket> = new Map();
@@ -13,6 +14,7 @@ export let keyManagementService: KeyManagementService;
 export let cache: Cache<CacheNamespaces>;
 export let scheduler: Scheduler;
 export let tokenService: TokenService;
+export let analytics: Analytics;
 
 let hasInitialized = false;
 
@@ -25,6 +27,7 @@ export function initialize(env: {
 	awsSecretExpiredTargetArn: string;
 	awsSchedulerRoleArn: string;
 	awsScheduleFailedDLQ: string;
+	tinyBirdApiKey?: string;
 }) {
 	if (hasInitialized) {
 		return;
@@ -67,7 +70,19 @@ export function initialize(env: {
 		}
 	);
 
-	tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets);
+	analytics =
+		env.env === 'production' && env.tinyBirdApiKey
+			? new TinyBirdAnalytics({
+					apiKey: env.tinyBirdApiKey,
+					baseUrl: 'https://api.us-east.aws.tinybird.co',
+					eventTypeDatasourceMap: {
+						'token.issued': 'token_issued',
+						'token.verified': 'token_verified',
+					},
+			  })
+			: new NoopAnalytics();
+
+	tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
 
 	hasInitialized = true;
 }

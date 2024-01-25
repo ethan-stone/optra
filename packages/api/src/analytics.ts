@@ -1,10 +1,10 @@
-import { ZodTypeAny, z } from 'zod';
+import { z } from 'zod';
 
 const AnalyticsEventTypes = z.enum(['token.issued', 'token.verified']);
 
 type AnalyticsEventType = z.infer<typeof AnalyticsEventTypes>;
 
-const AnalyticsEventPayloads: Record<AnalyticsEventType, ZodTypeAny> = {
+const AnalyticsEventPayloads = {
 	'token.issued': z.object({
 		clientId: z.string(),
 		workspaceId: z.string(),
@@ -16,14 +16,14 @@ const AnalyticsEventPayloads: Record<AnalyticsEventType, ZodTypeAny> = {
 		workspaceId: z.string(),
 		apiId: z.string(),
 		timestamp: z.number(),
-		deniedReason: z.enum(['EXPIRED', 'RATELIMIT_EXCEEDED', 'SECRET_EXPIRED', 'VERSION_MISMATCH', 'MISSING_SCOPES', 'FORBIDDEN']),
+		deniedReason: z.enum(['EXPIRED', 'RATELIMIT_EXCEEDED', 'SECRET_EXPIRED', 'VERSION_MISMATCH', 'MISSING_SCOPES', 'FORBIDDEN']).nullable(),
 	}),
 };
 
 type AnalyticsEventPayload<T extends AnalyticsEventType> = z.infer<(typeof AnalyticsEventPayloads)[T]>;
 
 export interface Analytics {
-	publish: <T extends AnalyticsEventType>(eventType: T, payload: AnalyticsEventPayload<T>) => Promise<void>;
+	publish: <T extends AnalyticsEventType>(eventType: T, payload: AnalyticsEventPayload<T>[]) => Promise<void>;
 }
 
 type TinyBirdAnalyticsConfig = {
@@ -69,5 +69,11 @@ export class TinyBirdAnalytics implements Analytics {
 		if (!res.ok) {
 			throw new Error(`Failed to publish ${eventType} analytics. Status: ${res.status} ${await res.text()}`);
 		}
+	}
+}
+
+export class NoopAnalytics implements Analytics {
+	async publish<T extends AnalyticsEventType>(_: T, __: AnalyticsEventPayload<T>[]): Promise<void> {
+		return;
 	}
 }
