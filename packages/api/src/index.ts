@@ -92,17 +92,17 @@ app.use('*', async (c, next) => {
 
 v1GetOAuthToken(app);
 v1CreateApi(app);
-v1CreateClient(app);
-v1VerifyToken(app);
-v1GetClient(app);
-v1RotateClientSecret(app);
+v1GetApi(app);
+v1DeleteApi(app);
 v1AddApiScope(app);
 v1RemoveApiScope(app);
+v1CreateClient(app);
+v1GetClient(app);
+v1DeleteClient(app);
 v1AddClientScope(app);
 v1RemoveClientScope(app);
-v1DeleteApi(app);
-v1DeleteClient(app);
-v1GetApi(app);
+v1RotateClientSecret(app);
+v1VerifyToken(app);
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
