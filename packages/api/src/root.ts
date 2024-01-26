@@ -76,7 +76,7 @@ export function initialize(env: {
 					apiKey: env.tinyBirdApiKey,
 					baseUrl: 'https://api.us-east.aws.tinybird.co',
 					eventTypeDatasourceMap: {
-						'token.issued': 'token_issued__v0',
+						'token.generated': 'token_generated__v0',
 						'token.verified': 'token_verified__v0',
 					},
 			  })

@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-const AnalyticsEventTypes = z.enum(['token.issued', 'token.verified']);
+const AnalyticsEventTypes = z.enum(['token.generated', 'token.verified']);
 
 type AnalyticsEventType = z.infer<typeof AnalyticsEventTypes>;
 
 const AnalyticsEventPayloads = {
-	'token.issued': z.object({
+	'token.generated': z.object({
 		clientId: z.string(),
 		workspaceId: z.string(),
 		apiId: z.string(),

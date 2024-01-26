@@ -156,7 +156,7 @@ export function v1GetOAuthToken(app: App) {
 				logger.info(`Created JWT for client ${clientId}`);
 
 				c.executionCtx.waitUntil(
-					analytics.publish('token.issued', [
+					analytics.publish('token.generated', [
 						{
 							apiId: client.apiId,
 							clientId: client.id,
@@ -196,7 +196,7 @@ export function v1GetOAuthToken(app: App) {
 				);
 
 				c.executionCtx.waitUntil(
-					analytics.publish('token.issued', [
+					analytics.publish('token.generated', [
 						{
 							apiId: client.apiId,
 							clientId: client.id,

@@ -1,7 +1,7 @@
 VERSION 0
 
 DESCRIPTION >
-    Events for when a token is successfully issued. 
+    Events for when a token is successfully generated. 
 
 SCHEMA >
     `apiId` String `json:$.apiId`,
