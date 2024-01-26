@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SecretExpiredScheduledEvent } from '@optra/core/secret-expired-scheduled-event';
+import { ClientSecretExpiredScheduledEvent } from '@optra/core/client-secret-expired-scheduled-event';
 import { CreateScheduleCommand, SchedulerClient } from '@aws-sdk/client-scheduler';
 
 type CreateOneTimeScheduleParams =
@@ -7,7 +7,7 @@ type CreateOneTimeScheduleParams =
 			at: Date;
 	  } & {
 			eventType: 'secret.expired';
-			payload: z.infer<typeof SecretExpiredScheduledEvent>;
+			payload: z.infer<typeof ClientSecretExpiredScheduledEvent>;
 	  };
 
 export interface Scheduler {
@@ -37,7 +37,7 @@ export class AWSEventScheduler implements Scheduler {
 	async createOneTimeSchedule(params: CreateOneTimeScheduleParams) {
 		const target = this.mapEventTypeToTarget(params.eventType);
 
-		const payload = SecretExpiredScheduledEvent.parse(params.payload);
+		const payload = ClientSecretExpiredScheduledEvent.parse(params.payload);
 
 		const command = new CreateScheduleCommand({
 			Name: `secret-expired-${params.payload.secretId}`,
