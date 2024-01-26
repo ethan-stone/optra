@@ -112,12 +112,11 @@ export function v1RotateClientSecret(app: App) {
 		const now = new Date();
 
 		// if the provided expiresIn is null, set it to 1 minute
-		let expiresIn = providedExpiresIn ?? 1000 * 60;
+		const expiresIn = providedExpiresIn ?? 1000 * 60;
 
 		const expiresAt = new Date(now.getTime() + expiresIn);
 
 		const newSecret = await db.rotateClientSecret({
-			secretId: currentSecret.id,
 			clientId,
 			expiresAt,
 		});

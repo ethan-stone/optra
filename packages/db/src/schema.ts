@@ -102,6 +102,7 @@ export const signingSecrets = mysqlTable("signing_secrets", {
   iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
   algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
   status: mysqlEnum("status", ["active", "revoked"]).notNull(),
+  expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
   createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
   updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),

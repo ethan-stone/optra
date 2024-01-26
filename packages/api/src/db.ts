@@ -51,13 +51,14 @@ export type DataEncryptionKey = InferSelectModel<(typeof schema)['dataEncryption
 export type SigningSecret = InferSelectModel<(typeof schema)['signingSecrets']>;
 export type RotateClientSecretParams = {
 	clientId: string;
-	secretId: string;
 	expiresAt: Date;
 };
-
-type GetClientSecretsByClientIdFilter = {
-	status?: 'active' | 'revoked';
-	excludeExpired?: boolean;
+export type RotateApiSigningSecretParams = {
+	apiId: string;
+	encryptedSigningSecret: string;
+	iv: string;
+	algorithm: 'hsa256' | 'rsa256';
+	expiresAt: Date;
 };
 
 export interface Db {
@@ -81,6 +82,7 @@ export interface Db {
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
 	getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null>;
 	rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult>;
+	rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<void>;
 }
 
 export class PlanetScaleDb implements Db {
@@ -350,7 +352,6 @@ export class PlanetScaleDb implements Db {
 	}
 
 	async rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult> {
-		// increment version of the client
 		const client = await this.db.query.clients.findFirst({
 			where: eq(schema.clients.id, params.clientId),
 		});
@@ -372,7 +373,7 @@ export class PlanetScaleDb implements Db {
 				.set({
 					expiresAt: params.expiresAt,
 				})
-				.where(eq(schema.clientSecrets.id, params.secretId));
+				.where(eq(schema.clientSecrets.id, client.currentClientSecretId));
 
 			// create a new secret
 			await tx.insert(schema.clientSecrets).values({
@@ -400,5 +401,41 @@ export class PlanetScaleDb implements Db {
 			deletedAt: null,
 			createdAt: now,
 		};
+	}
+
+	async rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<void> {
+		const api = await this.db.query.apis.findFirst({
+			where: eq(schema.apis.id, params.apiId),
+		});
+
+		if (!api) throw new Error(`Could not find api ${params.apiId}`);
+
+		const signingSecretId = uid('ssk');
+
+		const now = new Date();
+
+		await this.db.transaction(async (tx) => {
+			await tx
+				.update(schema.signingSecrets)
+				.set({ expiresAt: params.expiresAt })
+				.where(eq(schema.signingSecrets.id, api.currentSigningSecretId));
+
+			await tx.insert(schema.signingSecrets).values({
+				id: signingSecretId,
+				secret: params.encryptedSigningSecret,
+				algorithm: params.algorithm,
+				iv: params.iv,
+				status: 'active',
+				createdAt: now,
+				updatedAt: now,
+			});
+
+			await tx
+				.update(schema.apis)
+				.set({
+					nextSigningSecretId: signingSecretId,
+				})
+				.where(eq(schema.apis.id, params.apiId));
+		});
 	}
 }
