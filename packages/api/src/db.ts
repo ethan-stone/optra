@@ -254,6 +254,7 @@ export class PlanetScaleDb implements Db {
 				id: signingSecretId,
 				secret: params.encryptedSigningSecret,
 				iv: params.iv,
+				status: 'active',
 				algorithm: params.algorithm,
 				updatedAt: new Date(),
 				createdAt: new Date(),
@@ -396,6 +397,7 @@ export class PlanetScaleDb implements Db {
 			secret: secretValue,
 			status: 'active',
 			expiresAt: null,
+			deletedAt: null,
 			createdAt: now,
 		};
 	}
