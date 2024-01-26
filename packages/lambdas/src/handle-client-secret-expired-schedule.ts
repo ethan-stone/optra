@@ -1,8 +1,8 @@
-import { SecretExpiredScheduledEvent } from "@optra/core/secret-expired-scheduled-event";
+import { ClientSecretExpiredScheduledEvent } from "@optra/core/client-secret-expired-scheduled-event";
 import { connect } from "@planetscale/database";
 import { drizzle } from "drizzle-orm/planetscale-serverless";
 import * as schema from "@optra/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Config } from "sst/node/config";
 import { SQSEvent } from "aws-lambda";
 import { DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
@@ -30,7 +30,8 @@ export const handler = async (event: SQSEvent) => {
       continue;
     }
 
-    const validatedResult = SecretExpiredScheduledEvent.safeParse(parsedBody);
+    const validatedResult =
+      ClientSecretExpiredScheduledEvent.safeParse(parsedBody);
 
     if (!validatedResult.success) {
       console.error(validatedResult.error);
@@ -41,7 +42,10 @@ export const handler = async (event: SQSEvent) => {
 
     await db.transaction(async (tx) => {
       const client = await tx.query.clients.findFirst({
-        where: eq(schema.clients.currentClientSecretId, secretId),
+        where: and(
+          eq(schema.clients.currentClientSecretId, secretId),
+          isNull(schema.clients.deletedAt)
+        ),
       });
 
       if (!client) {
@@ -66,6 +70,7 @@ export const handler = async (event: SQSEvent) => {
         .update(schema.clientSecrets)
         .set({
           status: "revoked",
+          deletedAt: new Date(),
         })
         .where(eq(schema.clientSecrets.id, secretId));
     });

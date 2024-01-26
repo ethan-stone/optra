@@ -65,7 +65,8 @@ export function SchedulerStack({ stack }: StackContext) {
     "HandleSecretExpiredSchedule",
     {
       bind: [DRIZZLE_DATABASE_URL, SECRET_EXPIRED_MESSAGE_QUEUE_URL],
-      handler: "packages/lambdas/src/handle-secret-expired-schedule.handler",
+      handler:
+        "packages/lambdas/src/handle-client-secret-expired-schedule.handler",
     }
   );
 

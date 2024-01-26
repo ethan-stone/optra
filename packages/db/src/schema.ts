@@ -46,6 +46,7 @@ export const clientSecrets = mysqlTable("client_secrets", {
   status: mysqlEnum("status", ["active", "revoked"]).notNull(),
   expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
   createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+  deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
 });
 
 export const workspaces = mysqlTable(
@@ -100,8 +101,10 @@ export const signingSecrets = mysqlTable("signing_secrets", {
   secret: varchar("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
   iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
   algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
+  status: mysqlEnum("status", ["active", "revoked"]).notNull(),
   createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
   updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+  deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
 });
 
 export const apiScopes = mysqlTable(
