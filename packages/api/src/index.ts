@@ -126,9 +126,9 @@ export default {
 			awsAccessKeyId: env.AWS_ACCESS_KEY_ID,
 			awsSecretAccessKey: env.AWS_SECRET_ACCESS_KEY,
 			awsKMSKeyArn: env.AWS_KMS_KEY_ARN,
-			awsSecretExpiredTargetArn: env.AWS_SECRET_EXPIRED_TARGET_ARN,
+			awsMessageQueueArn: env.AWS_MESSAGE_QUEUE_ARN,
 			awsSchedulerRoleArn: env.AWS_SCHEDULER_ROLE_ARN,
-			awsScheduleFailedDLQ: env.AWS_SCHEDULE_FAILED_DQL,
+			awsSchedulerFailedDLQ: env.AWS_SCHEDULER_FAILED_DQL,
 			tinyBirdApiKey: env.TINY_BIRD_API_KEY,
 		});
 

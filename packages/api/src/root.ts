@@ -24,9 +24,9 @@ export function initialize(env: {
 	awsAccessKeyId: string;
 	awsSecretAccessKey: string;
 	awsKMSKeyArn: string;
-	awsSecretExpiredTargetArn: string;
+	awsMessageQueueArn: string;
 	awsSchedulerRoleArn: string;
-	awsScheduleFailedDLQ: string;
+	awsSchedulerFailedDLQ: string;
 	tinyBirdApiKey?: string;
 }) {
 	if (hasInitialized) {
@@ -63,10 +63,11 @@ export function initialize(env: {
 		}),
 		{
 			roleArn: env.awsSchedulerRoleArn,
-			secretExpiredTarget: {
-				arn: env.awsSecretExpiredTargetArn,
+			eventTypeToTargetMap: {
+				'api.signing_secret.expired': { arn: env.awsMessageQueueArn },
+				'client.secret.expired': { arn: env.awsMessageQueueArn },
 			},
-			dlqArn: env.awsScheduleFailedDLQ,
+			dlqArn: env.awsSchedulerFailedDLQ,
 		}
 	);
 

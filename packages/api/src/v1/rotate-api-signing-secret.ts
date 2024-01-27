@@ -1,6 +1,6 @@
 import { App } from '@/app';
 import { HTTPException } from '@/errors';
-import { db, keyManagementService, tokenService } from '@/root';
+import { db, keyManagementService, scheduler, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 import { Buffer } from '@/buffer';
 
@@ -185,6 +185,16 @@ export function v1RotateApiSigningSecret(app: App) {
 				httpMetadata: {
 					contentType: 'application/json',
 				},
+			});
+
+			await scheduler.createOneTimeSchedule({
+				at: expiresAt,
+				eventType: 'api.signing_secret.expired',
+				payload: {
+					apiId: api.id,
+					signingSecretId: currentSigningSecret.id,
+				},
+				timestamp: Date.now(),
 			});
 
 			return c.json(

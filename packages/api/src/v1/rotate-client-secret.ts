@@ -123,10 +123,12 @@ export function v1RotateClientSecret(app: App) {
 
 		await scheduler.createOneTimeSchedule({
 			at: expiresAt,
-			eventType: 'secret.expired',
+			eventType: 'client.secret.expired',
 			payload: {
-				secretId: currentSecret.id,
+				clientId: clientFromRequestParams.id,
+				clientSecretId: currentSecret.id,
 			},
+			timestamp: Date.now(),
 		});
 
 		return c.json(
