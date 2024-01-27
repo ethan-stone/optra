@@ -46,11 +46,13 @@ export async function createApi(
 	args: {
 		algorithm: 'hsa256' | 'rsa256';
 	}
-): Promise<{ id: string }> {
+): Promise<{ id: string; name: string }> {
+	const name = generateRandomName();
+
 	const req = new Request(`${baseUrl}/v1/apis.createApi`, {
 		method: 'POST',
 		body: JSON.stringify({
-			name: generateRandomName(),
+			name,
 			algorithm: args.algorithm,
 		}),
 		headers: {
@@ -67,7 +69,7 @@ export async function createApi(
 
 	const resJson = await res.json();
 
-	return { id: (resJson as any).id };
+	return { id: (resJson as any).id, name };
 }
 
 export async function createClient(
@@ -76,7 +78,7 @@ export async function createClient(
 	args: {
 		apiId: string;
 	}
-): Promise<{ clientId: string }> {
+): Promise<{ clientId: string; clientSecret: string }> {
 	const req = new Request(`${baseUrl}/v1/clients.createClient`, {
 		method: 'POST',
 		body: JSON.stringify({
@@ -97,7 +99,7 @@ export async function createClient(
 
 	const resJson = await res.json();
 
-	return { clientId: (resJson as any).clientId };
+	return { clientId: (resJson as any).clientId, clientSecret: (resJson as any).clientSecret };
 }
 
 export function generateJsonObject(numKeys: number): Record<string, unknown> {

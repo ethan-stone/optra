@@ -27,7 +27,7 @@ const route = createRoute({
 			description: 'Response from rotating a signing secret',
 			content: {
 				'application/json': {
-					schema: z.null(),
+					schema: z.object({ id: z.string() }),
 				},
 			},
 		},
@@ -118,7 +118,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				Buffer.from(exportedSigningSecret, 'base64')
 			);
 
-			await db.rotateApiSigningSecret({
+			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
 				apiId: api.id,
 				algorithm: 'hsa256',
 				encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -126,7 +126,12 @@ export function v1RotateApiSigningSecret(app: App) {
 				expiresAt: expiresAt,
 			});
 
-			return c.json(null, 200);
+			return c.json(
+				{
+					id: nextSigningSecretId,
+				},
+				200
+			);
 		} else if (currentSigningSecret.algorithm === 'rsa256') {
 			const keyPair = await crypto.subtle.generateKey(
 				{
@@ -182,7 +187,12 @@ export function v1RotateApiSigningSecret(app: App) {
 				},
 			});
 
-			return c.json(null, 200);
+			return c.json(
+				{
+					id: nextSigningSecretId,
+				},
+				200
+			);
 		}
 
 		logger.error(`Somehow api ${apiId} has an invalid algorithm. This should never happen.`);
