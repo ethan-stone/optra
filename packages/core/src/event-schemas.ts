@@ -9,6 +9,10 @@ export const ApiSigningSecretExpiredScheduledEvent = z.object({
   timestamp: z.number(),
 });
 
+export type ApiSigningSecretExpiredScheduledEvent = z.infer<
+  typeof ApiSigningSecretExpiredScheduledEvent
+>;
+
 export const ClientSecretExpiredScheduledEvent = z.object({
   eventType: z.literal("client.secret.expired"),
   payload: z.object({
@@ -17,6 +21,10 @@ export const ClientSecretExpiredScheduledEvent = z.object({
   }),
   timestamp: z.number(),
 });
+
+export type ClientSecretExpiredScheduledEvent = z.infer<
+  typeof ClientSecretExpiredScheduledEvent
+>;
 
 export const EventSchemas = z.discriminatedUnion("eventType", [
   ApiSigningSecretExpiredScheduledEvent,
