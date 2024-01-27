@@ -13,6 +13,7 @@ export const envSchema = z.object({
 	AWS_SCHEDULE_FAILED_DQL: z.string(),
 	JWKS_BUCKET: z.custom<R2Bucket>((bucket) => typeof bucket === 'object'),
 	TINY_BIRD_API_KEY: z.string().optional(),
+	JWKS_BUCKET_URL: z.string(),
 });
 
 export type Env = z.infer<typeof envSchema>;

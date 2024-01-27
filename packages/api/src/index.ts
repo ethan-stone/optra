@@ -14,8 +14,9 @@ import { v1RemoveApiScope } from '@/v1/remove-api-scope';
 import { v1AddClientScope } from '@/v1/add-client-scope';
 import { v1RemoveClientScope } from '@/v1/remove-client-scope';
 import { v1DeleteClient } from './v1/delete-client';
-import { v1DeleteApi } from './v1/delete-api';
-import { v1GetApi } from './v1/get-api';
+import { v1DeleteApi } from '@/v1/delete-api';
+import { v1GetApi } from '@/v1/get-api';
+import { v1RotateApiSigningSecret } from '@/v1/rotate-api-signing-secret';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -96,6 +97,7 @@ v1GetApi(app);
 v1DeleteApi(app);
 v1AddApiScope(app);
 v1RemoveApiScope(app);
+v1RotateApiSigningSecret(app);
 v1CreateClient(app);
 v1GetClient(app);
 v1DeleteClient(app);

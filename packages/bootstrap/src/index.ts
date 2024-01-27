@@ -106,7 +106,7 @@ async function newApi(
 
   const apiName = generateRandomName();
 
-  const signingSecretId = `ssk` + uid();
+  const signingSecretId = `ssk_` + uid();
 
   switch (args.algorithm) {
     case "hsa256": {
@@ -133,6 +133,7 @@ async function newApi(
         secret: Buffer.from(encryptedData).toString("base64"),
         iv: Buffer.from(iv).toString("base64"),
         algorithm: "hsa256",
+        status: "active",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -172,6 +173,7 @@ async function newApi(
         secret: Buffer.from(encryptedData).toString("base64"),
         iv: Buffer.from(iv).toString("base64"),
         algorithm: "rsa256",
+        status: "active",
         createdAt: new Date(),
         updatedAt: new Date(),
       });

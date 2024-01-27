@@ -82,7 +82,7 @@ export interface Db {
 	getSigningSecretById(id: string): Promise<SigningSecret | null>;
 	getDataEncryptionKeyById(id: string): Promise<DataEncryptionKey | null>;
 	rotateClientSecret(params: RotateClientSecretParams): Promise<ClientSecretCreateResult>;
-	rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<void>;
+	rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<{ id: string }>;
 }
 
 export class PlanetScaleDb implements Db {
@@ -403,7 +403,7 @@ export class PlanetScaleDb implements Db {
 		};
 	}
 
-	async rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<void> {
+	async rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<{ id: string }> {
 		const api = await this.db.query.apis.findFirst({
 			where: eq(schema.apis.id, params.apiId),
 		});
@@ -437,5 +437,7 @@ export class PlanetScaleDb implements Db {
 				})
 				.where(eq(schema.apis.id, params.apiId));
 		});
+
+		return { id: signingSecretId };
 	}
 }

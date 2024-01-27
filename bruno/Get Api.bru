@@ -1,0 +1,19 @@
+meta {
+  name: Get Api
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{base_url}}/v1/apis.getApi?apiId=api_449cabe46384a7010a43
+  body: none
+  auth: bearer
+}
+
+query {
+  apiId: api_449cabe46384a7010a43
+}
+
+auth:bearer {
+  token: {{jwt}}
+}
