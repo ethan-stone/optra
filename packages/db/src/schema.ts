@@ -9,6 +9,7 @@ import {
   json,
   unique,
 } from "drizzle-orm/mysql-core";
+import { z } from "zod";
 
 export const clients = mysqlTable(
   "clients",
@@ -49,6 +50,45 @@ export const clientSecrets = mysqlTable("client_secrets", {
   deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
 });
 
+/**
+ * Describes a pricing element for a subscription.
+ * The cents describes the price in cents per unit. null means free.
+ * The maxUnits and minUnits describe the min and max number of units that can be billed at the given centsPerUnit. null for maxUnits means unlimited.
+ * For example, if minUnits is 1, maxUnits is 10, and centsPerUnit is null, then the first 10 units are free.
+ * If the next pricing element is minUnits 11, maxUnits 20, and centsPerUnit 90, then the price is $0.90 for the next 10 units.
+ * If the next pricing element is minUnits 21, maxUnits null, and centsPerUnit 80, then the price is $0.80 for each additional unit.
+ */
+export const SubscriptionPricing = z.object({
+  minUnits: z.number(),
+  maxUnits: z.number().nullable(),
+  centsPerUnit: z.number().nullable(),
+});
+
+export const Subscriptions = z
+  .object({
+    plan: z.object({
+      provider: z.literal("stripe"),
+      tier: z.literal("pro"),
+      productId: z.string(),
+      cents: z.string(),
+    }),
+    tokens: z.object({
+      provider: z.literal("stripe"),
+      productId: z.string(),
+      pricing: z.array(SubscriptionPricing),
+    }),
+    verifications: z.object({
+      provider: z.string(),
+      productId: z.string(),
+      pricing: z.array(SubscriptionPricing),
+    }),
+  })
+  .nullable();
+
+export type SubscriptionPricing = z.infer<typeof SubscriptionPricing>;
+
+export type Subscriptions = z.infer<typeof Subscriptions>;
+
 export const workspaces = mysqlTable(
   "workspaces",
   {
@@ -57,6 +97,7 @@ export const workspaces = mysqlTable(
     dataEncryptionKeyId: varchar("data_encryption_key_id", {
       length: 36,
     }).notNull(),
+    subscriptions: json("subscription").$type<Subscriptions>(),
     createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },

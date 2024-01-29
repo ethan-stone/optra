@@ -4,6 +4,7 @@ import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless
 import { InferSelectModel, InferInsertModel, eq, and, isNull } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
+import { z } from 'zod';
 
 export * from 'drizzle-orm';
 export * from '@optra/db/index';
@@ -244,7 +245,11 @@ export class PlanetScaleDb implements Db {
 			where: eq(schema.workspaces.id, id),
 		});
 
-		return workspace ?? null;
+		if (!workspace) return null;
+
+		schema.Subscriptions.parse(workspace.subscriptions);
+
+		return workspace;
 	}
 
 	async createApi(params: CreateApiParams): Promise<{ id: string; currentSigningSecretId: string }> {

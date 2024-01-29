@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@planetscale/database": "^1.13.0",
-    "mysql2": "^3.7.0"
+    "mysql2": "^3.7.0",
+    "zod": "^3.22.4"
   }
 }
