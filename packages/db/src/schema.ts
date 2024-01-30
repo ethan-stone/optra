@@ -67,18 +67,15 @@ export const SubscriptionPricing = z.object({
 export const Subscriptions = z
   .object({
     plan: z.object({
-      provider: z.literal("stripe"),
       tier: z.literal("pro"),
       productId: z.string(),
       cents: z.string(),
     }),
     tokens: z.object({
-      provider: z.literal("stripe"),
       productId: z.string(),
       pricing: z.array(SubscriptionPricing),
     }),
     verifications: z.object({
-      provider: z.string(),
       productId: z.string(),
       pricing: z.array(SubscriptionPricing),
     }),
@@ -97,7 +94,6 @@ export const workspaces = mysqlTable(
     dataEncryptionKeyId: varchar("data_encryption_key_id", {
       length: 36,
     }).notNull(),
-    subscriptions: json("subscription").$type<Subscriptions>(),
     createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
     updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
   },
@@ -109,6 +105,18 @@ export const workspaces = mysqlTable(
     };
   }
 );
+
+// separate table for billing to decouple billing from the rest of the workspace
+// otherwise it would be very difficult to test and bootstrap
+export const workspaceBillingInfo = mysqlTable("workspace_billing_info", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+  plan: mysqlEnum("plan", ["free", "pro", "enterprise"]).notNull(),
+  customerId: varchar("customer_id", { length: 36 }).notNull(),
+  subscriptions: json("subscription").$type<Subscriptions>(),
+  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+  updatedAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+});
 
 export const apis = mysqlTable(
   "apis",
@@ -231,6 +239,10 @@ export const workspacesRelations = relations(workspaces, ({ many, one }) => {
     dataEncryptionKey: one(dataEncryptionKeys, {
       fields: [workspaces.dataEncryptionKeyId],
       references: [dataEncryptionKeys.id],
+    }),
+    billingInfo: one(workspaceBillingInfo, {
+      fields: [workspaces.id],
+      references: [workspaceBillingInfo.workspaceId],
     }),
   };
 });

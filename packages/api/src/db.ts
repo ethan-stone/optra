@@ -243,11 +243,15 @@ export class PlanetScaleDb implements Db {
 	async getWorkspaceById(id: string): Promise<Workspace | null> {
 		const workspace = await this.db.query.workspaces.findFirst({
 			where: eq(schema.workspaces.id, id),
+			with: {
+				billingInfo: true,
+			},
 		});
 
 		if (!workspace) return null;
 
-		schema.Subscriptions.parse(workspace.subscriptions);
+		// validate the subscriptions field since it is just a JSON column
+		if (workspace.billingInfo?.subscriptions) schema.Subscriptions.parse(workspace.billingInfo.subscriptions);
 
 		return workspace;
 	}
