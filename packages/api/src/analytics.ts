@@ -34,9 +34,15 @@ type GetVerificationsForWorkspaceResponse = {
 	timestamp: string;
 };
 
+type GetGenerationsForWorkspaceResponse = {
+	totalGenerations: number;
+	timestamp: string;
+};
+
 export interface Analytics {
 	publish: <T extends AnalyticsEventType>(eventType: T, payload: AnalyticsEventPayload<T>[]) => Promise<void>;
 	getVerificationsForWorkspace: (params: GetVerificationForWorkspace) => Promise<GetVerificationsForWorkspaceResponse>;
+	getGenerationsForWorkspace: (params: GetVerificationForWorkspace) => Promise<GetGenerationsForWorkspaceResponse>;
 }
 
 type TinyBirdAnalyticsConfig = {
@@ -44,6 +50,7 @@ type TinyBirdAnalyticsConfig = {
 	apiKey: string;
 	eventTypeDatasourceMap: Record<AnalyticsEventType, string>;
 	verificationForWorkspaceEndpoint: string;
+	generationsForWorkspaceEndpoint: string;
 };
 
 export class TinyBirdAnalytics implements Analytics {
@@ -95,9 +102,6 @@ export class TinyBirdAnalytics implements Analytics {
 
 		const req = new Request(url, {
 			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${this.config.apiKey}`,
-			},
 		});
 
 		const res = await fetch(req);
@@ -124,6 +128,41 @@ export class TinyBirdAnalytics implements Analytics {
 			timestamp: validData.timestamp,
 		};
 	}
+
+	async getGenerationsForWorkspace(params: GetVerificationForWorkspace): Promise<GetGenerationsForWorkspaceResponse> {
+		const url = new URL(this.config.generationsForWorkspaceEndpoint);
+
+		url.searchParams.set('workspaceId', params.workspaceId);
+		url.searchParams.set('month', params.month.toString());
+		url.searchParams.set('year', params.year.toString());
+		url.searchParams.set('token', this.config.apiKey);
+
+		const req = new Request(url, {
+			method: 'GET',
+		});
+
+		const res = await fetch(req);
+
+		if (!res.ok) {
+			throw new Error(`Failed to get generations for workspace. Status: ${res.status} ${await res.text()}`);
+		}
+
+		const resJson = (await res.json()) as any;
+
+		const data = resJson.data[0];
+
+		const schema = z.object({
+			total: z.number().min(0),
+			timestamp: z.string(),
+		});
+
+		const validData = schema.parse(data);
+
+		return {
+			totalGenerations: validData.total,
+			timestamp: validData.timestamp,
+		};
+	}
 }
 
 export class NoopAnalytics implements Analytics {
@@ -137,6 +176,14 @@ export class NoopAnalytics implements Analytics {
 		return {
 			successfulVerifications: 10000,
 			failedVerificiations: 500,
+			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
+		};
+	}
+	async getGenerationsForWorkspace(params: GetVerificationForWorkspace): Promise<GetGenerationsForWorkspaceResponse> {
+		const now = new Date();
+
+		return {
+			totalGenerations: 1000,
 			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
 		};
 	}

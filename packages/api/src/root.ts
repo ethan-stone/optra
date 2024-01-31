@@ -29,6 +29,7 @@ export function initialize(env: {
 	awsSchedulerFailedDLQ: string;
 	tinyBirdApiKey?: string;
 	tinyBirdMonthlyVerificationsEndpoint?: string;
+	tinyBirdMonthlyGenerationsEndpoint?: string;
 }) {
 	if (hasInitialized) {
 		return;
@@ -73,7 +74,7 @@ export function initialize(env: {
 	);
 
 	analytics =
-		env.env === 'production' && env.tinyBirdApiKey && env.tinyBirdMonthlyVerificationsEndpoint
+		env.env === 'production' && env.tinyBirdApiKey && env.tinyBirdMonthlyVerificationsEndpoint && env.tinyBirdMonthlyGenerationsEndpoint
 			? new TinyBirdAnalytics({
 					apiKey: env.tinyBirdApiKey,
 					baseUrl: 'https://api.us-east.aws.tinybird.co',
@@ -82,6 +83,7 @@ export function initialize(env: {
 						'token.verified': 'token_verified__v0',
 					},
 					verificationForWorkspaceEndpoint: env.tinyBirdMonthlyVerificationsEndpoint,
+					generationsForWorkspaceEndpoint: env.tinyBirdMonthlyGenerationsEndpoint,
 			  })
 			: new NoopAnalytics();
 

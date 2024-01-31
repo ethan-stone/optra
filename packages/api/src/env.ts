@@ -14,6 +14,7 @@ export const envSchema = z.object({
 	JWKS_BUCKET: z.custom<R2Bucket>((bucket) => typeof bucket === 'object'),
 	TINY_BIRD_API_KEY: z.string().optional(),
 	TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT: z.string().optional(),
+	TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT: z.string().optional(),
 	JWKS_BUCKET_URL: z.string(),
 });
 

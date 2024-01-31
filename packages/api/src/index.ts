@@ -131,6 +131,7 @@ export default {
 			awsSchedulerFailedDLQ: env.AWS_SCHEDULER_FAILED_DQL,
 			tinyBirdApiKey: env.TINY_BIRD_API_KEY,
 			tinyBirdMonthlyVerificationsEndpoint: env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
+			tinyBirdMonthlyGenerationsEndpoint: env.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
 		});
 
 		return app.fetch(request, parsedEnv.data, ctx);
