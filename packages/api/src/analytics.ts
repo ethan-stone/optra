@@ -22,14 +22,28 @@ const AnalyticsEventPayloads = {
 
 type AnalyticsEventPayload<T extends AnalyticsEventType> = z.infer<(typeof AnalyticsEventPayloads)[T]>;
 
+type GetVerificationForWorkspace = {
+	workspaceId: string;
+	month: number;
+	year: number;
+};
+
+type GetVerificationsForWorkspaceResponse = {
+	successfulVerifications: number;
+	failedVerificiations: number;
+	timestamp: string;
+};
+
 export interface Analytics {
 	publish: <T extends AnalyticsEventType>(eventType: T, payload: AnalyticsEventPayload<T>[]) => Promise<void>;
+	getVerificationsForWorkspace: (params: GetVerificationForWorkspace) => Promise<GetVerificationsForWorkspaceResponse>;
 }
 
 type TinyBirdAnalyticsConfig = {
 	baseUrl: string;
 	apiKey: string;
 	eventTypeDatasourceMap: Record<AnalyticsEventType, string>;
+	verificationForWorkspaceEndpoint: string;
 };
 
 export class TinyBirdAnalytics implements Analytics {
@@ -70,10 +84,60 @@ export class TinyBirdAnalytics implements Analytics {
 			throw new Error(`Failed to publish ${eventType} analytics. Status: ${res.status} ${await res.text()}`);
 		}
 	}
+
+	async getVerificationsForWorkspace(params: GetVerificationForWorkspace): Promise<GetVerificationsForWorkspaceResponse> {
+		const url = new URL(this.config.verificationForWorkspaceEndpoint);
+
+		url.searchParams.set('workspaceId', params.workspaceId);
+		url.searchParams.set('month', params.month.toString());
+		url.searchParams.set('year', params.year.toString());
+		url.searchParams.set('token', this.config.apiKey);
+
+		const req = new Request(url, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${this.config.apiKey}`,
+			},
+		});
+
+		const res = await fetch(req);
+
+		if (!res.ok) {
+			throw new Error(`Failed to get verifications for workspace. Status: ${res.status} ${await res.text()}`);
+		}
+
+		const resJson = (await res.json()) as any;
+
+		const data = resJson.data[0];
+
+		const schema = z.object({
+			success: z.number().min(0),
+			failure: z.number().min(0),
+			timestamp: z.string(),
+		});
+
+		const validData = schema.parse(data);
+
+		return {
+			successfulVerifications: validData.success,
+			failedVerificiations: validData.failure,
+			timestamp: validData.timestamp,
+		};
+	}
 }
 
 export class NoopAnalytics implements Analytics {
 	async publish<T extends AnalyticsEventType>(_: T, __: AnalyticsEventPayload<T>[]): Promise<void> {
 		return;
+	}
+
+	async getVerificationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetVerificationsForWorkspaceResponse> {
+		const now = new Date();
+
+		return {
+			successfulVerifications: 10000,
+			failedVerificiations: 500,
+			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
+		};
 	}
 }

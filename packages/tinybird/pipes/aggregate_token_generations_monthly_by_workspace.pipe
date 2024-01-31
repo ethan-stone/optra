@@ -1,0 +1,18 @@
+VERSION 0
+NODE aggregate
+
+SQL >
+    SELECT
+        workspaceId,
+        apiId,
+        clientId,
+        countState(*) AS total,
+        toStartOfMonth(fromUnixTimestamp64Milli(timestamp)) AS timestamp
+    FROM token_generated
+    GROUP BY workspaceId, apiId, clientId, timestamp
+
+TYPE materialized
+DATASOURCE mv__montly_generated__v0
+ENGINE "AggregatingMergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "workspaceId, timestamp, apiId, clientId"

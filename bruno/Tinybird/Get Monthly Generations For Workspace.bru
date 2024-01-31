@@ -1,0 +1,18 @@
+meta {
+  name: Get Monthly Generations For Workspace
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{tb_url}}/v0/pipes/{{monthly_generations_pipe}}.json?workspaceId=ws_0351b220e3b804524e99&year=2024&month=1&token={{tb_token}}
+  body: none
+  auth: none
+}
+
+query {
+  workspaceId: ws_0351b220e3b804524e99
+  year: 2024
+  month: 1
+  token: {{tb_token}}
+}
