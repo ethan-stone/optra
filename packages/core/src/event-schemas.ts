@@ -26,9 +26,22 @@ export type ClientSecretExpiredScheduledEvent = z.infer<
   typeof ClientSecretExpiredScheduledEvent
 >;
 
+export const InvoiceWorkspaceEvent = z.object({
+  eventType: z.literal("workspace.invoice"),
+  payload: z.object({
+    workspaceId: z.string(),
+    year: z.number(),
+    month: z.number(),
+  }),
+  timestamp: z.number(),
+});
+
+export type InvoiceWorkspaceEvent = z.infer<typeof InvoiceWorkspaceEvent>;
+
 export const EventSchemas = z.discriminatedUnion("eventType", [
   ApiSigningSecretExpiredScheduledEvent,
   ClientSecretExpiredScheduledEvent,
+  InvoiceWorkspaceEvent,
 ]);
 
 export type EventSchemas = z.infer<typeof EventSchemas>;
