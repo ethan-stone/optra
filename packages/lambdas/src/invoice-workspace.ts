@@ -34,48 +34,58 @@ export async function invoiceWorkspace(
     return;
   }
 
-  const invoice = await stripe.invoices.create({
-    customer: billingInfo.customerId,
-    auto_advance: false,
-    description: `Invoice for ${month}/${year}`,
-    collection_method: "charge_automatically",
-    metadata: {
-      workspaceId,
-      month: month.toString(),
-      year: year.toString(),
+  const invoice = await stripe.invoices.create(
+    {
+      customer: billingInfo.customerId,
+      auto_advance: false,
+      description: `Invoice for ${month}/${year}`,
+      collection_method: "charge_automatically",
+      metadata: {
+        workspaceId,
+        month: month.toString(),
+        year: year.toString(),
+      },
+      custom_fields: [
+        {
+          name: "Workspace",
+          value: workspace.name,
+        },
+        {
+          name: "Billing Period",
+          value: new Date(year, month - 1, 1).toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          }),
+        },
+      ],
     },
-    custom_fields: [
-      {
-        name: "Workspace",
-        value: workspace.name,
-      },
-      {
-        name: "Billing Period",
-        value: new Date(year, month - 1, 1).toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric",
-        }),
-      },
-    ],
-  });
+    {
+      idempotencyKey: `invoice-${workspaceId}-${month}-${year}`,
+    }
+  );
 
   if (!billingInfo.subscriptions) {
     throw new Error(`Workspace ${workspaceId} does not have any subscriptions`);
   }
 
   // fixed invoice item for the plan
-  await stripe.invoiceItems.create({
-    invoice: invoice.id,
-    customer: billingInfo.customerId,
-    quantity: 1,
-    price_data: {
+  await stripe.invoiceItems.create(
+    {
+      invoice: invoice.id,
+      customer: billingInfo.customerId,
+      quantity: 1,
+      price_data: {
+        currency: "usd",
+        product: billingInfo.subscriptions.plan.productId,
+        unit_amount_decimal: billingInfo.subscriptions.plan.cents,
+      },
       currency: "usd",
-      product: billingInfo.subscriptions.plan.productId,
-      unit_amount_decimal: billingInfo.subscriptions.plan.cents,
+      description: "Pro Plan",
     },
-    currency: "usd",
-    description: "Pro Plan",
-  });
+    {
+      idempotencyKey: `invoice-item-${workspaceId}-${month}-${year}-plan`,
+    }
+  );
 
   // get token generations from the last month
   const tokenGenerations = 100000;
@@ -88,20 +98,25 @@ export async function invoiceWorkspace(
 
   for (const price of tokenGenerationPrice.tiers) {
     if (price.quantity > 0 && price.centsPerUnit !== null) {
-      await stripe.invoiceItems.create({
-        customer: billingInfo.customerId,
-        currency: "usd",
-        quantity: price.quantity,
-        invoice: invoice.id,
-        price_data: {
+      await stripe.invoiceItems.create(
+        {
+          customer: billingInfo.customerId,
           currency: "usd",
-          product: billingInfo.subscriptions.tokens.productId,
-          unit_amount_decimal: price.centsPerUnit,
+          quantity: price.quantity,
+          invoice: invoice.id,
+          price_data: {
+            currency: "usd",
+            product: billingInfo.subscriptions.tokens.productId,
+            unit_amount_decimal: price.centsPerUnit,
+          },
+          description: `Token Generations ${price.minUnits}${
+            price.maxUnits ? ` - ${price.maxUnits}` : "+"
+          }`,
         },
-        description: `Token Generations ${price.minUnits}${
-          price.maxUnits ? ` - ${price.maxUnits}` : "+"
-        }`,
-      });
+        {
+          idempotencyKey: `invoice-item-${workspaceId}-${month}-${year}-token-generations`,
+        }
+      );
     }
   }
 
@@ -115,20 +130,25 @@ export async function invoiceWorkspace(
 
   for (const price of tokenVerificationPrice.tiers) {
     if (price.quantity > 0 && price.centsPerUnit !== null) {
-      await stripe.invoiceItems.create({
-        customer: billingInfo.customerId,
-        currency: "usd",
-        quantity: price.quantity,
-        invoice: invoice.id,
-        price_data: {
+      await stripe.invoiceItems.create(
+        {
+          customer: billingInfo.customerId,
           currency: "usd",
-          product: billingInfo.subscriptions.verifications.productId,
-          unit_amount_decimal: price.centsPerUnit,
+          quantity: price.quantity,
+          invoice: invoice.id,
+          price_data: {
+            currency: "usd",
+            product: billingInfo.subscriptions.verifications.productId,
+            unit_amount_decimal: price.centsPerUnit,
+          },
+          description: `Token Verifications ${price.minUnits}${
+            price.maxUnits ? ` - ${price.maxUnits}` : "+"
+          }`,
         },
-        description: `Token Verifications ${price.minUnits}${
-          price.maxUnits ? ` - ${price.maxUnits}` : "+"
-        }`,
-      });
+        {
+          idempotencyKey: `invoice-item-${workspaceId}-${month}-${year}-token-verifications`,
+        }
+      );
     }
   }
 
