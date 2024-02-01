@@ -61,7 +61,7 @@ export const clientSecrets = mysqlTable("client_secrets", {
 export const SubscriptionPricing = z.object({
   minUnits: z.number(),
   maxUnits: z.number().nullable(),
-  centsPerUnit: z.number().nullable(),
+  centsPerUnit: z.string().nullable(),
 });
 
 export const Subscriptions = z
