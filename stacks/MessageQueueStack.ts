@@ -45,5 +45,6 @@ export function MessageQueueStack({ stack }: StackContext) {
   return {
     messageQueue,
     messageDLQ,
+    MESSAGE_QUEUE_URL,
   };
 }
