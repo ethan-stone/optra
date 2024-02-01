@@ -48,6 +48,7 @@ export const handler: ScheduledHandler = async (event) => {
         retryDelay: 1000,
       });
     } catch (error) {
+      console.error(error);
       console.error(
         `Failed to queue invoice for workspace ${workspace.workspaceId}`
       );
