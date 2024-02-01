@@ -24,6 +24,7 @@ export const handler: ScheduledHandler = async (event) => {
   const messagesThatFailedSchemaValidation: Record<string, unknown>[] = [];
 
   console.log(`Validating messages`);
+
   for (const workspace of workspaces) {
     const msg: InvoiceWorkspaceEvent = {
       eventType: "workspace.invoice",
