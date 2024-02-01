@@ -76,6 +76,61 @@ export async function invoiceWorkspace(
     currency: "usd",
     description: "Pro Plan",
   });
+
+  // get token generations from the last month
+  const tokenGenerations = 100000;
+
+  // invoice items for token generations
+  const tokenGenerationPrice = calculateTieredPrices(
+    billingInfo.subscriptions.tokens.pricing,
+    tokenGenerations
+  );
+
+  for (const price of tokenGenerationPrice.tiers) {
+    if (price.quantity > 0 && price.centsPerUnit !== null) {
+      await stripe.invoiceItems.create({
+        customer: billingInfo.customerId,
+        currency: "usd",
+        quantity: price.quantity,
+        invoice: invoice.id,
+        price_data: {
+          currency: "usd",
+          product: billingInfo.subscriptions.tokens.productId,
+          unit_amount_decimal: price.centsPerUnit,
+        },
+        description: `Token Generations ${price.minUnits}${
+          price.maxUnits ? ` - ${price.maxUnits}` : "+"
+        }`,
+      });
+    }
+  }
+
+  // invoice items for token verifications
+  const tokenVerifications = 1000000;
+
+  const tokenVerificationPrice = calculateTieredPrices(
+    billingInfo.subscriptions.verifications.pricing,
+    tokenVerifications
+  );
+
+  for (const price of tokenVerificationPrice.tiers) {
+    if (price.quantity > 0 && price.centsPerUnit !== null) {
+      await stripe.invoiceItems.create({
+        customer: billingInfo.customerId,
+        currency: "usd",
+        quantity: price.quantity,
+        invoice: invoice.id,
+        price_data: {
+          currency: "usd",
+          product: billingInfo.subscriptions.verifications.productId,
+          unit_amount_decimal: price.centsPerUnit,
+        },
+        description: `Token Verifications ${price.minUnits}${
+          price.maxUnits ? ` - ${price.maxUnits}` : "+"
+        }`,
+      });
+    }
+  }
 }
 
 type TieredPrice = {
