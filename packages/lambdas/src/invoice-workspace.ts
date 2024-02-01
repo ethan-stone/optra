@@ -131,6 +131,10 @@ export async function invoiceWorkspace(
       });
     }
   }
+
+  console.log(
+    `Created draft invoice ${invoice.id} for workspace ${workspaceId}`
+  );
 }
 
 type TieredPrice = {
