@@ -25,8 +25,10 @@ export function MessageQueueStack({ stack }: StackContext) {
     value: messageQueue.queueUrl,
   });
 
+  const STRIPE_API_KEY = new Config.Secret(stack, "STRIPE_API_KEY");
+
   const handleMessage = new Function(stack, "HandleSecretExpiredSchedule", {
-    bind: [DRIZZLE_DATABASE_URL, MESSAGE_QUEUE_URL],
+    bind: [DRIZZLE_DATABASE_URL, MESSAGE_QUEUE_URL, STRIPE_API_KEY],
     handler: "packages/lambdas/src/handle-message.handler",
   });
 
