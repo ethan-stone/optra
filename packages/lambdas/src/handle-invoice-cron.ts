@@ -5,57 +5,6 @@ import { SendMessageBatchCommand } from "@aws-sdk/client-sqs";
 import { InvoiceWorkspaceEvent } from "@optra/core/event-schemas";
 import { Config } from "sst/node/config";
 
-function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const chunks = [];
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize));
-  }
-  return chunks;
-}
-
-async function sendBatch(
-  messages: string[],
-  attempt: number
-): Promise<string[]> {
-  const entries = messages.map((message, index) => ({
-    Id: index.toString(),
-    MessageBody: message,
-  }));
-
-  try {
-    const command = new SendMessageBatchCommand({
-      Entries: entries,
-      QueueUrl: Config.MESSAGE_QUEUE_URL,
-    });
-
-    const res = await sqsClient.send(command);
-
-    const failed =
-      res.Failed?.map((failed) => messages[parseInt(failed.Id as string)]) ??
-      [];
-
-    if (failed.length > 0 && attempt < 3) {
-      console.log(`Retrying failed messages, attempt ${attempt + 1}`);
-      return await sendBatch(failed, attempt + 1);
-    } else {
-      return failed;
-    }
-  } catch (error) {
-    if (attempt < 3) {
-      console.log(
-        `Error sending batch, retrying attempt ${attempt + 1}`,
-        error
-      );
-      return await sendBatch(messages, attempt + 1);
-    } else {
-      console.error(`Failed to send batch of messages`, error);
-
-      return messages;
-    }
-  }
-}
-
 export const handler: ScheduledHandler = async (event) => {
   console.log("Queueing invoice generation for all workspaces");
 
@@ -128,3 +77,54 @@ export const handler: ScheduledHandler = async (event) => {
 
   console.log("Done queueing invoice generation for all workspaces");
 };
+
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks = [];
+
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+async function sendBatch(
+  messages: string[],
+  attempt: number
+): Promise<string[]> {
+  const entries = messages.map((message, index) => ({
+    Id: index.toString(),
+    MessageBody: message,
+  }));
+
+  try {
+    const command = new SendMessageBatchCommand({
+      Entries: entries,
+      QueueUrl: Config.MESSAGE_QUEUE_URL,
+    });
+
+    const res = await sqsClient.send(command);
+
+    const failed =
+      res.Failed?.map((failed) => messages[parseInt(failed.Id as string)]) ??
+      [];
+
+    if (failed.length > 0 && attempt < 3) {
+      console.log(`Retrying failed messages, attempt ${attempt + 1}`);
+      return await sendBatch(failed, attempt + 1);
+    } else {
+      return failed;
+    }
+  } catch (error) {
+    if (attempt < 3) {
+      console.log(
+        `Error sending batch, retrying attempt ${attempt + 1}`,
+        error
+      );
+      return await sendBatch(messages, attempt + 1);
+    } else {
+      console.error(`Failed to send batch of messages`, error);
+
+      return messages;
+    }
+  }
+}
