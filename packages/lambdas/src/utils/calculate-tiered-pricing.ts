@@ -24,16 +24,18 @@ export function calculateTieredPrices(
           `Every price must have a maxUnits except for the last price`
         );
       }
-      if (currentMinUnits > previousMaxUnit) {
+      if (currentMinUnits > previousMaxUnit + 1) {
         throw new Error(
-          `Price ${i} has a minUnits greater than the maxUnits of price ${
+          `There is a gap between price ${i} minUnits and price ${
             i - 1
-          }`
+          } maxUntis`
         );
       }
       if (currentMinUnits < previousMaxUnit + 1) {
         throw new Error(
-          `There is an over lap between price ${i} and price ${i - 1}`
+          `There is an overlap between price ${i} minUnits and price ${
+            i - 1
+          } maxUnits`
         );
       }
     }
@@ -55,6 +57,8 @@ export function calculateTieredPrices(
             price.maxUnits - price.minUnits + 1,
             remainingUnitsToCalculate
           );
+
+    remainingUnitsToCalculate -= quantityForCurrentPrice;
 
     tieredPrice.tiers.push({ ...price, quantity: quantityForCurrentPrice });
 
