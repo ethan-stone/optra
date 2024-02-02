@@ -114,11 +114,13 @@ export class TokenService implements TokenService {
 				return null;
 			}
 
-			const clientScopes = await db.getClientScopesByClientId(client.id);
+			logger.info(`Fetched client ${client.id} from token.`);
 
-			logger.info(`Fetched client ${client.id} from payload.`);
-
-			const workspace = await db.getWorkspaceById(client.workspaceId);
+			const [clientScopes, workspace, api] = await Promise.all([
+				db.getClientScopesByClientId(client.id),
+				db.getWorkspaceById(client.workspaceId),
+				db.getApiById(client.apiId),
+			]);
 
 			if (!workspace) {
 				logger.info(`Workspace with id ${client.workspaceId} not found.`);
@@ -128,8 +130,6 @@ export class TokenService implements TokenService {
 
 			logger.info(`Fetched workspace ${workspace.id} from client.`);
 
-			const api = await db.getApiById(client.apiId);
-
 			if (!api) {
 				logger.info(`Api with id ${client.apiId} not found.`);
 
@@ -137,8 +137,6 @@ export class TokenService implements TokenService {
 			}
 
 			logger.info(`Fetched api ${api.id} from client.`);
-
-			logger.info(`Fetched signing secret ${api.currentSigningSecretId} from api.`);
 
 			let nextSigningSecret: SigningSecret | null = null;
 
@@ -150,6 +148,8 @@ export class TokenService implements TokenService {
 
 				return null;
 			}
+
+			logger.info(`Fetched signing secrets for api ${api.id}.`);
 
 			switch (currentSigningSecret.algorithm) {
 				case 'hsa256': {
