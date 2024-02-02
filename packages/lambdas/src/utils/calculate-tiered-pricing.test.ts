@@ -118,7 +118,6 @@ describe("calculate-tiered-pricing calculation tests", () => {
 
     const units = 100;
     const result = calculateTieredPrices(prices, units);
-    console.log(result);
     expect(result.estimatedTotalInCents).toBe(285);
     expect(result.tiers.length).toBe(3);
     expect(result.tiers[0].quantity).toBe(5);
