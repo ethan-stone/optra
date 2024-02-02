@@ -93,35 +93,32 @@ describe("calculate-tiered-pricing validation tests", () => {
 
 describe("calculate-tiered-pricing calculation tests", () => {
   it("should calculate the tiered prices correctly", () => {
+    // this price is similar to what is charged
+    // for token generations
+
+    // first 100k token generations are free
+    // anything after is $0.0002 per token or .02 cents per token
     const prices = [
       {
         minUnits: 1,
-        maxUnits: 5,
-        centsPerUnit: "1",
+        maxUnits: 100000,
+        centsPerUnit: null,
       },
       {
-        minUnits: 6,
-        maxUnits: 10,
-        centsPerUnit: "2",
-      },
-      {
-        minUnits: 11,
+        minUnits: 100001,
         maxUnits: null,
-        centsPerUnit: "3",
+        centsPerUnit: "0.02",
       },
     ];
 
-    // 5 * 1 = 5
-    // 5 * 2 = 10
-    // 90 * 3 = 270
-    // total = 285
+    // 100,000 * 0 = 0
+    // 900,000 * .02 = 18,000
 
-    const units = 100;
+    const units = 1_000_000;
     const result = calculateTieredPrices(prices, units);
-    expect(result.estimatedTotalInCents).toBe(285);
-    expect(result.tiers.length).toBe(3);
-    expect(result.tiers[0].quantity).toBe(5);
-    expect(result.tiers[1].quantity).toBe(5);
-    expect(result.tiers[2].quantity).toBe(90);
+    expect(result.estimatedTotalInCents).toBe(18_000);
+    expect(result.tiers.length).toBe(2);
+    expect(result.tiers[0].quantity).toBe(100_000);
+    expect(result.tiers[1].quantity).toBe(900_000);
   });
 });
