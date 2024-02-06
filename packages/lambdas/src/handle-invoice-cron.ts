@@ -5,7 +5,7 @@ import { SendMessageBatchCommand } from "@aws-sdk/client-sqs";
 import { InvoiceWorkspaceEvent } from "@optra/core/event-schemas";
 import { Config } from "sst/node/config";
 
-export const handler: ScheduledHandler = async (event) => {
+export const handler: ScheduledHandler = async () => {
   console.log("Queueing invoice generation for all workspaces");
 
   const workspaces = await db.query.workspaceBillingInfo.findMany({
