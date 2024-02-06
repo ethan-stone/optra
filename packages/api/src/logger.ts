@@ -1,4 +1,3 @@
-import { Axiom } from '@axiomhq/js';
 import { BaselimeLogger } from '@baselime/edge-logger';
 
 export type Fields = {
