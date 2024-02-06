@@ -130,6 +130,7 @@ export default {
 			awsSchedulerRoleArn: env.AWS_SCHEDULER_ROLE_ARN,
 			awsSchedulerFailedDLQ: env.AWS_SCHEDULER_FAILED_DQL,
 			tinyBirdApiKey: env.TINY_BIRD_API_KEY,
+			tinyBirdBaseUrl: env.TINY_BIRD_BASE_URL,
 			tinyBirdMonthlyVerificationsEndpoint: env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
 			tinyBirdMonthlyGenerationsEndpoint: env.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
 		});

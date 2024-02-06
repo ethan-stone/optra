@@ -1,10 +1,8 @@
 import { EventSchemas } from "@optra/core/event-schemas";
-import { Config } from "sst/node/config";
 import { SQSHandler } from "aws-lambda";
-import { DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { expireApiSigningSecret } from "./expire-api-signing-secret";
 import { expireClientSecret } from "./expire-client-secret";
-import { sqsClient } from "./sqs";
+import { deleteMessage } from "./sqs";
 
 export const handler: SQSHandler = async (event) => {
   for (const record of event.Records) {
@@ -30,11 +28,6 @@ export const handler: SQSHandler = async (event) => {
       throw new Error("Not implemented");
     }
 
-    await sqsClient.send(
-      new DeleteMessageCommand({
-        QueueUrl: Config.MESSAGE_QUEUE_URL,
-        ReceiptHandle: record.receiptHandle,
-      })
-    );
+    await deleteMessage(record.receiptHandle);
   }
 };

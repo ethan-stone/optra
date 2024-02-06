@@ -1,18 +1,19 @@
-import { z } from 'zod';
-import { ClientSecretExpiredScheduledEvent, EventSchemas } from '@optra/core/event-schemas';
+import { ClientSecretExpiredScheduledEvent, ApiSigningSecretExpiredScheduledEvent, EventSchemas } from '@optra/core/event-schemas';
 import { CreateScheduleCommand, SchedulerClient } from '@aws-sdk/client-scheduler';
 
 type CreateOneTimeScheduleParams =
 	| {
 			at: Date;
-	  } & EventSchemas;
+	  } & (ClientSecretExpiredScheduledEvent | ApiSigningSecretExpiredScheduledEvent);
 
 export interface Scheduler {
 	createOneTimeSchedule(params: CreateOneTimeScheduleParams): Promise<void>;
 }
 
+type ScheduleEventTypes = 'client.secret.expired' | 'api.signing_secret.expired';
+
 type AWSEventSchedulerConfig = {
-	eventTypeToTargetMap: Record<CreateOneTimeScheduleParams['eventType'], { arn: string }>;
+	eventTypeToTargetMap: Record<ScheduleEventTypes, { arn: string }>;
 	roleArn: string;
 	dlqArn: string;
 };
@@ -20,7 +21,7 @@ type AWSEventSchedulerConfig = {
 export class AWSEventScheduler implements Scheduler {
 	constructor(private readonly schedulerClient: SchedulerClient, private readonly config: AWSEventSchedulerConfig) {}
 
-	private mapEventTypeToTarget(eventType: CreateOneTimeScheduleParams['eventType']) {
+	private mapEventTypeToTarget(eventType: ScheduleEventTypes) {
 		const target = this.config.eventTypeToTargetMap[eventType];
 		return target;
 	}

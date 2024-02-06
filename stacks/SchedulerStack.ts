@@ -1,9 +1,10 @@
-import { StackContext, Queue, use, Cron } from "sst/constructs";
+import { StackContext, Queue, use, Cron, Config } from "sst/constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { MessageQueueStack } from "./MessageQueueStack";
 
 export function SchedulerStack({ stack }: StackContext) {
-  const { messageQueue, MESSAGE_QUEUE_URL } = use(MessageQueueStack);
+  const { messageQueue, MESSAGE_QUEUE_URL, DRIZZLE_DATABASE_URL } =
+    use(MessageQueueStack);
 
   // this is the user for the cloudflare worker api
   // it needs to be able to create schedules for rotating
@@ -41,7 +42,7 @@ export function SchedulerStack({ stack }: StackContext) {
       function: {
         handler: "packages/lambdas/src/handle-invoice-cron.handler",
         timeout: "15 minutes",
-        bind: [MESSAGE_QUEUE_URL],
+        bind: [MESSAGE_QUEUE_URL, DRIZZLE_DATABASE_URL],
       },
     },
   });

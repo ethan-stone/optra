@@ -1,3 +1,4 @@
+import { getAnalytics } from "./analytics";
 import { db } from "./db";
 import { stripe } from "./stripe";
 import { calculateTieredPrices } from "./utils/calculate-tiered-pricing";
@@ -87,13 +88,19 @@ export async function invoiceWorkspace(
     }
   );
 
+  const analytics = getAnalytics();
+
   // get token generations from the last month
-  const tokenGenerations = 100000;
+  const tokenGenerations = await analytics.getGenerationsForWorkspace({
+    month,
+    year,
+    workspaceId,
+  });
 
   // invoice items for token generations
   const tokenGenerationPrice = calculateTieredPrices(
     billingInfo.subscriptions.tokens.pricing,
-    tokenGenerations
+    tokenGenerations.totalGenerations
   );
 
   for (const price of tokenGenerationPrice.tiers) {
@@ -121,11 +128,15 @@ export async function invoiceWorkspace(
   }
 
   // invoice items for token verifications
-  const tokenVerifications = 1000000;
+  const tokenVerifications = await analytics.getVerificationsForWorkspace({
+    month,
+    year,
+    workspaceId,
+  });
 
   const tokenVerificationPrice = calculateTieredPrices(
     billingInfo.subscriptions.verifications.pricing,
-    tokenVerifications
+    tokenVerifications.successfulVerifications
   );
 
   for (const price of tokenVerificationPrice.tiers) {
