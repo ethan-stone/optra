@@ -15,7 +15,9 @@
     "vitest": "^1.2.2"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.507.0",
     "@aws-sdk/client-sqs": "^3.507.0",
+    "@aws-sdk/lib-dynamodb": "^3.507.0",
     "@planetscale/database": "^1.15.0",
     "drizzle-orm": "^0.29.3",
     "stripe": "^14.15.0",

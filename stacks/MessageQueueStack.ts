@@ -1,4 +1,4 @@
-import { Queue, StackContext, Function, Config } from "sst/constructs";
+import { Queue, StackContext, Function, Config, Table } from "sst/constructs";
 
 export function MessageQueueStack({ stack }: StackContext) {
   const DRIZZLE_DATABASE_URL = new Config.Secret(stack, "DRIZZLE_DATABASE_URL");
@@ -48,6 +48,15 @@ export function MessageQueueStack({ stack }: StackContext) {
 
   const STRIPE_API_KEY = new Config.Secret(stack, "STRIPE_API_KEY");
 
+  // table to store idempotency keys for the messages
+  const idempotencyKeyTable = new Table(stack, "IdempotencyKeyTable", {
+    fields: {
+      key: "string",
+      timestamp: "number",
+    },
+    primaryIndex: { partitionKey: "key" },
+  });
+
   const handleMessage = new Function(stack, "HandleMessage", {
     bind: [
       DRIZZLE_DATABASE_URL,
@@ -57,12 +66,18 @@ export function MessageQueueStack({ stack }: StackContext) {
       TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
       TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
       STRIPE_API_KEY,
+      idempotencyKeyTable,
     ],
     handler: "packages/lambdas/src/handle-message.handler",
   });
 
   messageQueue.addConsumer(stack, {
     function: handleMessage,
+    cdk: {
+      eventSource: {
+        reportBatchItemFailures: true,
+      },
+    },
   });
 
   messageQueue.cdk.queue.grantConsumeMessages(handleMessage);
