@@ -29,13 +29,13 @@ type GetVerificationForWorkspace = {
 };
 
 type GetVerificationsForWorkspaceResponse = {
-	successfulVerifications: number;
-	failedVerificiations: number;
+	successful: number;
+	failed: number;
 	timestamp: string;
 };
 
 type GetGenerationsForWorkspaceResponse = {
-	totalGenerations: number;
+	total: number;
 	timestamp: string;
 };
 
@@ -123,8 +123,8 @@ export class TinyBirdAnalytics implements Analytics {
 		const validData = schema.parse(data);
 
 		return {
-			successfulVerifications: validData.success,
-			failedVerificiations: validData.failure,
+			successful: validData.success,
+			failed: validData.failure,
 			timestamp: validData.timestamp,
 		};
 	}
@@ -159,7 +159,7 @@ export class TinyBirdAnalytics implements Analytics {
 		const validData = schema.parse(data);
 
 		return {
-			totalGenerations: validData.total,
+			total: validData.total,
 			timestamp: validData.timestamp,
 		};
 	}
@@ -174,16 +174,16 @@ export class NoopAnalytics implements Analytics {
 		const now = new Date();
 
 		return {
-			successfulVerifications: 10000,
-			failedVerificiations: 500,
+			successful: 10000,
+			failed: 500,
 			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
 		};
 	}
-	async getGenerationsForWorkspace(params: GetVerificationForWorkspace): Promise<GetGenerationsForWorkspaceResponse> {
+	async getGenerationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetGenerationsForWorkspaceResponse> {
 		const now = new Date();
 
 		return {
-			totalGenerations: 1000,
+			total: 1000,
 			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
 		};
 	}

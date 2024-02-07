@@ -8,12 +8,12 @@ type GetVerificationForWorkspace = {
 };
 
 type GetVerificationsForWorkspaceResponse = {
-  successfulVerifications: number;
-  failedVerificiations: number;
+  successful: number;
+  failed: number;
 };
 
 type GetGenerationsForWorkspaceResponse = {
-  totalGenerations: number;
+  total: number;
 };
 
 export interface Analytics {
@@ -63,8 +63,8 @@ export class TinyBirdAnalytics implements Analytics {
 
     if (resJson.data.length === 0) {
       return {
-        successfulVerifications: 0,
-        failedVerificiations: 0,
+        successful: 0,
+        failed: 0,
       };
     }
 
@@ -78,8 +78,8 @@ export class TinyBirdAnalytics implements Analytics {
     const validData = schema.parse(data);
 
     return {
-      successfulVerifications: validData.success,
-      failedVerificiations: validData.failure,
+      successful: validData.success,
+      failed: validData.failure,
     };
   }
 
@@ -111,7 +111,7 @@ export class TinyBirdAnalytics implements Analytics {
 
     if (resJson.data.length === 0) {
       return {
-        totalGenerations: 0,
+        total: 0,
       };
     }
 
@@ -124,7 +124,7 @@ export class TinyBirdAnalytics implements Analytics {
     const validData = schema.parse(data);
 
     return {
-      totalGenerations: validData.total,
+      total: validData.total,
     };
   }
 }
@@ -134,15 +134,15 @@ export class NoopAnalytics implements Analytics {
     _: GetVerificationForWorkspace
   ): Promise<GetVerificationsForWorkspaceResponse> {
     return {
-      successfulVerifications: 10000,
-      failedVerificiations: 500,
+      successful: 10000,
+      failed: 500,
     };
   }
   async getGenerationsForWorkspace(
     _: GetVerificationForWorkspace
   ): Promise<GetGenerationsForWorkspaceResponse> {
     return {
-      totalGenerations: 1000,
+      total: 1000,
     };
   }
 }

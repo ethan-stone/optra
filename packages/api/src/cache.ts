@@ -32,6 +32,13 @@ export type CacheNamespaces = {
 				publicKeys: Uint8Array[]; // it is possible for an api to have multiple public keys at the same time
 		  }
 		| null;
+	tokenGenerationsByWorkspaceId: {
+		total: number;
+	};
+	tokenVerificationByWorkspaceId: {
+		successful: number;
+		failed: number;
+	};
 };
 
 export interface Cache<Namespaces extends Record<string, unknown>> {

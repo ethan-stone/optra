@@ -101,7 +101,7 @@ export async function invoiceWorkspace(
   // invoice items for token generations
   const tokenGenerationPrice = calculateTieredPrices(
     billingInfo.subscriptions.tokens.pricing,
-    tokenGenerations.totalGenerations
+    tokenGenerations.total
   );
 
   for (const price of tokenGenerationPrice.tiers) {
@@ -141,7 +141,7 @@ export async function invoiceWorkspace(
 
   const tokenVerificationPrice = calculateTieredPrices(
     billingInfo.subscriptions.verifications.pricing,
-    tokenVerifications.successfulVerifications
+    tokenVerifications.successful
   );
 
   for (const price of tokenVerificationPrice.tiers) {
