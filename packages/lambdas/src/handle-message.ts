@@ -10,20 +10,22 @@ export const handler: SQSHandler = async (event) => {
 
   for (const record of event.Records) {
     try {
-      const idempotencyKey = await getIdempotencyKey(record.messageId);
-
-      if (idempotencyKey !== null) {
-        console.log(
-          `Skipping message ${record.messageId} because it was already processed`
-        );
-        continue;
-      }
-
       const parsedBody = JSON.parse(record.body);
 
       const validatedResult = EventSchemas.parse(parsedBody);
 
+      let idempotencyKey: string | undefined = undefined;
+
       if (validatedResult.eventType === "api.signing_secret.expired") {
+        if ((await getIdempotencyKey(record.messageId)) !== null) {
+          console.log(
+            `Skipping signing secret expired message ${record.messageId} because it was already processed`
+          );
+          continue;
+        }
+
+        idempotencyKey = record.messageId;
+
         await expireApiSigningSecret({
           apiId: validatedResult.payload.apiId,
           signingSecretId: validatedResult.payload.signingSecretId,
@@ -31,6 +33,15 @@ export const handler: SQSHandler = async (event) => {
       }
 
       if (validatedResult.eventType === "client.secret.expired") {
+        if ((await getIdempotencyKey(record.messageId)) !== null) {
+          console.log(
+            `Skipping client secret expired message ${record.messageId} because it was already processed`
+          );
+          continue;
+        }
+
+        idempotencyKey = record.messageId;
+
         await expireClientSecret({
           clientId: validatedResult.payload.clientId,
           clientSecretId: validatedResult.payload.clientSecretId,
@@ -38,6 +49,19 @@ export const handler: SQSHandler = async (event) => {
       }
 
       if (validatedResult.eventType === "workspace.invoice") {
+        if (
+          await getIdempotencyKey(
+            `${validatedResult.payload.workspaceId}-${validatedResult.payload.year}-${validatedResult.payload.month}`
+          )
+        ) {
+          console.log(
+            `Skipping invoice workspace message ${record.messageId} because it was already processed`
+          );
+          continue;
+        }
+
+        idempotencyKey = `${validatedResult.payload.workspaceId}-${validatedResult.payload.year}-${validatedResult.payload.month}`;
+
         await invoiceWorkspace({
           month: validatedResult.payload.month,
           workspaceId: validatedResult.payload.workspaceId,
@@ -45,7 +69,7 @@ export const handler: SQSHandler = async (event) => {
         });
       }
 
-      await putIdempotencyKey(record.messageId);
+      if (idempotencyKey !== undefined) await putIdempotencyKey(idempotencyKey);
     } catch (error) {
       console.error("Failed to process message", error);
       failedMessageIds.push(record.messageId);
