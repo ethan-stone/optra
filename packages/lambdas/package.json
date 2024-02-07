@@ -1,21 +1,23 @@
 {
   "name": "@optra/lambdas",
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "test:integration": "sst bind vitest",
     "test:unit": "vitest",
+    "test:invoice:workspaces": "tsx ./test_scripts/invoice_workspaces.ts",
     "typecheck": "tsc -noEmit"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.133",
     "@types/node": "^20.11.16",
     "sst": "2.40.1",
+    "tsx": "^4.7.0",
     "vite": "^5.0.12",
     "vitest": "^1.2.2"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.507.0",
+    "@aws-sdk/client-lambda": "^3.507.0",
     "@aws-sdk/client-sqs": "^3.507.0",
     "@aws-sdk/lib-dynamodb": "^3.507.0",
     "@planetscale/database": "^1.15.0",

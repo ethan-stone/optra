@@ -65,6 +65,9 @@ importers:
       nanoid:
         specifier: ^5.0.5
         version: 5.0.5
+      stripe:
+        specifier: ^14.15.0
+        version: 14.15.0
       zod:
         specifier: ^3.22.4
         version: 3.22.4
@@ -180,6 +183,9 @@ importers:
       '@aws-sdk/client-dynamodb':
         specifier: ^3.507.0
         version: 3.507.0
+      '@aws-sdk/client-lambda':
+        specifier: ^3.507.0
+        version: 3.507.0
       '@aws-sdk/client-sqs':
         specifier: ^3.507.0
         version: 3.507.0
@@ -208,6 +214,9 @@ importers:
       sst:
         specifier: 2.40.1
         version: 2.40.1(@aws-sdk/credential-provider-node@3.507.0)
+      tsx:
+        specifier: ^4.7.0
+        version: 4.7.0
       vite:
         specifier: ^5.0.12
         version: 5.0.12(@types/node@20.11.16)
@@ -883,7 +892,6 @@ packages:
       tslib: 2.6.2
     transitivePeerDependencies:
       - aws-crt
-    dev: true
 
   /@aws-sdk/client-rds-data@3.507.0:
     resolution: {integrity: sha512-iybXJp62QmnJepEiUOjBKT/9i5rVmVdkVjQDeSmMh/9ijRbbXcm0ZsTEs69YrTuCVXbV75YfAg7rclxmtgRlsw==}

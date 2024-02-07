@@ -47,6 +47,7 @@ export function SchedulerStack({ stack }: StackContext) {
     },
   });
 
+  invoiceCronJob.jobFunction.grantInvoke(optraApiUser);
   messageQueue.cdk.queue.grantSendMessages(invoiceCronJob.jobFunction);
 
   stack.addOutputs({

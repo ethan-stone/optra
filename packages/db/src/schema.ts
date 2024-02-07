@@ -115,7 +115,7 @@ export const workspaceBillingInfo = mysqlTable("workspace_billing_info", {
   customerId: varchar("customer_id", { length: 36 }).notNull(),
   subscriptions: json("subscription").$type<Subscriptions>(),
   createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-  updatedAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+  updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
 });
 
 export const apis = mysqlTable(
