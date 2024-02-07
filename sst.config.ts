@@ -1,6 +1,7 @@
 import { SSTConfig } from "sst";
 import { SchedulerStack } from "./stacks/SchedulerStack";
 import { MessageQueueStack } from "./stacks/MessageQueueStack";
+import { ParametersStack } from "./stacks/ParametersStack";
 
 export default {
   config(_input) {
@@ -10,6 +11,7 @@ export default {
     };
   },
   stacks(app) {
+    app.stack(ParametersStack);
     app.stack(MessageQueueStack);
     app.stack(SchedulerStack);
   },

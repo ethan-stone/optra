@@ -1,7 +1,22 @@
-import { Queue, StackContext, Function, Config, Table } from "sst/constructs";
+import {
+  Queue,
+  StackContext,
+  Function,
+  Config,
+  Table,
+  use,
+} from "sst/constructs";
+import { ParametersStack } from "./ParametersStack";
 
 export function MessageQueueStack({ stack }: StackContext) {
-  const DRIZZLE_DATABASE_URL = new Config.Secret(stack, "DRIZZLE_DATABASE_URL");
+  const {
+    DRIZZLE_DATABASE_URL,
+    STRIPE_API_KEY,
+    TINY_BIRD_API_KEY,
+    TINY_BIRD_BASE_URL,
+    TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
+    TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
+  } = use(ParametersStack);
 
   // right now for simplicity we are using the same queue for all events
   // if necessary we can create a queue for each event type
@@ -24,29 +39,6 @@ export function MessageQueueStack({ stack }: StackContext) {
   const MESSAGE_QUEUE_URL = new Config.Parameter(stack, "MESSAGE_QUEUE_URL", {
     value: messageQueue.queueUrl,
   });
-
-  const TINY_BIRD_API_KEY = new Config.Secret(stack, "TINY_BIRD_API_KEY");
-  const TINY_BIRD_BASE_URL = new Config.Parameter(stack, "TINY_BIRD_BASE_URL", {
-    value: "https://api.us-east.aws.tinybird.co",
-  });
-  const TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT = new Config.Parameter(
-    stack,
-    "TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT",
-    {
-      value:
-        "https://api.us-east.aws.tinybird.co/v0/pipes/mv__montly_verification__v0_pipe_0905.json",
-    }
-  );
-  const TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT = new Config.Parameter(
-    stack,
-    "TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT",
-    {
-      value:
-        "https://api.us-east.aws.tinybird.co/v0/pipes/mv__montly_generated__v0_pipe_2798.json",
-    }
-  );
-
-  const STRIPE_API_KEY = new Config.Secret(stack, "STRIPE_API_KEY");
 
   // table to store idempotency keys for the messages
   const idempotencyKeyTable = new Table(stack, "IdempotencyKeyTable", {
@@ -92,6 +84,5 @@ export function MessageQueueStack({ stack }: StackContext) {
     messageQueue,
     messageDLQ,
     MESSAGE_QUEUE_URL,
-    DRIZZLE_DATABASE_URL,
   };
 }
