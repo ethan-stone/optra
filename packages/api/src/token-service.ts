@@ -138,6 +138,35 @@ export class TokenService implements TokenService {
 
 			logger.info(`Fetched api ${api.id} from client.`);
 
+			const workspaceVerifications = await cache.fetchOrPopulate(
+				{ logger },
+				'tokenVerificationByWorkspaceId',
+				workspace.id,
+				async (key) => {
+					const now = new Date();
+					const year = now.getUTCFullYear();
+					const month = now.getUTCMonth() + 1;
+
+					const res = await analytics.getVerificationsForWorkspace({
+						workspaceId: key,
+						month,
+						year,
+					});
+
+					return {
+						successful: res.successful,
+						failed: res.failed,
+					};
+				}
+			);
+
+			// check if workspace has reached token verification limit
+			if ((!workspace.billingInfo || !workspace.billingInfo.subscriptions) && workspaceVerifications.successful >= 5000) {
+				logger.info(`Workspace has reached free tier limit`);
+
+				return null;
+			}
+
 			let nextSigningSecret: SigningSecret | null = null;
 
 			const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
@@ -220,7 +249,7 @@ export class TokenService implements TokenService {
 							['verify']
 						);
 
-						const exportedKey = await crypto.subtle.exportKey('spki', importedKey);
+						const exportedKey = (await crypto.subtle.exportKey('spki', importedKey)) as ArrayBuffer;
 
 						publicKeys.push(new Uint8Array(exportedKey));
 					}

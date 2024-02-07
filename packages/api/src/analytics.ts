@@ -31,12 +31,10 @@ type GetVerificationForWorkspace = {
 type GetVerificationsForWorkspaceResponse = {
 	successful: number;
 	failed: number;
-	timestamp: string;
 };
 
 type GetGenerationsForWorkspaceResponse = {
 	total: number;
-	timestamp: string;
 };
 
 export interface Analytics {
@@ -112,6 +110,13 @@ export class TinyBirdAnalytics implements Analytics {
 
 		const resJson = (await res.json()) as any;
 
+		if (resJson.data.length === 0) {
+			return {
+				successful: 0,
+				failed: 0,
+			};
+		}
+
 		const data = resJson.data[0];
 
 		const schema = z.object({
@@ -125,7 +130,6 @@ export class TinyBirdAnalytics implements Analytics {
 		return {
 			successful: validData.success,
 			failed: validData.failure,
-			timestamp: validData.timestamp,
 		};
 	}
 
@@ -149,6 +153,12 @@ export class TinyBirdAnalytics implements Analytics {
 
 		const resJson = (await res.json()) as any;
 
+		if (resJson.data.length === 0) {
+			return {
+				total: 0,
+			};
+		}
+
 		const data = resJson.data[0];
 
 		const schema = z.object({
@@ -160,7 +170,6 @@ export class TinyBirdAnalytics implements Analytics {
 
 		return {
 			total: validData.total,
-			timestamp: validData.timestamp,
 		};
 	}
 }
@@ -171,20 +180,14 @@ export class NoopAnalytics implements Analytics {
 	}
 
 	async getVerificationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetVerificationsForWorkspaceResponse> {
-		const now = new Date();
-
 		return {
 			successful: 10000,
 			failed: 500,
-			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
 		};
 	}
 	async getGenerationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetGenerationsForWorkspaceResponse> {
-		const now = new Date();
-
 		return {
 			total: 1000,
-			timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
 		};
 	}
 }
