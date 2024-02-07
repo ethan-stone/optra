@@ -10,12 +10,10 @@ type GetVerificationForWorkspace = {
 type GetVerificationsForWorkspaceResponse = {
   successfulVerifications: number;
   failedVerificiations: number;
-  timestamp: string;
 };
 
 type GetGenerationsForWorkspaceResponse = {
   totalGenerations: number;
-  timestamp: string;
 };
 
 export interface Analytics {
@@ -63,12 +61,18 @@ export class TinyBirdAnalytics implements Analytics {
 
     const resJson = (await res.json()) as any;
 
+    if (resJson.data.length === 0) {
+      return {
+        successfulVerifications: 0,
+        failedVerificiations: 0,
+      };
+    }
+
     const data = resJson.data[0];
 
     const schema = z.object({
       success: z.number().min(0),
       failure: z.number().min(0),
-      timestamp: z.string(),
     });
 
     const validData = schema.parse(data);
@@ -76,7 +80,6 @@ export class TinyBirdAnalytics implements Analytics {
     return {
       successfulVerifications: validData.success,
       failedVerificiations: validData.failure,
-      timestamp: validData.timestamp,
     };
   }
 
@@ -106,18 +109,22 @@ export class TinyBirdAnalytics implements Analytics {
 
     const resJson = (await res.json()) as any;
 
+    if (resJson.data.length === 0) {
+      return {
+        totalGenerations: 0,
+      };
+    }
+
     const data = resJson.data[0];
 
     const schema = z.object({
       total: z.number().min(0),
-      timestamp: z.string(),
     });
 
     const validData = schema.parse(data);
 
     return {
       totalGenerations: validData.total,
-      timestamp: validData.timestamp,
     };
   }
 }
@@ -126,22 +133,16 @@ export class NoopAnalytics implements Analytics {
   async getVerificationsForWorkspace(
     _: GetVerificationForWorkspace
   ): Promise<GetVerificationsForWorkspaceResponse> {
-    const now = new Date();
-
     return {
       successfulVerifications: 10000,
       failedVerificiations: 500,
-      timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
     };
   }
   async getGenerationsForWorkspace(
-    params: GetVerificationForWorkspace
+    _: GetVerificationForWorkspace
   ): Promise<GetGenerationsForWorkspaceResponse> {
-    const now = new Date();
-
     return {
       totalGenerations: 1000,
-      timestamp: `${now.getFullYear()}-01-${now.getMonth() + 1}`,
     };
   }
 }

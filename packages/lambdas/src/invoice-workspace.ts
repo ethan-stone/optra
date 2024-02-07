@@ -88,6 +88,8 @@ export async function invoiceWorkspace(
     }
   );
 
+  console.log(`Added invoice item for pro plan. Invoice: ${invoice.id}`);
+
   const analytics = getAnalytics();
 
   // get token generations from the last month
@@ -124,6 +126,10 @@ export async function invoiceWorkspace(
           idempotencyKey: `invoice-item-${workspaceId}-${month}-${year}-token-generations`,
         }
       );
+
+      console.log(
+        `Added invoice item for token generations. Invoice: ${invoice.id}`
+      );
     }
   }
 
@@ -159,6 +165,10 @@ export async function invoiceWorkspace(
         {
           idempotencyKey: `invoice-item-${workspaceId}-${month}-${year}-token-verifications`,
         }
+      );
+
+      console.log(
+        `Added invoice item for token verifications. Invoice: ${invoice.id}`
       );
     }
   }
