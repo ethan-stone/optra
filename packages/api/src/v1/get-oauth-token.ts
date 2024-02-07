@@ -2,7 +2,7 @@ import { App } from '@/app';
 import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
-import { analytics, db, keyManagementService } from '@/root';
+import { analytics, cache, db, keyManagementService } from '@/root';
 import { HTTPException, errorResponseSchemas } from '@/errors';
 import { Buffer } from '@/buffer';
 
@@ -111,6 +111,37 @@ export function v1GetOAuthToken(app: App) {
 			throw new HTTPException({
 				reason: 'INTERNAL_SERVER_ERROR',
 				message: 'An internal error occurred.',
+			});
+		}
+
+		const workspaceTokenGenerations = await cache.fetchOrPopulate(
+			{ logger },
+			'tokenGenerationsByWorkspaceId',
+			workspace.id,
+			async (key) => {
+				const now = new Date();
+				const year = now.getUTCFullYear();
+				const month = now.getUTCMonth() + 1;
+
+				const res = await analytics.getGenerationsForWorkspace({
+					workspaceId: key,
+					month,
+					year,
+				});
+
+				return {
+					total: res.total,
+				};
+			}
+		);
+
+		// check if workspace has reached token generation limit
+		if ((!workspace.billingInfo || !workspace.billingInfo.subscriptions) && workspaceTokenGenerations.total >= 2000) {
+			logger.info(`Workspace has reached free tier limit`);
+
+			throw new HTTPException({
+				reason: 'FORBIDDEN',
+				message: 'Could not generate token for client',
 			});
 		}
 
