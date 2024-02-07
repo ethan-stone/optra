@@ -50,7 +50,16 @@ export async function main() {
 
     const customer = await stripe.customers.create({
       name: workspace.name,
-      payment_method: "pm_card_visa",
+    });
+
+    await stripe.paymentMethods.attach("pm_card_visa", {
+      customer: customer.id,
+    });
+
+    await stripe.customers.update(customer.id, {
+      invoice_settings: {
+        default_payment_method: "pm_card_visa",
+      },
     });
 
     // for the purpose of testing, we'll just hardcode the billing info

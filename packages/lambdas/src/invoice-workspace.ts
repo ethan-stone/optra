@@ -38,7 +38,6 @@ export async function invoiceWorkspace(
   const invoice = await stripe.invoices.create(
     {
       customer: billingInfo.customerId,
-      auto_advance: false,
       description: `Invoice for ${month}/${year}`,
       collection_method: "charge_automatically",
       metadata: {
