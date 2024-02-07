@@ -134,6 +134,9 @@ export async function main() {
   await lambdaClient.send(
     new InvokeCommand({
       FunctionName: INVOICE_WORKSPACE_ARN,
+      Payload: JSON.stringify({
+        id: randomUUID(),
+      }),
     })
   );
 

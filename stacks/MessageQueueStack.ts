@@ -7,6 +7,7 @@ import {
   use,
 } from "sst/constructs";
 import { ParametersStack } from "./ParametersStack";
+import { DynamoDBStack } from "./DynamoDBStack";
 
 export function MessageQueueStack({ stack }: StackContext) {
   const {
@@ -17,6 +18,7 @@ export function MessageQueueStack({ stack }: StackContext) {
     TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
     TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
   } = use(ParametersStack);
+  const { idempotencyKeyTable } = use(DynamoDBStack);
 
   // right now for simplicity we are using the same queue for all events
   // if necessary we can create a queue for each event type
@@ -38,15 +40,6 @@ export function MessageQueueStack({ stack }: StackContext) {
 
   const MESSAGE_QUEUE_URL = new Config.Parameter(stack, "MESSAGE_QUEUE_URL", {
     value: messageQueue.queueUrl,
-  });
-
-  // table to store idempotency keys for the messages
-  const idempotencyKeyTable = new Table(stack, "IdempotencyKeyTable", {
-    fields: {
-      key: "string",
-      timestamp: "number",
-    },
-    primaryIndex: { partitionKey: "key" },
   });
 
   const handleMessage = new Function(stack, "HandleMessage", {

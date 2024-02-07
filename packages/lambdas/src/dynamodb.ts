@@ -17,7 +17,7 @@ export async function getIdempotencyKey(
   key: string
 ): Promise<IdempotencyKeyRow | null> {
   const get = new GetCommand({
-    TableName: Table.IdempotencyKeyTable.tableName,
+    TableName: Table.IdempotencyKeys.tableName,
     Key: {
       key: key,
     },
@@ -30,7 +30,7 @@ export async function getIdempotencyKey(
 
 export async function putIdempotencyKey(key: string): Promise<void> {
   const put = new PutCommand({
-    TableName: Table.IdempotencyKeyTable.tableName,
+    TableName: Table.IdempotencyKeys.tableName,
     Item: {
       key: key,
       timestamp: Date.now(),

@@ -12,7 +12,7 @@ import { getIdempotencyKey, putIdempotencyKey } from "./dynamodb";
 export const handler: ScheduledHandler = async (event) => {
   const idempotencyKey = await getIdempotencyKey(event.id);
 
-  if (idempotencyKey === null) {
+  if (idempotencyKey !== null) {
     console.log(`Skipping event ${event.id} because it was already processed`);
     return;
   }
