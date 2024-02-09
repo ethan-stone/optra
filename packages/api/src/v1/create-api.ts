@@ -25,7 +25,7 @@ const route = createRoute({
 								z.object({
 									name: z.string(),
 									description: z.string(),
-								})
+								}),
 							)
 							.optional()
 							.refine((scopes) => {
@@ -116,21 +116,21 @@ export function v1CreateApi(app: App) {
 		switch (algorithm) {
 			case 'hsa256': {
 				// Generate a plaintext signing secret.
-				const signingSecret = await crypto.subtle.generateKey(
+				const signingSecret = (await crypto.subtle.generateKey(
 					{
 						name: 'HMAC',
 						hash: { name: 'SHA-256' },
 					},
 					true,
-					['sign', 'verify']
-				);
+					['sign', 'verify'],
+				)) as CryptoKey;
 
-				const exportedSigningSecret = Buffer.from(await crypto.subtle.exportKey('raw', signingSecret)).toString('base64');
+				const exportedSigningSecret = Buffer.from((await crypto.subtle.exportKey('raw', signingSecret)) as ArrayBuffer).toString('base64');
 
 				// Encrypt the signing secret with the data encryption key for the workspace.
 				const encryptResult = await keyManagementService.encryptWithDataKey(
 					workspace.dataEncryptionKeyId,
-					Buffer.from(exportedSigningSecret, 'base64')
+					Buffer.from(exportedSigningSecret, 'base64'),
 				);
 
 				const { id } = await db.createApi({
@@ -149,7 +149,7 @@ export function v1CreateApi(app: App) {
 				return c.json({ id }, 200);
 			}
 			case 'rsa256': {
-				const keyPair = await crypto.subtle.generateKey(
+				const keyPair = (await crypto.subtle.generateKey(
 					{
 						name: 'RSASSA-PKCS1-v1_5',
 						modulusLength: 2048,
@@ -157,13 +157,16 @@ export function v1CreateApi(app: App) {
 						hash: { name: 'SHA-256' },
 					},
 					true,
-					['sign', 'verify']
-				);
+					['sign', 'verify'],
+				)) as CryptoKeyPair;
 
 				const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
 				const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
 
-				const encryptResult = await keyManagementService.encryptWithDataKey(workspace.dataEncryptionKeyId, Buffer.from(privateKey));
+				const encryptResult = await keyManagementService.encryptWithDataKey(
+					workspace.dataEncryptionKeyId,
+					Buffer.from(privateKey as ArrayBuffer),
+				);
 
 				const { id, currentSigningSecretId } = await db.createApi({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -191,7 +194,7 @@ export function v1CreateApi(app: App) {
 						httpMetadata: {
 							contentType: 'application/json',
 						},
-					}
+					},
 				);
 
 				logger.info(`Successfully created api with id ${id}`);
