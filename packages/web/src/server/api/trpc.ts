@@ -6,11 +6,13 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "@/server/db";
+import { getAuth } from "@clerk/nextjs/server";
+import { type NextRequest } from "next/server";
 
 /**
  * 1. CONTEXT
@@ -24,10 +26,14 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (req: NextRequest) => {
+  const { userId } = getAuth(req);
+
   return {
+    req,
     db,
-    ...opts,
+    user: userId ? { id: userId } : null,
+    tenant: userId ? { id: userId } : null,
   };
 };
 
@@ -74,3 +80,20 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+export const auth = t.middleware(({ next, ctx }) => {
+  if (!ctx.user?.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
+
+  return next({
+    ctx: {
+      user: ctx.user,
+      tenant: ctx.tenant ?? { id: ctx.user.id },
+    },
+  });
+});
+
+export const protectedProcedure = publicProcedure.use(auth);

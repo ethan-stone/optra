@@ -10,6 +10,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string(),
     AWS_SECRET_ACCESS_KEY: z.string(),
     AWS_KMS_KEY_ARN: z.string(),
+    OPTRA_WORKSPACE_ID: z.string(),
+    OPTRA_API_ID: z.string(),
     CLERK_SECRET_KEY: z.string(),
     DATABASE_URL: z
       .string()
@@ -46,6 +48,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_KMS_KEY_ARN: process.env.AWS_KMS_KEY_ARN,
+    OPTRA_API_ID: process.env.OPTRA_API_ID,
+    OPTRA_WORKSPACE_ID: process.env.OPTRA_WORKSPACE_ID,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
