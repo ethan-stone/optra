@@ -197,7 +197,7 @@ importers:
         version: 1.15.0
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
       stripe:
         specifier: ^14.15.0
         version: 14.15.0
@@ -223,6 +223,25 @@ importers:
       vitest:
         specifier: ^1.2.2
         version: 1.2.2(@types/node@20.11.16)
+
+  packages/permissions:
+    dependencies:
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.16
+        version: 20.11.16
+      tsx:
+        specifier: ^4.7.0
+        version: 4.7.0
+      vite:
+        specifier: ^5.0.12
+        version: 5.0.12(@types/node@20.11.16)
+      vitest:
+        specifier: ^0.34.6
+        version: 0.34.6
 
   packages/web:
     dependencies:
