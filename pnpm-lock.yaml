@@ -226,6 +226,9 @@ importers:
 
   packages/web:
     dependencies:
+      '@aws-sdk/client-kms':
+        specifier: ^3.507.0
+        version: 3.507.0
       '@clerk/nextjs':
         specifier: ^4.29.6
         version: 4.29.6(next@14.1.0)(react-dom@18.2.0)(react@18.2.0)
@@ -256,6 +259,9 @@ importers:
       drizzle-orm:
         specifier: ^0.29.3
         version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
+      nanoid:
+        specifier: ^5.0.5
+        version: 5.0.5
       next:
         specifier: ^14.0.4
         version: 14.1.0(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)

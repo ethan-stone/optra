@@ -10,6 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.507.0",
     "@clerk/nextjs": "^4.29.6",
     "@optra/db": "workspace:^",
     "@planetscale/database": "^1.11.0",
@@ -20,6 +21,7 @@
     "@trpc/react-query": "^10.43.6",
     "@trpc/server": "^10.43.6",
     "drizzle-orm": "^0.29.3",
+    "nanoid": "^5.0.5",
     "next": "^14.0.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",

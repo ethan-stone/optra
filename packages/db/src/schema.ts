@@ -100,6 +100,7 @@ export const workspaces = mysqlTable(
   },
   (table) => {
     return {
+      tenantIdIdx: unique("tenant_id_idx").on(table.tenantId),
       dataEncryptionKeyIdIdx: index("data_encryption_key_id_idx").on(
         table.dataEncryptionKeyId
       ),
