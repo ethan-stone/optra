@@ -91,6 +91,7 @@ export const workspaces = mysqlTable(
   {
     id: varchar("id", { length: 36 }).primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(),
     dataEncryptionKeyId: varchar("data_encryption_key_id", {
       length: 36,
     }).notNull(),

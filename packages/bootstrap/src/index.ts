@@ -81,6 +81,7 @@ async function newWorkspace(
 
   await db.insert(schema.workspaces).values({
     id: workspaceId,
+    tenantId: uid(),
     dataEncryptionKeyId: dataEncryptionKeyId,
     name: generateRandomName(),
     createdAt: new Date(),
