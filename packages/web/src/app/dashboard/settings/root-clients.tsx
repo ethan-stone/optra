@@ -5,20 +5,75 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Props = {
   data: { id: string; name: string }[];
 };
 
+function Spinner() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+    >
+      <path
+        fill="currentColor"
+        d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+        opacity="0.25"
+      />
+      <path
+        fill="currentColor"
+        d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
+      >
+        <animateTransform
+          attributeName="transform"
+          dur="0.75s"
+          repeatCount="indefinite"
+          type="rotate"
+          values="0 12 12;360 12 12"
+        />
+      </path>
+    </svg>
+  );
+}
+
 function RootClientItem(props: { id: string; name: string }) {
+  const router = useRouter();
+
+  const deleteRootClient = api.clients.deleteRootClient.useMutation({
+    onSuccess() {
+      router.refresh();
+    },
+    onError(err) {
+      console.error(err);
+      alert(err.message);
+    },
+  });
+
   return (
     <div className="hover:bg-stone-100">
       <div className="flex flex-row items-center justify-between space-y-1 px-4 py-5">
         <h4 className="font-medium leading-none">{props.name}</h4>
-        <p className="w-min rounded bg-stone-200 px-2 py-1 font-mono text-xs">
-          {props.id}
-        </p>
+        <div className="flex flex-row items-center gap-4">
+          <p className="w-min rounded bg-stone-200 px-2 py-1 font-mono text-xs">
+            {props.id}
+          </p>
+          <Button
+            className="bg-red-500 hover:bg-red-700"
+            onClick={() =>
+              deleteRootClient.mutate({
+                id: props.id,
+              })
+            }
+          >
+            {deleteRootClient.isLoading ? <Spinner /> : "Delete"}
+          </Button>
+        </div>
       </div>
       <Separator />
     </div>
@@ -94,12 +149,15 @@ export function RootClients(props: Props) {
   const [clientSecret, setClientSecret] = useState("");
   const [showSecret, setShowSecret] = useState(false);
 
+  const router = useRouter();
+
   const createRootClient = api.clients.createRootClient.useMutation({
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
       setRootClientName("");
       setIsOpen(true);
+      router.refresh();
     },
     onError(err) {
       console.error(err);

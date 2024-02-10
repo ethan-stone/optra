@@ -15,7 +15,8 @@ export default async function Settings() {
   }
 
   const rootClients = await db.query.clients.findMany({
-    where: (table, { eq }) => eq(table.forWorkspaceId, workspaceId.id),
+    where: (table, { eq, and, isNull }) =>
+      and(eq(table.forWorkspaceId, workspaceId.id), isNull(table.deletedAt)),
   });
 
   return (

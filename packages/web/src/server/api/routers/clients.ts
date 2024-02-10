@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { uid } from "@/utils/uid";
 import { schema } from "@optra/db";
 import { createHash } from "crypto";
+import { eq } from "drizzle-orm";
 
 export const clientsRouter = createTRPCRouter({
   createRootClient: protectedProcedure
@@ -80,5 +81,62 @@ export const clientsRouter = createTRPCRouter({
         clientId: clientId,
         clientSecret: clientSecretValue,
       };
+    }),
+  deleteRootClient: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const optraApi = await ctx.db.query.apis.findFirst({
+        where: (table, { eq }) => eq(table.id, env.OPTRA_API_ID),
+        with: {
+          workspace: true,
+        },
+      });
+
+      if (!optraApi) {
+        console.error(`Optra API not found`);
+        // throw internal server error because this means something
+        // is very wrong with the configuration
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+
+      const workspace = await ctx.db.query.workspaces.findFirst({
+        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
+      });
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const client = await ctx.db.query.clients.findFirst({
+        where: (table, { eq, and }) =>
+          and(eq(table.id, input.id), eq(table.forWorkspaceId, workspace.id)),
+      });
+
+      if (!client) {
+        console.warn(
+          `Client with id ${input.id} does not exist or is not a part of workspace ${workspace.id}`,
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not found the client.",
+        });
+      }
+
+      await ctx.db
+        .update(schema.clients)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(eq(schema.clients.id, input.id));
     }),
 });
