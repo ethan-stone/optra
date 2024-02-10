@@ -42,7 +42,7 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      const clientId = "optra_pk_" + uid();
+      const clientId = "optra_" + uid();
       const clientSecretId = uid("csk");
       const clientSecretValue = "optra_sk_" + uid();
       const clientSecretHash = createHash("sha256")
