@@ -1,25 +1,13 @@
 import { db } from "@/server/db";
 import { getTenantId } from "@/utils/auth";
 import { redirect } from "next/navigation";
+import { Apis } from "./apis";
 
-type Props = {
-  id: string;
-  name: string;
-};
-
-function ApiItem(props: Props) {
-  return (
-    <div>
-      {props.id} {props.name}
-    </div>
-  );
-}
-
-export default async function Apis() {
+export default async function ApisPage() {
   const tenantId = getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
-  const workspaces = await db.query.workspaces.findFirst({
+  const workspace = await db.query.workspaces.findFirst({
     where: (table, { eq }) => eq(table.tenantId, tenantId),
     with: {
       apis: {
@@ -28,7 +16,7 @@ export default async function Apis() {
     },
   });
 
-  if (!workspaces) {
+  if (!workspace) {
     return redirect("/onboarding");
   }
 
@@ -39,9 +27,7 @@ export default async function Apis() {
         <p className="py-2 font-thin">
           Make APIs that can be consumed from authorized clients
         </p>
-        {workspaces.apis.map((a) => (
-          <ApiItem key={a.id} id={a.id} name={a.name} />
-        ))}
+        <Apis data={workspace.apis.map((a) => ({ id: a.id, name: a.name }))} />
       </div>
     </main>
   );
