@@ -57,10 +57,46 @@ export function generateJsonObject(numKeys: number): Record<string, unknown> {
   return obj;
 }
 
+const defaultInternalWorkspaceScopes = [
+  {
+    name: "api:read_api:*",
+    description: "Able to read all APIs in the workspace",
+  },
+  {
+    name: "api:create_api:*",
+    description: "Able to create APIs in the workspace",
+  },
+  {
+    name: "api:update_api:*",
+    description: "Able to update all APIs in the workspace",
+  },
+  {
+    name: "api:delete_api:*",
+    description: "Able to delete all APIs in the workspace",
+  },
+  {
+    name: "api:read_client:*",
+    description: "Able to read all clients in the workspace",
+  },
+  {
+    name: "api:create_client:*",
+    description: "Able to create clients in the workspace",
+  },
+  {
+    name: "api:update_client:*",
+    description: "Able to update all clients in the workspace",
+  },
+  {
+    name: "api:delete_client:*",
+    description: "Able to delete all clients in the workspace",
+  },
+];
+
 async function newWorkspace(
   db: PlanetScaleDatabase<typeof schema>,
   kmsClient: KMSClient,
-  awsKMSKeyArn: string
+  awsKMSKeyArn: string,
+  internal = false
 ) {
   const workspaceId = `ws_` + uid();
 
@@ -225,6 +261,27 @@ async function newApi(
   });
 
   return { apiId };
+}
+
+async function newApiScope(
+  db: PlanetScaleDatabase<typeof schema>,
+  args: {
+    apiId: string;
+    workspaceId: string;
+    name: string;
+    description: string;
+  }
+) {
+  const id = `api_scope_` + uid();
+
+  await db.insert(schema.apiScopes).values({
+    id,
+    apiId: args.apiId,
+    name: args.name,
+    description: args.description,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 }
 
 async function newClient(
