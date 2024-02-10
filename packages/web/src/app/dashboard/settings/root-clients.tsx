@@ -98,6 +98,7 @@ export function RootClients(props: Props) {
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
+      setRootClientName("");
       setIsOpen(true);
     },
     onError(err) {
@@ -107,7 +108,15 @@ export function RootClients(props: Props) {
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        setClientId("");
+        setClientSecret("");
+        setShowSecret(false);
+      }}
+    >
       <Input
         type="text"
         value={rootClientName}
