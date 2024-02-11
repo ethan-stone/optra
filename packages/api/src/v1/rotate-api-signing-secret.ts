@@ -102,20 +102,20 @@ export function v1RotateApiSigningSecret(app: App) {
 		}
 
 		if (currentSigningSecret.algorithm === 'hsa256') {
-			const signingSecret = await crypto.subtle.generateKey(
+			const signingSecret = (await crypto.subtle.generateKey(
 				{
 					name: 'HMAC',
 					hash: { name: 'SHA-256' },
 				},
 				true,
-				['sign', 'verify']
-			);
+				['sign', 'verify'],
+			)) as CryptoKey;
 
-			const exportedSigningSecret = Buffer.from(await crypto.subtle.exportKey('raw', signingSecret)).toString('base64');
+			const exportedSigningSecret = Buffer.from((await crypto.subtle.exportKey('raw', signingSecret)) as ArrayBuffer).toString('base64');
 
 			const encryptResult = await keyManagementService.encryptWithDataKey(
 				workspace.dataEncryptionKeyId,
-				Buffer.from(exportedSigningSecret, 'base64')
+				Buffer.from(exportedSigningSecret, 'base64'),
 			);
 
 			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
@@ -130,10 +130,10 @@ export function v1RotateApiSigningSecret(app: App) {
 				{
 					id: nextSigningSecretId,
 				},
-				200
+				200,
 			);
 		} else if (currentSigningSecret.algorithm === 'rsa256') {
-			const keyPair = await crypto.subtle.generateKey(
+			const keyPair = (await crypto.subtle.generateKey(
 				{
 					name: 'RSASSA-PKCS1-v1_5',
 					modulusLength: 2048,
@@ -141,13 +141,16 @@ export function v1RotateApiSigningSecret(app: App) {
 					hash: { name: 'SHA-256' },
 				},
 				true,
-				['sign', 'verify']
-			);
+				['sign', 'verify'],
+			)) as CryptoKeyPair;
 
-			const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+			const publicKey = (await crypto.subtle.exportKey('jwk', keyPair.publicKey)) as JsonWebKey;
 			const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
 
-			const encryptResult = await keyManagementService.encryptWithDataKey(workspace.dataEncryptionKeyId, Buffer.from(privateKey));
+			const encryptResult = await keyManagementService.encryptWithDataKey(
+				workspace.dataEncryptionKeyId,
+				Buffer.from(privateKey as ArrayBuffer),
+			);
 
 			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
 				apiId: api.id,
@@ -157,7 +160,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				expiresAt: expiresAt,
 			});
 
-			const url = `${c.env.JWKS_BUCKET_URL}/${workspace.id}/${api.name.replace(/\s/g, '-')}/.well-known/jwks.json`;
+			const url = `${c.env.JWKS_BUCKET_URL}/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
 			const req = new Request(url, {
 				method: 'GET',
@@ -181,7 +184,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				kid: nextSigningSecretId,
 			});
 
-			await c.env.JWKS_BUCKET.put(`${workspace.id}/${api.name.replace(/\s/g, '-')}/.well-known/jwks.json`, JSON.stringify(jwks), {
+			await c.env.JWKS_BUCKET.put(`${workspace.id}/${api.id}/.well-known/jwks.json`, JSON.stringify(jwks), {
 				httpMetadata: {
 					contentType: 'application/json',
 				},
@@ -201,7 +204,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				{
 					id: nextSigningSecretId,
 				},
-				200
+				200,
 			);
 		}
 

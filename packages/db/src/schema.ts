@@ -139,10 +139,6 @@ export const apis = mysqlTable(
   (table) => {
     return {
       workspaceIdIdx: index("workspace_id_idx").on(table.workspaceId),
-      workspaceApiNameIdx: unique("workspace_id_name_idx").on(
-        table.workspaceId,
-        table.name
-      ),
     };
   }
 );

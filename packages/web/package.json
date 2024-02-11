@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.507.0",
+    "@aws-sdk/client-s3": "^3.507.0",
     "@clerk/nextjs": "^4.29.6",
     "@optra/db": "workspace:^",
     "@planetscale/database": "^1.11.0",

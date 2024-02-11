@@ -49,7 +49,7 @@ export class TokenService implements TokenService {
 		private readonly keyManagementService: KeyManagementService,
 		private readonly cache: Cache<CacheNamespaces>,
 		private readonly tokenBuckets: Map<string, TokenBucket>,
-		private readonly analytics: Analytics
+		private readonly analytics: Analytics,
 	) {}
 
 	async verifyAuthHeader(header: string | null | undefined): Promise<VerifyAuthHeaderResult> {
@@ -157,7 +157,7 @@ export class TokenService implements TokenService {
 						successful: res.successful,
 						failed: res.failed,
 					};
-				}
+				},
 			);
 
 			// check if workspace has reached token verification limit
@@ -187,7 +187,7 @@ export class TokenService implements TokenService {
 					const currentSigningSecretDecryptResult = await keyManagementService.decryptWithDataKey(
 						workspace.dataEncryptionKeyId,
 						Buffer.from(currentSigningSecret.secret, 'base64'),
-						Buffer.from(currentSigningSecret.iv, 'base64')
+						Buffer.from(currentSigningSecret.iv, 'base64'),
 					);
 
 					let nextSigningSecretDecryptResult: Awaited<ReturnType<typeof keyManagementService.decryptWithDataKey>> | null = null;
@@ -196,7 +196,7 @@ export class TokenService implements TokenService {
 						nextSigningSecretDecryptResult = await keyManagementService.decryptWithDataKey(
 							workspace.dataEncryptionKeyId,
 							Buffer.from(nextSigningSecret.secret, 'base64'),
-							Buffer.from(nextSigningSecret.iv, 'base64')
+							Buffer.from(nextSigningSecret.iv, 'base64'),
 						);
 
 					logger.info(`Decrypted signing secret.`);
@@ -219,7 +219,7 @@ export class TokenService implements TokenService {
 				case 'rsa256': {
 					logger.info(`Fetching public key for api ${api.id}`);
 
-					const url = `${ctx.env.JWKS_BUCKET_URL}/${workspace.id}/${api.name.replace(/\s/g, '-')}/.well-known/jwks.json`;
+					const url = `${ctx.env.JWKS_BUCKET_URL}/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
 					const req = new Request(url, {
 						method: 'GET',
@@ -246,7 +246,7 @@ export class TokenService implements TokenService {
 								hash: { name: 'SHA-256' },
 							},
 							true,
-							['verify']
+							['verify'],
 						);
 
 						const exportedKey = (await crypto.subtle.exportKey('spki', importedKey)) as ArrayBuffer;
@@ -302,7 +302,7 @@ export class TokenService implements TokenService {
 								timestamp: Date.now(),
 								deniedReason: 'MISSING_SCOPES',
 							},
-						])
+						]),
 					);
 
 					return {
@@ -332,7 +332,7 @@ export class TokenService implements TokenService {
 								timestamp: Date.now(),
 								deniedReason: 'MISSING_SCOPES',
 							},
-						])
+						]),
 					);
 
 					return {
@@ -404,7 +404,7 @@ export class TokenService implements TokenService {
 							timestamp: Date.now(),
 							deniedReason: verifyResult.reason,
 						},
-					])
+					]),
 				);
 			}
 
@@ -425,7 +425,7 @@ export class TokenService implements TokenService {
 						timestamp: Date.now(),
 						deniedReason: 'SECRET_EXPIRED',
 					},
-				])
+				]),
 			);
 
 			return {
@@ -445,7 +445,7 @@ export class TokenService implements TokenService {
 						timestamp: Date.now(),
 						deniedReason: 'VERSION_MISMATCH',
 					},
-				])
+				]),
 			);
 
 			return {
@@ -492,7 +492,7 @@ export class TokenService implements TokenService {
 						timestamp: Date.now(),
 						deniedReason: 'RATELIMIT_EXCEEDED',
 					},
-				])
+				]),
 			);
 
 			return {
@@ -513,7 +513,7 @@ export class TokenService implements TokenService {
 					timestamp: Date.now(),
 					deniedReason: null,
 				},
-			])
+			]),
 		);
 
 		return { valid: true, client };

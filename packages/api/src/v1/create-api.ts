@@ -160,7 +160,7 @@ export function v1CreateApi(app: App) {
 					['sign', 'verify'],
 				)) as CryptoKeyPair;
 
-				const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+				const publicKey = (await crypto.subtle.exportKey('jwk', keyPair.publicKey)) as JsonWebKey;
 				const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
 
 				const encryptResult = await keyManagementService.encryptWithDataKey(
@@ -181,7 +181,7 @@ export function v1CreateApi(app: App) {
 
 				// upload the public key to R2
 				await c.env.JWKS_BUCKET.put(
-					`${workspace.id}/${name.replace(/\s/g, '-')}/.well-known/jwks.json`,
+					`${workspace.id}/${id}/.well-known/jwks.json`,
 					JSON.stringify({
 						keys: [
 							{
