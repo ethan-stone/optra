@@ -3,7 +3,7 @@ import { check, sleep } from 'k6';
 
 export const options = {
 	vus: 5,
-	duration: '2m',
+	duration: '1m',
 	summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)', 'p(99.99)', 'count'],
 };
 
@@ -19,7 +19,7 @@ export default function main() {
 			headers: {
 				'Content-Type': 'application/json',
 			},
-		}
+		},
 	);
 	check(res, {
 		'status is 200': (r) => r.status === 200,
