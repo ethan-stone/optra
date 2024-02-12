@@ -46,7 +46,7 @@ importers:
         version: 0.2.2
       '@hono/zod-openapi':
         specifier: ^0.9.6
-        version: 0.9.6(hono@3.12.11)(zod@3.22.4)
+        version: 0.9.6(hono@4.0.1)(zod@3.22.4)
       '@opentelemetry/api':
         specifier: ^1.7.0
         version: 1.7.0
@@ -60,8 +60,8 @@ importers:
         specifier: ^0.29.3
         version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0)
       hono:
-        specifier: ^3.12.11
-        version: 3.12.11
+        specifier: ^4.0.1
+        version: 4.0.1
       nanoid:
         specifier: ^5.0.5
         version: 5.0.5
@@ -197,7 +197,7 @@ importers:
         version: 1.15.0
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
       stripe:
         specifier: ^14.15.0
         version: 14.15.0
@@ -3261,7 +3261,7 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@hono/zod-openapi@0.9.6(hono@3.12.11)(zod@3.22.4):
+  /@hono/zod-openapi@0.9.6(hono@4.0.1)(zod@3.22.4):
     resolution: {integrity: sha512-MLF8xpd4fEwbEaylFqAt1qci4wOTXu3oq3BKb01trccapYfodP50VCO0YDNBQTyMT/Iapq6GMO4+RAIFBgG5WQ==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
@@ -3269,18 +3269,18 @@ packages:
       zod: 3.*
     dependencies:
       '@asteasolutions/zod-to-openapi': 5.5.0(zod@3.22.4)
-      '@hono/zod-validator': 0.1.11(hono@3.12.11)(zod@3.22.4)
-      hono: 3.12.11
+      '@hono/zod-validator': 0.1.11(hono@4.0.1)(zod@3.22.4)
+      hono: 4.0.1
       zod: 3.22.4
     dev: false
 
-  /@hono/zod-validator@0.1.11(hono@3.12.11)(zod@3.22.4):
+  /@hono/zod-validator@0.1.11(hono@4.0.1)(zod@3.22.4):
     resolution: {integrity: sha512-PQXeHUP0+36qpRt8yfeD7N2jbK3ETlGvSN6dMof/HwUC/APRokQRjpXZm4rrlG71Ft0aWE01+Bm4XejqPie5Uw==}
     peerDependencies:
       hono: '>=3.9.0'
       zod: ^3.19.1
     dependencies:
-      hono: 3.12.11
+      hono: 4.0.1
       zod: 3.22.4
     dev: false
 
@@ -7638,8 +7638,8 @@ packages:
       glob: 7.2.3
       readable-stream: 3.6.2
 
-  /hono@3.12.11:
-    resolution: {integrity: sha512-LSpxVgIMR3UzyFiXZaPvqBUGqyOKG0LMZqgMn2RXz9f+YAdkHSfFQQX0dtU72fPm5GnEMh5AYXs0ek5NYgMOmA==}
+  /hono@4.0.1:
+    resolution: {integrity: sha512-S9cREGPJIAK437RhroOf1PGlJPIlt5itl69OmQ6onPLo5pdCbSHGL8v4uAKxrdHjcTyuoyvKPqWm5jv0dGkdFA==}
     engines: {node: '>=16.0.0'}
     dev: false
 

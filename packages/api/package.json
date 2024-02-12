@@ -30,7 +30,7 @@
 		"@planetscale/database": "^1.15.0",
 		"dotenv-cli": "^7.3.0",
 		"drizzle-orm": "^0.29.3",
-		"hono": "^3.12.11",
+		"hono": "^4.0.1",
 		"nanoid": "^5.0.5",
 		"stripe": "^14.15.0",
 		"zod": "^3.22.4",
