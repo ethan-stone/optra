@@ -11,7 +11,6 @@ export type CacheNamespaces = {
 		| {
 				algorithm: 'hsa256';
 				client: Client;
-				clientScopes: ClientScope[];
 				api: Api;
 				workspace: Workspace;
 				currentSigningSecret: {
@@ -26,7 +25,6 @@ export type CacheNamespaces = {
 		| {
 				algorithm: 'rsa256';
 				client: Client;
-				clientScopes: ClientScope[];
 				api: Api;
 				workspace: Workspace;
 				publicKeys: Uint8Array[]; // it is possible for an api to have multiple public keys at the same time
@@ -49,7 +47,7 @@ export interface Cache<Namespaces extends Record<string, unknown>> {
 		ctx: { logger: Logger },
 		namespace: Namespace,
 		key: string,
-		populate: (key: string) => Promise<Namespaces[Namespace]>
+		populate: (key: string) => Promise<Namespaces[Namespace]>,
 	): Promise<Namespaces[Namespace]>;
 }
 
@@ -96,7 +94,7 @@ export class InMemoryCache<Namespaces extends Record<string, unknown>> implement
 		ctx: { logger: Logger },
 		namespace: Namespace,
 		key: string,
-		populate: (key: string) => Promise<Namespaces[Namespace]>
+		populate: (key: string) => Promise<Namespaces[Namespace]>,
 	): Promise<Namespaces[Namespace]> {
 		const logger = ctx.logger;
 

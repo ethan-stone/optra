@@ -105,6 +105,8 @@ export class TokenService implements TokenService {
 			};
 		}
 
+		const tokensScopes = payload.scope ? payload.scope.split(' ') : [];
+
 		const data = await cache.fetchOrPopulate({ logger }, 'clientById', payload.sub, async (key) => {
 			const client = await db.getClientById(key);
 
@@ -116,11 +118,7 @@ export class TokenService implements TokenService {
 
 			logger.info(`Fetched client ${client.id} from token.`);
 
-			const [clientScopes, workspace, api] = await Promise.all([
-				db.getClientScopesByClientId(client.id),
-				db.getWorkspaceById(client.workspaceId),
-				db.getApiById(client.apiId),
-			]);
+			const [workspace, api] = await Promise.all([db.getWorkspaceById(client.workspaceId), db.getApiById(client.apiId)]);
 
 			if (!workspace) {
 				logger.info(`Workspace with id ${client.workspaceId} not found.`);
@@ -205,7 +203,6 @@ export class TokenService implements TokenService {
 						algorithm: 'hsa256',
 						api,
 						client,
-						clientScopes,
 						currentSigningSecret: {
 							id: currentSigningSecret.id,
 							decryptedSigningSecret: currentSigningSecretDecryptResult.decryptedData,
@@ -264,7 +261,6 @@ export class TokenService implements TokenService {
 						algorithm: 'rsa256',
 						api,
 						client,
-						clientScopes,
 						workspace,
 						publicKeys,
 					};
@@ -285,11 +281,9 @@ export class TokenService implements TokenService {
 		if (options?.requiredScopes) {
 			if (options.requiredScopes.method === 'one') {
 				const hasAtLeastOneScope = options.requiredScopes.names.some((name) => {
-					const apiScope = data.api.scopes.find((scope) => scope.name === name);
+					const scope = tokensScopes.find((scope) => scope === name);
 
-					if (!apiScope) return false;
-
-					return data.clientScopes.some((clientScope) => clientScope.apiScopeId === apiScope.id);
+					return !!scope;
 				});
 
 				if (!hasAtLeastOneScope) {
@@ -315,11 +309,9 @@ export class TokenService implements TokenService {
 
 			if (options.requiredScopes.method === 'all') {
 				const hasAllScopes = options.requiredScopes.names.every((name) => {
-					const apiScope = data.api.scopes.find((scope) => scope.name === name);
+					const scope = tokensScopes.find((scope) => scope === name);
 
-					if (!apiScope) return false;
-
-					return data.clientScopes.some((clientScope) => clientScope.apiScopeId === apiScope.id);
+					return !!scope;
 				});
 
 				if (!hasAllScopes) {
