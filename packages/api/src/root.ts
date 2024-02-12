@@ -49,7 +49,7 @@ export function initialize(env: {
 			region: 'us-east-1',
 		}),
 		conn,
-		env.awsKMSKeyArn
+		env.awsKMSKeyArn,
 	);
 
 	cache = new InMemoryCache<CacheNamespaces>({
@@ -71,7 +71,7 @@ export function initialize(env: {
 				'client.secret.expired': { arn: env.awsMessageQueueArn },
 			},
 			dlqArn: env.awsSchedulerFailedDLQ,
-		}
+		},
 	);
 
 	analytics =
@@ -89,7 +89,7 @@ export function initialize(env: {
 					},
 					verificationForWorkspaceEndpoint: env.tinyBirdMonthlyVerificationsEndpoint,
 					generationsForWorkspaceEndpoint: env.tinyBirdMonthlyGenerationsEndpoint,
-			  })
+				})
 			: new NoopAnalytics();
 
 	tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
