@@ -5,7 +5,7 @@ export async function hashSHA256(data: string): Promise<string> {
 		{
 			name: 'SHA-256',
 		},
-		text
+		text,
 	);
 
 	const buffer = new Uint8Array(hashed);
@@ -20,7 +20,7 @@ export type JwtPayload = {
 	version: number;
 	secret_expires_at?: number | undefined | null;
 	metadata?: Record<string, unknown> | undefined | null;
-	scopes?: string[] | undefined | null;
+	scope?: string | undefined | null;
 };
 
 /**
@@ -209,7 +209,7 @@ export async function sign(payload: JwtPayload, secret: string | JsonWebKey, opt
 	if (!payload.iat) payload.iat = Math.floor(Date.now() / 1000);
 
 	const partialToken = `${textToBase64Url(JSON.stringify({ ...options.header, alg: options.algorithm }))}.${textToBase64Url(
-		JSON.stringify(payload)
+		JSON.stringify(payload),
 	)}`;
 
 	const key = await importKey(secret, algorithm);
@@ -241,7 +241,7 @@ export const InvalidReason = {
 export async function verify(
 	token: string,
 	secret: string | JsonWebKey,
-	options: JwtVerifyOptions
+	options: JwtVerifyOptions,
 ): Promise<{ valid: true } | { valid: false; reason: keyof typeof InvalidReason }> {
 	if (typeof token !== 'string') throw new Error('token must be a string');
 
@@ -268,7 +268,7 @@ export async function verify(
 			algorithm,
 			key,
 			base64UrlToArrayBuffer(tokenParts[2]),
-			textToArrayBuffer(`${tokenParts[0]}.${tokenParts[1]}`)
+			textToArrayBuffer(`${tokenParts[0]}.${tokenParts[1]}`),
 		);
 
 		return valid ? { valid: true } : { valid: false, reason: InvalidReason.INVALID_SIGNATURE };

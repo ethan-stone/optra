@@ -132,7 +132,7 @@ export function v1GetOAuthToken(app: App) {
 				return {
 					total: res.total,
 				};
-			}
+			},
 		);
 
 		// check if workspace has reached token generation limit
@@ -164,7 +164,7 @@ export function v1GetOAuthToken(app: App) {
 		const decryptResult = await keyManagementService.decryptWithDataKey(
 			workspace.dataEncryptionKeyId,
 			Buffer.from(signingSecretToUse.secret, 'base64'),
-			Buffer.from(signingSecretToUse.iv, 'base64')
+			Buffer.from(signingSecretToUse.iv, 'base64'),
 		);
 
 		switch (signingSecretToUse.algorithm) {
@@ -177,11 +177,11 @@ export function v1GetOAuthToken(app: App) {
 						sub: client.id,
 						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
 						version: client.version,
-						scopes: client.scopes,
+						scope: client.scopes?.join(' '),
 						metadata: client.metadata,
 					},
 					Buffer.from(decryptResult.decryptedData).toString('base64'),
-					{ algorithm: 'HS256', header: { typ: 'JWT', kid: signingSecretToUse.id } }
+					{ algorithm: 'HS256', header: { typ: 'JWT', kid: signingSecretToUse.id } },
 				);
 
 				logger.info(`Created JWT for client ${clientId}`);
@@ -194,7 +194,7 @@ export function v1GetOAuthToken(app: App) {
 							workspaceId: client.workspaceId,
 							timestamp: Date.now(),
 						},
-					])
+					]),
 				);
 
 				return c.json(
@@ -204,7 +204,7 @@ export function v1GetOAuthToken(app: App) {
 						expiresIn: 60 * 60 * 24 * 30,
 						scope: null,
 					},
-					200
+					200,
 				);
 			}
 
@@ -219,11 +219,11 @@ export function v1GetOAuthToken(app: App) {
 						sub: client.id,
 						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
 						version: client.version,
-						scopes: client.scopes,
+						scope: client.scopes?.join(' '), // scope is a space delimited string according to the rfc. https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
 						metadata: client.metadata,
 					},
 					privateKey,
-					{ algorithm: 'RS256', header: { typ: 'JWT', kid: signingSecretToUse.id } }
+					{ algorithm: 'RS256', header: { typ: 'JWT', kid: signingSecretToUse.id } },
 				);
 
 				c.executionCtx.waitUntil(
@@ -234,7 +234,7 @@ export function v1GetOAuthToken(app: App) {
 							workspaceId: client.workspaceId,
 							timestamp: Date.now(),
 						},
-					])
+					]),
 				);
 
 				return c.json(
@@ -244,7 +244,7 @@ export function v1GetOAuthToken(app: App) {
 						expiresIn: 60 * 60 * 24 * 30,
 						scope: null,
 					},
-					200
+					200,
 				);
 			}
 
