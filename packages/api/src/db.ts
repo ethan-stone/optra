@@ -31,6 +31,12 @@ export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspac
 export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId' | 'currentClientSecretId' | 'nextClientSecretId'> & {
 	apiScopes?: string[];
 };
+export type UpdateClientParams = {
+	rateLimitBucketSize?: number;
+	rateLimitRefillAmount?: number;
+	rateLimitRefillInterval?: number;
+	metadata?: Record<string, unknown>;
+};
 export type CreateClientScopeParams = Omit<InferInsertModel<(typeof schema)['clientScopes']>, 'id'>;
 export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
 export type ClientScope = InferSelectModel<(typeof schema)['clientScopes']>;
@@ -65,6 +71,7 @@ export type RotateApiSigningSecretParams = {
 
 export interface Db {
 	getClientById(id: string): Promise<Client | null>;
+	updateClientById(id: string, params: UpdateClientParams): Promise<void>;
 	deleteClientById(id: string): Promise<void>;
 	getClientSecretValueById(secretId: string): Promise<string | null>;
 	getClientSecretById(secretId: string): Promise<ClientSecret | null>;
@@ -109,6 +116,10 @@ export class PlanetScaleDb implements Db {
 		const scopes = client.scopes.map((s) => s.apiScope.name);
 
 		return client ? { ...client, scopes } : null;
+	}
+
+	async updateClientById(id: string, params: UpdateClientParams): Promise<void> {
+		await this.db.update(schema.clients).set(params).where(eq(schema.clients.id, id));
 	}
 
 	async deleteClientById(id: string): Promise<void> {
