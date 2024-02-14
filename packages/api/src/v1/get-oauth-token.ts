@@ -16,7 +16,7 @@ const res = z.object({
 	accessToken: z.string(),
 	tokenType: z.string(),
 	expiresIn: z.number().int(),
-	scope: z.string().nullable(),
+	scope: z.string().nullish(),
 });
 
 export type GetOAuthTokenRes = z.infer<typeof res>;
@@ -202,7 +202,7 @@ export function v1GetOAuthToken(app: App) {
 						accessToken: jwt,
 						tokenType: 'Bearer',
 						expiresIn: 60 * 60 * 24 * 30,
-						scope: null,
+						scope: client.scopes?.join(' '),
 					},
 					200,
 				);
@@ -242,7 +242,7 @@ export function v1GetOAuthToken(app: App) {
 						accessToken: jwt,
 						tokenType: 'Bearer',
 						expiresIn: 60 * 60 * 24 * 30,
-						scope: null,
+						scope: client.scopes?.join(' '),
 					},
 					200,
 				);
