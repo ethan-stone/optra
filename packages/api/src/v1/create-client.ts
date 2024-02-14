@@ -38,7 +38,8 @@ const route = createRoute({
 					schema: z.object({
 						name: z.string(),
 						apiId: z.string(),
-						prefix: z.string().max(12).optional(),
+						clientIdPrefix: z.string().max(12).optional(),
+						clientSecretPrefix: z.string().max(12).optional(),
 						rateLimitBucketSize: z.number().int().optional(),
 						rateLimitRefillAmount: z.number().int().optional(),
 						rateLimitRefillInterval: z.number().int().optional(),
@@ -56,7 +57,7 @@ const route = createRoute({
 									const sizeInBytes = getStringSizeInBytes(stringified);
 									return sizeInBytes <= 1024;
 								},
-								{ message: 'Metadata size can not be larger than 1KB' }
+								{ message: 'Metadata size can not be larger than 1KB' },
 							)
 							.openapi({ description: 'Metadata that will be attached to the client. Can be at most 1KB' }),
 					}),
@@ -84,8 +85,17 @@ export function v1CreateClient(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
-		const { apiId, name, rateLimitBucketSize, rateLimitRefillAmount, rateLimitRefillInterval, metadata, scopes, prefix } =
-			c.req.valid('json');
+		const {
+			apiId,
+			name,
+			rateLimitBucketSize,
+			rateLimitRefillAmount,
+			rateLimitRefillInterval,
+			metadata,
+			scopes,
+			clientIdPrefix,
+			clientSecretPrefix,
+		} = c.req.valid('json');
 
 		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
@@ -133,7 +143,8 @@ export function v1CreateClient(app: App) {
 			apiId,
 			name,
 			version: 1,
-			prefix,
+			clientIdPrefix: clientIdPrefix,
+			clientSecretPrefix: clientSecretPrefix,
 			workspaceId: verifiedToken.client.forWorkspaceId,
 			rateLimitBucketSize,
 			rateLimitRefillAmount,
@@ -151,7 +162,7 @@ export function v1CreateClient(app: App) {
 				clientId: id,
 				clientSecret: secret,
 			},
-			200
+			200,
 		);
 	});
 }

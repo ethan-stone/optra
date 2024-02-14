@@ -172,9 +172,9 @@ export class PlanetScaleDb implements Db {
 	}
 
 	async createBasicClient(params: CreateBasicClientParams): Promise<{ id: string; secret: string }> {
-		const clientId = params.prefix ? params.prefix + '_' + uid() : uid('client');
+		const clientId = params.clientIdPrefix ? params.clientIdPrefix + '_' + uid() : uid('client');
 		const secretId = uid('csk');
-		const secretValue = params.prefix ? params.prefix + '_' + uid(undefined, 48) : uid(undefined, 48);
+		const secretValue = params.clientSecretPrefix ? params.clientSecretPrefix + '_' + uid(undefined, 48) : uid(undefined, 48);
 
 		const now = new Date();
 
@@ -368,10 +368,10 @@ export class PlanetScaleDb implements Db {
 
 		if (!client) throw new Error(`Could not find client ${params.clientId}`);
 
-		const prefix = client.prefix;
+		const clientSecretPrefix = client.clientSecretPrefix;
 
 		const secretId = uid('csk');
-		const secretValue = prefix ? prefix + '_' + uid(undefined, 48) : uid(undefined, 48);
+		const secretValue = clientSecretPrefix ? clientSecretPrefix + '_' + uid(undefined, 48) : uid(undefined, 48);
 		const hashedSecretValue = await hashSHA256(secretValue);
 
 		const now = new Date();

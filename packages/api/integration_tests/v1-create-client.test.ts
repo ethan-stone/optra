@@ -153,7 +153,8 @@ describe('POST /v1/clients.createClient', () => {
 				name: 'test',
 				apiId: env.API_ID,
 				metadata: generateJsonObject(10), // 10 keys should be less than 1KB
-				prefix: 'example',
+				clientIdPrefix: 'cl',
+				clientSecretPrefix: 'sk',
 			}),
 			headers: {
 				'Content-Type': 'application/json',

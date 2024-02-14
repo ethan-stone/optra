@@ -17,7 +17,8 @@ export const clients = mysqlTable(
     id: varchar("id", { length: 100 }).primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     version: int("version").notNull(),
-    prefix: varchar("prefix", { length: 36 }), // will be applied to client id and secrets
+    clientIdPrefix: varchar("client_id_prefix", { length: 36 }), // will be applied to client id
+    clientSecretPrefix: varchar("client_secret_prefix", { length: 36 }), // will be applied to client id
     workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
     forWorkspaceId: varchar("for_workspace_id", { length: 36 }),
     apiId: varchar("api_id", { length: 36 }).notNull(),
