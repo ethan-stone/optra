@@ -17,6 +17,7 @@ import { v1DeleteClient } from './v1/delete-client';
 import { v1DeleteApi } from '@/v1/delete-api';
 import { v1GetApi } from '@/v1/get-api';
 import { v1RotateApiSigningSecret } from '@/v1/rotate-api-signing-secret';
+import { v1UpdateClient } from '@/v1/update-client';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -100,6 +101,7 @@ v1RemoveApiScope(app);
 v1RotateApiSigningSecret(app);
 v1CreateClient(app);
 v1GetClient(app);
+v1UpdateClient(app);
 v1DeleteClient(app);
 v1AddClientScope(app);
 v1RemoveClientScope(app);
@@ -117,7 +119,7 @@ export default {
 					message: "Environment variables didn't match the expected schema",
 					code: 'INVALID_ENVIRONMENT',
 				},
-				{ status: 500 }
+				{ status: 500 },
 			);
 
 		initialize({
