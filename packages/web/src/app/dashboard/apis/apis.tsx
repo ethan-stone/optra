@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -22,7 +23,7 @@ function ApiItem(props: { id: string; name: string }) {
   });
 
   return (
-    <div className="hover:bg-stone-100">
+    <Link className="hover:bg-stone-100" href={`/dashboard/apis/${props.id}`}>
       <div className="flex flex-row items-center justify-between space-y-1 px-4 py-5">
         <h4 className="font-medium leading-none">{props.name}</h4>
         <div className="flex flex-row items-center gap-4">
@@ -42,7 +43,7 @@ function ApiItem(props: { id: string; name: string }) {
         </div>
       </div>
       <Separator />
-    </div>
+    </Link>
   );
 }
 
