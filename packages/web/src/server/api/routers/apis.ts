@@ -5,6 +5,7 @@ import { keyManagementService } from "@/server/key-management";
 import { uid } from "@/utils/uid";
 import { schema } from "@optra/db";
 import { storageBucket } from "@/server/storage-bucket";
+import { eq } from "drizzle-orm";
 
 export const apisRouter = createTRPCRouter({
   createApi: protectedProcedure
@@ -147,5 +148,44 @@ export const apisRouter = createTRPCRouter({
           message: "Invalid algorithm",
         });
       }
+    }),
+  deleteApi: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await ctx.db.query.workspaces.findFirst({
+        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
+      });
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const api = await ctx.db.query.apis.findFirst({
+        where: (table, { eq, and }) =>
+          and(eq(table.id, input.id), eq(table.workspaceId, workspace.id)),
+      });
+
+      if (!api) {
+        console.error(`API not found for workspace ${workspace.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "API not found",
+        });
+      }
+
+      await ctx.db
+        .update(schema.apis)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(eq(schema.apis.id, input.id));
     }),
 });

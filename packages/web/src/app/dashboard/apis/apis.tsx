@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +10,16 @@ import { useState } from "react";
 
 function ApiItem(props: { id: string; name: string }) {
   const router = useRouter();
+
+  const deleteApi = api.apis.deleteApi.useMutation({
+    onSuccess() {
+      router.refresh();
+    },
+    onError(err) {
+      console.error(err);
+      alert(err.message);
+    },
+  });
 
   return (
     <div className="hover:bg-stone-100">
@@ -20,9 +31,13 @@ function ApiItem(props: { id: string; name: string }) {
           </p>
           <Button
             className="bg-red-500 hover:bg-red-700"
-            onClick={() => console.log("clicked")}
+            onClick={() =>
+              deleteApi.mutate({
+                id: props.id,
+              })
+            }
           >
-            Delete
+            {deleteApi.isLoading ? <Spinner /> : "Delete"}
           </Button>
         </div>
       </div>
