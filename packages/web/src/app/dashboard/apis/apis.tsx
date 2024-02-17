@@ -23,11 +23,19 @@ function ApiItem(props: { id: string; name: string }) {
   });
 
   return (
-    <Link className="hover:bg-stone-100" href={`/dashboard/apis/${props.id}`}>
-      <div className="flex flex-row items-center justify-between space-y-1 px-4 py-5">
-        <h4 className="font-medium leading-none">{props.name}</h4>
+    <div className="hover:bg-stone-100">
+      <div className="flex flex-row justify-between space-y-1 px-4 py-5">
+        <Link
+          className="flex flex-grow items-center"
+          href={`/dashboard/apis/${props.id}`}
+        >
+          <h4 className="font-medium leading-none">{props.name}</h4>
+        </Link>
         <div className="flex flex-row items-center gap-4">
-          <p className="w-min rounded bg-stone-200 px-2 py-1 font-mono text-xs">
+          <p
+            className="w-min rounded bg-stone-200 px-2 py-1 font-mono text-xs"
+            onClick={(e) => e.preventDefault()}
+          >
             {props.id}
           </p>
           <Button
@@ -43,7 +51,7 @@ function ApiItem(props: { id: string; name: string }) {
         </div>
       </div>
       <Separator />
-    </Link>
+    </div>
   );
 }
 
