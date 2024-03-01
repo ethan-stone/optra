@@ -1,22 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { db } from "@/server/db";
 import { getTenantId } from "@/utils/auth";
 import { redirect } from "next/navigation";
-
-// type PermissionItemProps = {
-//   id: string;
-//   name: string;
-//   description: string;
-// };
-
-// function PermissionItem(props: PermissionItemProps) {
-//   return (
-//     <div>
-//       {props.id} | {props.name} | {props.description}
-//     </div>
-//   );
-// }
+import { AddPermissionForm } from "./add-permission-form";
+import { PermissionItem } from "./permission-item";
 
 type PermissionsProps = {
   params: { apiId: string };
@@ -48,19 +34,10 @@ export default async function Permissions(props: PermissionsProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row gap-4">
-        <div className="flex flex-grow flex-col gap-1">
-          Name
-          <Input placeholder="api:create" />
-        </div>
-        <div className="flex flex-grow flex-col gap-1">
-          Description
-          <Input placeholder="Create APIs" />
-        </div>
-        <div className="flex items-end">
-          <Button className="flex flex-grow">Create</Button>
-        </div>
-      </div>
+      <AddPermissionForm />
+      {permissions.map((p, idx) => {
+        return <PermissionItem key={idx} {...p} />;
+      })}
     </div>
   );
 }
