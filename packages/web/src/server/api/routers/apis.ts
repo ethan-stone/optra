@@ -188,4 +188,13 @@ export const apisRouter = createTRPCRouter({
         })
         .where(eq(schema.apis.id, input.id));
     }),
+  addScope: protectedProcedure
+    .input(
+      z.object({
+        apiId: z.string(),
+        name: z.string(),
+        description: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {}),
 });
