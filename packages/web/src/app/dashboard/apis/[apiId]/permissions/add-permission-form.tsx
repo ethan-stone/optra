@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { z } from "zod";
+
+const schema = z.object({
+  name: z.string().min(3),
+  description: z.string().min(3).optional(),
+});
 
 export function AddPermissionForm() {
   const router = useRouter();
@@ -46,13 +52,20 @@ export function AddPermissionForm() {
       <div className="flex items-end">
         <Button
           className="flex flex-grow"
-          onClick={() =>
+          onClick={() => {
+            const valid = schema.safeParse({ name, description: desc });
+
+            if (!valid.success) {
+              alert("Name must be at least 3 characters long");
+              return;
+            }
+
             addScope.mutate({
               apiId: params.apiId,
               name: name,
               description: desc,
-            })
-          }
+            });
+          }}
         >
           Add
         </Button>

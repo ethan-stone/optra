@@ -28,9 +28,8 @@ export default async function Permissions(props: PermissionsProps) {
   // the layout already checks that the api exists and belongs to this tenant/workspace
   const permissions = await db.query.apiScopes.findMany({
     where: (table, { eq }) => eq(table.apiId, props.params.apiId),
+    orderBy: (table, { desc }) => desc(table.createdAt),
   });
-
-  console.log(permissions);
 
   return (
     <div className="flex flex-col">
