@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
@@ -67,7 +68,7 @@ export function AddPermissionForm() {
             });
           }}
         >
-          Add
+          {addScope.isLoading ? <Spinner /> : "Add"}
         </Button>
       </div>
     </div>

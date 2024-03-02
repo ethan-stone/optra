@@ -1,6 +1,7 @@
 import { schema } from "@optra/db";
 import { db } from "../db";
 import { uid } from "@/utils/uid";
+import { eq } from "drizzle-orm";
 
 export async function getApiByWorkspaceIdAndApiId(
   workspaceId: string,
@@ -35,4 +36,19 @@ export async function addScopeToApi(args: AddScopeToApiArgs) {
   return {
     id: id,
   };
+}
+
+export async function getApiScopeById(id: string) {
+  return db.query.apiScopes.findFirst({
+    where: (table, { eq }) => eq(table.id, id),
+  });
+}
+
+export async function deleteApiScopeById(id: string) {
+  await db.transaction(async (tx) => {
+    await tx.delete(schema.apiScopes).where(eq(schema.apiScopes.id, id));
+    await tx
+      .delete(schema.clientScopes)
+      .where(eq(schema.clientScopes.apiScopeId, id));
+  });
 }

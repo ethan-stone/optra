@@ -7,7 +7,12 @@ import { schema } from "@optra/db";
 import { storageBucket } from "@/server/storage-bucket";
 import { eq } from "drizzle-orm";
 import { getWorkspacweByTenantId } from "@/server/data/workspaces";
-import { addScopeToApi, getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
+import {
+  addScopeToApi,
+  deleteApiScopeById,
+  getApiByWorkspaceIdAndApiId,
+  getApiScopeById,
+} from "@/server/data/apis";
 
 export const apisRouter = createTRPCRouter({
   createApi: protectedProcedure
@@ -226,5 +231,46 @@ export const apisRouter = createTRPCRouter({
       });
 
       return { id };
+    }),
+  deleteScope: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspacweByTenantId(ctx.tenant.id);
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const scope = await getApiScopeById(input.id);
+
+      if (!scope) {
+        console.error(`Scope not found for ID ${input.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scope not found",
+        });
+      }
+
+      const api = await getApiByWorkspaceIdAndApiId(workspace.id, scope.apiId);
+
+      if (!api) {
+        console.warn(`Requester does not have access to API ${scope.apiId}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Scope not found",
+        });
+      }
+
+      await deleteApiScopeById(input.id);
+
+      return null;
     }),
 });
