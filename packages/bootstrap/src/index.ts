@@ -1,5 +1,5 @@
 import { schema } from "@optra/db";
-import { PlanetScaleDatabase } from "drizzle-orm/planetscale-serverless";
+import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { randomBytes, createHash, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -93,7 +93,7 @@ const defaultInternalWorkspaceScopes = [
 ];
 
 async function newWorkspace(
-  db: PlanetScaleDatabase<typeof schema>,
+  db: LibSQLDatabase<typeof schema>,
   kmsClient: KMSClient,
   awsKMSKeyArn: string,
   internal = false
@@ -131,7 +131,7 @@ async function newWorkspace(
 }
 
 async function newApi(
-  db: PlanetScaleDatabase<typeof schema>,
+  db: LibSQLDatabase<typeof schema>,
   s3Client: S3Client,
   args: {
     workspaceId: string;
@@ -261,7 +261,7 @@ async function newApi(
 }
 
 async function newApiScope(
-  db: PlanetScaleDatabase<typeof schema>,
+  db: LibSQLDatabase<typeof schema>,
   args: {
     apiId: string;
     workspaceId: string;
@@ -282,7 +282,7 @@ async function newApiScope(
 }
 
 async function newClient(
-  db: PlanetScaleDatabase<typeof schema>,
+  db: LibSQLDatabase<typeof schema>,
   args: {
     workspaceId: string;
     forWorkspaceId?: string;
@@ -329,7 +329,7 @@ async function newClient(
  * This generates an internal workspace and api that represents optra itself
  */
 export async function bootstrap(
-  db: PlanetScaleDatabase<typeof schema>,
+  db: LibSQLDatabase<typeof schema>,
   kmsClient: KMSClient,
   s3Client: S3Client,
   awsKMSKeyArn: string

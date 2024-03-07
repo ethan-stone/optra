@@ -124,6 +124,7 @@ export default {
 
 		initialize({
 			dbUrl: env.DRIZZLE_DATABASE_URL,
+			dbAuthToken: env.DRIZZLE_DATABASE_TOKEN,
 			env: env.ENVIRONMENT,
 			awsAccessKeyId: env.AWS_ACCESS_KEY_ID,
 			awsSecretAccessKey: env.AWS_SECRET_ACCESS_KEY,

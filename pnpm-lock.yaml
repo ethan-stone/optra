@@ -47,6 +47,9 @@ importers:
       '@hono/zod-openapi':
         specifier: ^0.9.6
         version: 0.9.6(hono@4.0.1)(zod@3.22.4)
+      '@libsql/client':
+        specifier: ^0.5.3
+        version: 0.5.3
       '@opentelemetry/api':
         specifier: ^1.7.0
         version: 1.7.0
@@ -58,7 +61,7 @@ importers:
         version: 7.3.0
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@libsql/client@0.5.3)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0)
       hono:
         specifier: ^4.0.1
         version: 4.0.1
@@ -105,6 +108,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.507.0
         version: 3.507.0
+      '@libsql/client':
+        specifier: ^0.5.3
+        version: 0.5.3
       '@optra/db':
         specifier: workspace:^
         version: link:../db
@@ -126,7 +132,7 @@ importers:
         version: 0.20.14
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@libsql/client@0.5.3)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
       tsx:
         specifier: ^4.7.0
         version: 4.7.0
@@ -152,6 +158,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@libsql/client':
+        specifier: ^0.5.3
+        version: 0.5.3
       '@planetscale/database':
         specifier: ^1.15.0
         version: 1.15.0
@@ -173,7 +182,7 @@ importers:
         version: 0.20.14
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@libsql/client@0.5.3)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
       typescript:
         specifier: ^5.3.3
         version: 5.3.3
@@ -192,12 +201,15 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.507.0
         version: 3.507.0(@aws-sdk/client-dynamodb@3.507.0)
+      '@libsql/client':
+        specifier: ^0.5.3
+        version: 0.5.3
       '@planetscale/database':
         specifier: ^1.15.0
         version: 1.15.0
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@libsql/client@0.5.3)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0)
       stripe:
         specifier: ^14.15.0
         version: 14.15.0
@@ -254,6 +266,9 @@ importers:
       '@clerk/nextjs':
         specifier: ^4.29.6
         version: 4.29.6(next@14.1.0)(react-dom@18.2.0)(react@18.2.0)
+      '@libsql/client':
+        specifier: ^0.5.3
+        version: 0.5.3
       '@optra/db':
         specifier: workspace:^
         version: link:../db
@@ -295,7 +310,7 @@ importers:
         version: 2.1.0
       drizzle-orm:
         specifier: ^0.29.3
-        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
+        version: 0.29.3(@aws-sdk/client-rds-data@3.507.0)(@libsql/client@0.5.3)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0)
       lucide-react:
         specifier: ^0.323.0
         version: 0.323.0(react@18.2.0)
@@ -3369,10 +3384,108 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
+  /@libsql/client@0.5.3:
+    resolution: {integrity: sha512-GsOTv/Yikw8I9ZBqpxwfcDM2GDFtyZfJg7MYgWqVnNXtsqCa+tabSuRVKe34UaG2FjcOFJr9buB4vbl55geXXw==}
+    dependencies:
+      '@libsql/core': 0.5.3
+      '@libsql/hrana-client': 0.5.6
+      js-base64: 3.7.7
+      libsql: 0.3.8
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+
+  /@libsql/core@0.5.3:
+    resolution: {integrity: sha512-vccnRnLIeru4hacfowXDZZRxYyFWN8Z6CSs+951rH7w9JOMzwmetn5IYsXw5VcOIf0P0aLa86Uhvl1MF8jM6pA==}
+    dependencies:
+      js-base64: 3.7.7
+
+  /@libsql/darwin-arm64@0.3.8:
+    resolution: {integrity: sha512-uh9dfDsmx0NfBjJbFm8APPD8E5s18mxmmmuH4IdSTl/xdv9URAeYo8zv9s2SHgM62QbUUcokLDzLgFfOGSsFBA==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/darwin-x64@0.3.8:
+    resolution: {integrity: sha512-+5CSFTMs86thuUJW2emzCqrZunueR4ilUV9J1HeZgUtSiQg32/z5GdCR0027JgALqB++yhFGY4WK4SNAPWdKaA==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/hrana-client@0.5.6:
+    resolution: {integrity: sha512-mjQoAmejZ1atG+M3YR2ZW+rg6ceBByH/S/h17ZoYZkqbWrvohFhXyz2LFxj++ARMoY9m6w3RJJIRdJdmnEUlFg==}
+    dependencies:
+      '@libsql/isomorphic-fetch': 0.1.12
+      '@libsql/isomorphic-ws': 0.1.5
+      js-base64: 3.7.7
+      node-fetch: 3.3.2
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+
+  /@libsql/isomorphic-fetch@0.1.12:
+    resolution: {integrity: sha512-MRo4UcmjAGAa3ac56LoD5OE13m2p0lu0VEtZC2NZMcogM/jc5fU9YtMQ3qbPjFJ+u2BBjFZgMPkQaLS1dlMhpg==}
+    dependencies:
+      '@types/node-fetch': 2.6.11
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+
+  /@libsql/isomorphic-ws@0.1.5:
+    resolution: {integrity: sha512-DtLWIH29onUYR00i0GlQ3UdcTRC6EP4u9w/h9LxpUZJWRMARk6dQwZ6Jkd+QdwVpuAOrdxt18v0K2uIYR3fwFg==}
+    dependencies:
+      '@types/ws': 8.5.8
+      ws: 8.16.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  /@libsql/linux-arm64-gnu@0.3.8:
+    resolution: {integrity: sha512-s9blvMx2tA0HGnTHUhEtZZoBLoZqaTxVyjM4qFrxJO84GP902N/DXtbxO2ib6Jbs5rom+78DkpHmi7PzBDLCZA==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/linux-arm64-musl@0.3.8:
+    resolution: {integrity: sha512-Gw+g5GbeAXdONzpmKVvvdIk/8cCjn0MeN8KNm59xbuwWnkA0NCz94UMD725xOoyl3z+olBxhAdE5yEznLSTcag==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/linux-x64-gnu@0.3.8:
+    resolution: {integrity: sha512-XRpzXlbM0ZvPVB8/bhun/4dhRUt4PBo1zTz0njaWo/EQoZNGQkps1IZv7v3wR40Kcug4qvmuXTCGuYPQN4QI7w==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/linux-x64-musl@0.3.8:
+    resolution: {integrity: sha512-gjqjqXpSBj3aB7Q2D0zgoYlquJr8WkPXaByjXE4XYNzcRRg6o+q3V3Uv9s6yhKBoLiBsltUETFJLCoQNzUv9kA==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/win32-x64-msvc@0.3.8:
+    resolution: {integrity: sha512-KbqqgbL2iBciVFZSJ//36U0Fr6P6AAcLpJPqVckRdNOC43whZlKNglmjtzQDOq3+UVieC8OkLUPEDShRIcSDZA==}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    optional: true
+
   /@lukeed/ms@2.0.2:
     resolution: {integrity: sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA==}
     engines: {node: '>=8'}
     dev: true
+
+  /@neon-rs/load@0.0.4:
+    resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
 
   /@next/env@14.1.0:
     resolution: {integrity: sha512-Py8zIo+02ht82brwwhTg36iogzFqGLPXlRGKQw5s+qP/kMNc4MAyDeEwBKDijk6zTIbegEgu8Qy7C1LboslQAw==}
@@ -4744,6 +4857,12 @@ packages:
     resolution: {integrity: sha512-iJt33IQnVRkqeqC7PzBHPTC6fDlRNRW8vjrgqtScAhrmMwe8c4Eo7+fUGTa+XdWrpEgpyKWMYmi2dIwMAYRzPw==}
     dev: false
 
+  /@types/node-fetch@2.6.11:
+    resolution: {integrity: sha512-24xFj9R5+rfQJLRyM56qh+wnVSYhyXC2tkoBndtY0U+vubqNsYXGjufB2nn8Q6gt0LrARwL6UBtMCSVCwl4B1g==}
+    dependencies:
+      '@types/node': 20.11.16
+      form-data: 4.0.0
+
   /@types/node-fetch@2.6.2:
     resolution: {integrity: sha512-DHqhlq5jeESLy19TYhLakJ07kNumXWjcDdxXsLUMJZ6ue8VZJj4kLPQVE/2mdHh3xZziNF1xppu5lwmS53HR+A==}
     dependencies:
@@ -6056,6 +6175,10 @@ packages:
     resolution: {integrity: sha512-ND9qDTLc6diwj+Xe5cdAgVTbLVdXbtxTJRXRhli8Mowuaan+0EJOtdqJ0QCHNSSPyoXGx9HX2/VMnKeC34AChA==}
     dev: true
 
+  /data-uri-to-buffer@4.0.1:
+    resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
+    engines: {node: '>= 12'}
+
   /debounce-fn@4.0.0:
     resolution: {integrity: sha512-8pYCQiL9Xdcg0UPSD3d+0KMlOjp+KGU5EPwYddgzQ7DATsg4fuUDjQtsYLmWjnk2obnNHgV3vE2Y4jejSOJVBQ==}
     engines: {node: '>=10'}
@@ -6177,6 +6300,10 @@ packages:
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
     dev: true
 
+  /detect-libc@2.0.2:
+    resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
+    engines: {node: '>=8'}
+
   /detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
     dev: false
@@ -6284,7 +6411,7 @@ packages:
       - supports-color
     dev: true
 
-  /drizzle-orm@0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0):
+  /drizzle-orm@0.29.3(@aws-sdk/client-rds-data@3.507.0)(@cloudflare/workers-types@4.20240129.0)(@libsql/client@0.5.3)(@opentelemetry/api@1.7.0)(@planetscale/database@1.15.0)(kysely@0.25.0)(react@18.2.0):
     resolution: {integrity: sha512-uSE027csliGSGYD0pqtM+SAQATMREb3eSM/U8s6r+Y0RFwTKwftnwwSkqx3oS65UBgqDOM0gMTl5UGNpt6lW0A==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -6357,13 +6484,14 @@ packages:
     dependencies:
       '@aws-sdk/client-rds-data': 3.507.0
       '@cloudflare/workers-types': 4.20240129.0
+      '@libsql/client': 0.5.3
       '@opentelemetry/api': 1.7.0
       '@planetscale/database': 1.15.0
       kysely: 0.25.0
       react: 18.2.0
     dev: false
 
-  /drizzle-orm@0.29.3(@aws-sdk/client-rds-data@3.507.0)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0):
+  /drizzle-orm@0.29.3(@aws-sdk/client-rds-data@3.507.0)(@libsql/client@0.5.3)(@planetscale/database@1.15.0)(@types/react@18.2.55)(kysely@0.25.0)(mysql2@3.9.1)(react@18.2.0):
     resolution: {integrity: sha512-uSE027csliGSGYD0pqtM+SAQATMREb3eSM/U8s6r+Y0RFwTKwftnwwSkqx3oS65UBgqDOM0gMTl5UGNpt6lW0A==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -6435,6 +6563,7 @@ packages:
         optional: true
     dependencies:
       '@aws-sdk/client-rds-data': 3.507.0
+      '@libsql/client': 0.5.3
       '@planetscale/database': 1.15.0
       '@types/react': 18.2.55
       kysely: 0.25.0
@@ -7222,6 +7351,13 @@ packages:
     dependencies:
       reusify: 1.0.4
 
+  /fetch-blob@3.2.0:
+    resolution: {integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==}
+    engines: {node: ^12.20 || >= 14.13}
+    dependencies:
+      node-domexception: 1.0.0
+      web-streams-polyfill: 3.2.1
+
   /fetch-retry@5.0.6:
     resolution: {integrity: sha512-3yurQZ2hD9VISAhJJP9bpYFNQrHHBXE2JxxjY5aLEcDi46RmAzJE2OC9FAde0yis5ElW0jTTzs0zfg/Cca4XqQ==}
     dev: false
@@ -7320,6 +7456,12 @@ packages:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
+
+  /formdata-polyfill@4.0.10:
+    resolution: {integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==}
+    engines: {node: '>=12.20.0'}
+    dependencies:
+      fetch-blob: 3.2.0
 
   /forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -8069,6 +8211,9 @@ packages:
     resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
     dev: true
 
+  /js-base64@3.7.7:
+    resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
+
   /js-cookie@3.0.1:
     resolution: {integrity: sha512-+0rgsUXZu4ncpPxRL+lNEptWMOWl9etvPHc/koSRp6MPwpRYAhmk0dUG00J4bxVV3r9uUzfo24wW0knS07SKSw==}
     engines: {node: '>=12'}
@@ -8227,6 +8372,22 @@ packages:
       prelude-ls: 1.2.1
       type-check: 0.4.0
     dev: true
+
+  /libsql@0.3.8:
+    resolution: {integrity: sha512-tz12gCfDXl6WKwtpxpw6PaZtkecHQQQTHuuj6RLQvEfOB17bPpmo8xdC55S4J6fx6qzmqJbaLZSlA6gYJgUXkg==}
+    cpu: [x64, arm64]
+    os: [darwin, linux, win32]
+    dependencies:
+      '@neon-rs/load': 0.0.4
+      detect-libc: 2.0.2
+    optionalDependencies:
+      '@libsql/darwin-arm64': 0.3.8
+      '@libsql/darwin-x64': 0.3.8
+      '@libsql/linux-arm64-gnu': 0.3.8
+      '@libsql/linux-arm64-musl': 0.3.8
+      '@libsql/linux-x64-gnu': 0.3.8
+      '@libsql/linux-x64-musl': 0.3.8
+      '@libsql/win32-x64-msvc': 0.3.8
 
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
@@ -8740,9 +8901,32 @@ packages:
       tslib: 2.6.2
     dev: false
 
+  /node-domexception@1.0.0:
+    resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
+    engines: {node: '>=10.5.0'}
+
   /node-fetch-native@1.0.1:
     resolution: {integrity: sha512-VzW+TAk2wE4X9maiKMlT+GsPU4OMmR1U9CrHSmd3DFLn2IcZ9VJ6M6BBugGfYUnPCLSYxXdZy17M0BEJyhUTwg==}
     dev: false
+
+  /node-fetch@2.7.0:
+    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+    dependencies:
+      whatwg-url: 5.0.0
+
+  /node-fetch@3.3.2:
+    resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      data-uri-to-buffer: 4.0.1
+      fetch-blob: 3.2.0
+      formdata-polyfill: 4.0.10
 
   /node-forge@1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
@@ -10335,6 +10519,9 @@ packages:
     engines: {node: '>=0.6'}
     dev: true
 
+  /tr46@0.0.3:
+    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+
   /tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
@@ -10831,7 +11018,6 @@ packages:
   /web-streams-polyfill@3.2.1:
     resolution: {integrity: sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==}
     engines: {node: '>= 8'}
-    dev: true
 
   /webcrypto-core@1.7.7:
     resolution: {integrity: sha512-7FjigXNsBfopEj+5DV2nhNpfic2vumtjjgPmeDKk45z+MJwXKKfhPB7118Pfzrmh4jqOMST6Ch37iPAHoImg5g==}
@@ -10841,6 +11027,9 @@ packages:
       asn1js: 3.0.5
       pvtsutils: 1.3.5
       tslib: 2.6.2
+
+  /webidl-conversions@3.0.1:
+    resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
   /websocket-stream@5.5.2:
     resolution: {integrity: sha512-8z49MKIHbGk3C4HtuHWDtYX8mYej1wWabjthC/RupM9ngeukU4IWoM46dgth1UOS/T4/IqgEdCDJuMe2039OQQ==}
@@ -10855,6 +11044,12 @@ packages:
       - bufferutil
       - utf-8-validate
     dev: true
+
+  /whatwg-url@5.0.0:
+    resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
+    dependencies:
+      tr46: 0.0.3
+      webidl-conversions: 3.0.1
 
   /which-boxed-primitive@1.0.2:
     resolution: {integrity: sha512-bwZdv0AKLpplFY2KZRX6TvyuN7ojjr7lwkg6ml0roIy9YeuSr7JS372qlNW18UQYzgYK9ziGcerWqZOmEn9VNg==}

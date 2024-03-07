@@ -1,6 +1,6 @@
 import * as schema from '@optra/db/schema';
-import { connect } from '@planetscale/database';
-import { drizzle, PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
+import { createClient } from '@libsql/client/web';
+import { drizzle, LibSQLDatabase } from 'drizzle-orm/libsql';
 import { InferSelectModel, InferInsertModel, eq, and, isNull } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
@@ -9,16 +9,13 @@ import { z } from 'zod';
 export * from 'drizzle-orm';
 export * from '@optra/db/index';
 
-export function createConnection(url: string) {
-	const connection = connect({
+export function createConnection(url: string, authToken: string) {
+	const client = createClient({
 		url,
-		fetch: (url: string, init: any) => {
-			init.cache = undefined;
-			return fetch(url, init);
-		},
+		authToken,
 	});
 
-	return drizzle(connection, {
+	return drizzle(client, {
 		schema,
 	});
 }
@@ -94,8 +91,8 @@ export interface Db {
 	rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<{ id: string }>;
 }
 
-export class PlanetScaleDb implements Db {
-	constructor(private readonly db: PlanetScaleDatabase<typeof schema>) {
+export class LibSQLDb implements Db {
+	constructor(private readonly db: LibSQLDatabase<typeof schema>) {
 		this.db.query;
 	}
 

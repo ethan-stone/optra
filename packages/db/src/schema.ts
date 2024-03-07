@@ -1,54 +1,54 @@
 import { relations } from "drizzle-orm";
 import {
-  mysqlEnum,
-  mysqlTable,
+  sqliteTable,
   index,
-  varchar,
+  text,
   int,
-  datetime,
-  json,
+  integer,
   unique,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/sqlite-core";
 import { z } from "zod";
 
-export const clients = mysqlTable(
+export const clients = sqliteTable(
   "clients",
   {
-    id: varchar("id", { length: 100 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
+    id: text("id", { length: 100 }).primaryKey(),
+    name: text("name", { length: 255 }).notNull(),
     version: int("version").notNull(),
-    clientIdPrefix: varchar("client_id_prefix", { length: 36 }), // will be applied to client id
-    clientSecretPrefix: varchar("client_secret_prefix", { length: 36 }), // will be applied to client id
-    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
-    forWorkspaceId: varchar("for_workspace_id", { length: 36 }),
-    apiId: varchar("api_id", { length: 36 }).notNull(),
-    currentClientSecretId: varchar("current_client_secret_id", {
+    clientIdPrefix: text("client_id_prefix", { length: 36 }), // will be applied to client id
+    clientSecretPrefix: text("client_secret_prefix", { length: 36 }), // will be applied to client id
+    workspaceId: text("workspace_id", { length: 36 }).notNull(),
+    forWorkspaceId: text("for_workspace_id", { length: 36 }),
+    apiId: text("api_id", { length: 36 }).notNull(),
+    currentClientSecretId: text("current_client_secret_id", {
       length: 36,
     }).notNull(),
-    nextClientSecretId: varchar("next_client_secret_id", { length: 36 }),
+    nextClientSecretId: text("next_client_secret_id", { length: 36 }),
     rateLimitBucketSize: int("rate_limit_bucket_size"),
     rateLimitRefillAmount: int("rate_limit_refill_amount"),
     rateLimitRefillInterval: int("rate_limit_refill_interval"), // in milliseconds
-    metadata: json("metadata").$type<Record<string, unknown>>(),
-    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
-    deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
+    metadata: text("metadata", { mode: "json" }).$type<
+      Record<string, unknown>
+    >(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    deletedAt: integer("deleted_at", { mode: "timestamp" }),
   },
   (table) => {
     return {
-      workspaceIdIdx: index("workspace_id_idx").on(table.workspaceId),
+      workspaceIdIdx: index("clients_workspace_id_idx").on(table.workspaceId),
       forWorkspaceIdIdx: index("for_workspace_id_idx").on(table.forWorkspaceId),
     };
   }
 );
 
-export const clientSecrets = mysqlTable("client_secrets", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  secret: varchar("secret", { length: 255 }).notNull(),
-  status: mysqlEnum("status", ["active", "revoked"]).notNull(),
-  expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
-  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-  deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
+export const clientSecrets = sqliteTable("client_secrets", {
+  id: text("id", { length: 36 }).primaryKey(),
+  secret: text("secret", { length: 255 }).notNull(),
+  status: text("status", { enum: ["active", "revoked"] }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  deletedAt: integer("deleted_at", { mode: "timestamp" }),
 });
 
 /**
@@ -87,17 +87,17 @@ export type SubscriptionPricing = z.infer<typeof SubscriptionPricing>;
 
 export type Subscriptions = z.infer<typeof Subscriptions>;
 
-export const workspaces = mysqlTable(
+export const workspaces = sqliteTable(
   "workspaces",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
-    tenantId: varchar("tenant_id", { length: 36 }).notNull(),
-    dataEncryptionKeyId: varchar("data_encryption_key_id", {
+    id: text("id", { length: 36 }).primaryKey(),
+    name: text("name", { length: 255 }).notNull(),
+    tenantId: text("tenant_id", { length: 36 }).notNull(),
+    dataEncryptionKeyId: text("data_encryption_key_id", {
       length: 36,
     }).notNull(),
-    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   },
   (table) => {
     return {
@@ -111,60 +111,60 @@ export const workspaces = mysqlTable(
 
 // separate table for billing to decouple billing from the rest of the workspace
 // otherwise it would be very difficult to test and bootstrap
-export const workspaceBillingInfo = mysqlTable("workspace_billing_info", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
-  plan: mysqlEnum("plan", ["free", "pro", "enterprise"]).notNull(),
-  customerId: varchar("customer_id", { length: 36 }).notNull(),
-  subscriptions: json("subscription").$type<Subscriptions>(),
-  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-  updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+export const workspaceBillingInfo = sqliteTable("workspace_billing_info", {
+  id: text("id", { length: 36 }).primaryKey(),
+  workspaceId: text("workspace_id", { length: 36 }).notNull(),
+  plan: text("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
+  customerId: text("customer_id", { length: 36 }).notNull(),
+  subscriptions: text("subscription", { mode: "json" }).$type<Subscriptions>(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-export const apis = mysqlTable(
+export const apis = sqliteTable(
   "apis",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
-    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
-    currentSigningSecretId: varchar("current_signing_secret_id", {
+    id: text("id", { length: 36 }).primaryKey(),
+    name: text("name", { length: 255 }).notNull(),
+    workspaceId: text("workspace_id", { length: 36 }).notNull(),
+    currentSigningSecretId: text("current_signing_secret_id", {
       length: 36,
     }).notNull(),
-    nextSigningSecretId: varchar("next_signing_secret_id", {
+    nextSigningSecretId: text("next_signing_secret_id", {
       length: 36,
     }),
-    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
-    deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    deletedAt: integer("deleted_at", { mode: "timestamp" }),
   },
   (table) => {
     return {
-      workspaceIdIdx: index("workspace_id_idx").on(table.workspaceId),
+      workspaceIdIdx: index("apis_workspace_id_idx").on(table.workspaceId),
     };
   }
 );
 
-export const signingSecrets = mysqlTable("signing_secrets", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  secret: varchar("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
-  iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
-  algorithm: mysqlEnum("algorithm", ["rsa256", "hsa256"]).notNull(),
-  status: mysqlEnum("status", ["active", "revoked"]).notNull(),
-  expiresAt: datetime("expires_at", { fsp: 3, mode: "date" }),
-  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-  updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
-  deletedAt: datetime("deleted_at", { fsp: 3, mode: "date" }),
+export const signingSecrets = sqliteTable("signing_secrets", {
+  id: text("id", { length: 36 }).primaryKey(),
+  secret: text("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
+  iv: text("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
+  algorithm: text("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
+  status: text("status", { enum: ["active", "revoked"] }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  deletedAt: integer("deleted_at", { mode: "timestamp" }),
 });
 
-export const apiScopes = mysqlTable(
+export const apiScopes = sqliteTable(
   "api_scopes",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    apiId: varchar("api_id", { length: 36 }).notNull(),
-    name: varchar("name", { length: 255 }).notNull(),
-    description: varchar("description", { length: 1024 }).default(""),
-    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+    id: text("id", { length: 36 }).primaryKey(),
+    apiId: text("api_id", { length: 36 }).notNull(),
+    name: text("name", { length: 255 }).notNull(),
+    description: text("description", { length: 1024 }).default(""),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   },
   (table) => {
     return {
@@ -174,14 +174,14 @@ export const apiScopes = mysqlTable(
   }
 );
 
-export const clientScopes = mysqlTable(
+export const clientScopes = sqliteTable(
   "client_scopes",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    clientId: varchar("client_id", { length: 36 }).notNull(),
-    apiScopeId: varchar("api_scope_id", { length: 36 }).notNull(),
-    createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
-    updatedAt: datetime("updated_at", { fsp: 3, mode: "date" }).notNull(),
+    id: text("id", { length: 36 }).primaryKey(),
+    clientId: text("client_id", { length: 36 }).notNull(),
+    apiScopeId: text("api_scope_id", { length: 36 }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   },
   (table) => {
     return {
@@ -191,10 +191,10 @@ export const clientScopes = mysqlTable(
   }
 );
 
-export const dataEncryptionKeys = mysqlTable("data_encryption_keys", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  key: varchar("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
-  createdAt: datetime("created_at", { fsp: 3, mode: "date" }).notNull(),
+export const dataEncryptionKeys = sqliteTable("data_encryption_keys", {
+  id: text("id", { length: 36 }).primaryKey(),
+  key: text("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
 export const clientRelations = relations(clients, ({ one, many }) => {

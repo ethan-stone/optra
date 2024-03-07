@@ -13,6 +13,7 @@
     "@aws-sdk/client-kms": "^3.507.0",
     "@aws-sdk/client-s3": "^3.507.0",
     "@clerk/nextjs": "^4.29.6",
+    "@libsql/client": "^0.5.3",
     "@optra/db": "workspace:^",
     "@planetscale/database": "^1.11.0",
     "@radix-ui/react-dialog": "^1.0.5",

@@ -20,6 +20,7 @@
     "@aws-sdk/client-lambda": "^3.507.0",
     "@aws-sdk/client-sqs": "^3.507.0",
     "@aws-sdk/lib-dynamodb": "^3.507.0",
+    "@libsql/client": "^0.5.3",
     "@planetscale/database": "^1.15.0",
     "drizzle-orm": "^0.29.3",
     "stripe": "^14.15.0",

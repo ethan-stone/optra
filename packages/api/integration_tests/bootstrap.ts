@@ -1,6 +1,6 @@
 import { bootstrap } from '@optra/bootstrap';
 import * as schema from '@optra/db/schema';
-import { connect } from '@planetscale/database';
+import { createClient } from '@libsql/client';
 import {
 	DRIZZLE_DATABASE_URL,
 	AWS_ACCESS_KEY_ID,
@@ -9,8 +9,9 @@ import {
 	CF_ACCESS_KEY_ID,
 	CF_SECRET_ACCESS_KEY,
 	CF_R2_ENDPOINT,
+	DRIZZLE_DATABASE_TOKEN,
 } from './env';
-import { drizzle } from 'drizzle-orm/planetscale-serverless';
+import { drizzle } from 'drizzle-orm/libsql';
 import { writeFileSync } from 'fs';
 import { KMSClient } from '@aws-sdk/client-kms';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -22,8 +23,9 @@ function format(obj: Record<string, any>): string {
 }
 
 export async function bootstrapTests() {
-	const connection = connect({
+	const connection = createClient({
 		url: DRIZZLE_DATABASE_URL,
+		authToken: DRIZZLE_DATABASE_TOKEN,
 	});
 
 	const db = drizzle(connection, {

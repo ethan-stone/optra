@@ -1,6 +1,6 @@
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
 import * as schema from '@optra/db/schema';
-import { PlanetScaleDatabase } from 'drizzle-orm/planetscale-serverless';
+import { LibSQLDatabase } from 'drizzle-orm/libsql';
 import { eq } from '@/db';
 import { Buffer } from '@/buffer';
 
@@ -12,7 +12,11 @@ export interface KeyManagementService {
 }
 
 export class AWSKeyManagementService implements KeyManagementService {
-	constructor(private client: KMSClient, private db: PlanetScaleDatabase<typeof schema>, private customerKeyId: string) {}
+	constructor(
+		private client: KMSClient,
+		private db: LibSQLDatabase<typeof schema>,
+		private customerKeyId: string,
+	) {}
 
 	public async encryptWithCustomerKey(plaintext: Uint8Array): Promise<Uint8Array> {
 		const command = new EncryptCommand({
@@ -81,7 +85,7 @@ export class AWSKeyManagementService implements KeyManagementService {
 				iv: iv,
 			},
 			importedKey,
-			plaintext
+			plaintext,
 		);
 
 		return {
@@ -120,7 +124,7 @@ export class AWSKeyManagementService implements KeyManagementService {
 				name: 'AES-GCM',
 			},
 			importedKey,
-			ciphertext
+			ciphertext,
 		);
 
 		return {

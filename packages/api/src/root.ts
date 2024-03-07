@@ -1,4 +1,4 @@
-import { createConnection, Db, PlanetScaleDb } from '@/db';
+import { createConnection, Db, LibSQLDb } from '@/db';
 import { TokenBucket } from '@/ratelimit';
 import { KeyManagementService, AWSKeyManagementService } from '@/key-management';
 import { KMSClient } from '@aws-sdk/client-kms';
@@ -21,6 +21,7 @@ let hasInitialized = false;
 export function initialize(env: {
 	env: 'development' | 'production';
 	dbUrl: string;
+	dbAuthToken: string;
 	awsAccessKeyId: string;
 	awsSecretAccessKey: string;
 	awsKMSKeyArn: string;
@@ -36,9 +37,9 @@ export function initialize(env: {
 		return;
 	}
 
-	const conn = createConnection(env.dbUrl);
+	const conn = createConnection(env.dbUrl, env.dbAuthToken);
 
-	db = new PlanetScaleDb(conn);
+	db = new LibSQLDb(conn);
 
 	keyManagementService = new AWSKeyManagementService(
 		new KMSClient({

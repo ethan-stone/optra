@@ -1,9 +1,9 @@
 import { schema } from "@optra/db";
 import { bootstrap } from "./index";
-import { connect } from "@planetscale/database";
-import { drizzle } from "drizzle-orm/planetscale-serverless";
+import { drizzle } from "drizzle-orm/libsql";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { S3Client } from "@aws-sdk/client-s3";
+import { createClient } from "@libsql/client";
 
 function format(obj: Record<string, any>): string {
   return Object.entries(obj)
@@ -12,8 +12,9 @@ function format(obj: Record<string, any>): string {
 }
 
 async function main() {
-  const connection = connect({
+  const connection = createClient({
     url: process.env.DRIZZLE_DATABASE_URL!,
+    authToken: process.env.DRIZZLE_DATABASE_TOKEN!,
   });
 
   const db = drizzle(connection, {

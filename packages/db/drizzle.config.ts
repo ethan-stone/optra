@@ -3,8 +3,9 @@ import type { Config } from "drizzle-kit";
 export default {
   schema: "./src/schema.ts",
   out: "./drizzle",
-  driver: "mysql2",
+  driver: "turso",
   dbCredentials: {
-    uri: process.env.DRIZZLE_DATABASE_URL!,
+    url: process.env.DRIZZLE_DATABASE_URL!,
+    authToken: process.env.DRIZZLE_DATABASE_TOKEN!,
   },
 } satisfies Config;
