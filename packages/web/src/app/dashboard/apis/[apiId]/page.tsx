@@ -5,5 +5,5 @@ type ApiPageProps = {
 };
 
 export default async function ApiPage(props: ApiPageProps) {
-  return redirect(`/dashboard/apis/${props.params.apiId}/settings`);
+  return redirect(`/dashboard/apis/${props.params.apiId}/overview`);
 }

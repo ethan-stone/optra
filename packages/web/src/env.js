@@ -25,6 +25,10 @@ export const env = createEnv({
         "You forgot to change the default URL",
       ),
     DATABASE_TOKEN: z.string(),
+    TINY_BIRD_BASE_URL: z.string().url(),
+    TINY_BIRD_API_KEY: z.string(),
+    TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT: z.string().url(),
+    TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -60,6 +64,12 @@ export const env = createEnv({
     CF_JWKS_BUCKET_NAME: process.env.CF_JWKS_BUCKET_NAME,
     OPTRA_API_ID: process.env.OPTRA_API_ID,
     OPTRA_WORKSPACE_ID: process.env.OPTRA_WORKSPACE_ID,
+    TINY_BIRD_API_KEY: process.env.TINY_BIRD_API_KEY,
+    TINY_BIRD_BASE_URL: process.env.TINY_BIRD_BASE_URL,
+    TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT:
+      process.env.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
+    TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT:
+      process.env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

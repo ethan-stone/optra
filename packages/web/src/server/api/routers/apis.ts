@@ -6,7 +6,7 @@ import { uid } from "@/utils/uid";
 import { schema } from "@optra/db";
 import { storageBucket } from "@/server/storage-bucket";
 import { eq } from "drizzle-orm";
-import { getWorkspacweByTenantId } from "@/server/data/workspaces";
+import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import {
   addScopeToApi,
   deleteApiScopeById,
@@ -204,7 +204,7 @@ export const apisRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const workspace = await getWorkspacweByTenantId(ctx.tenant.id);
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
@@ -239,7 +239,7 @@ export const apisRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const workspace = await getWorkspacweByTenantId(ctx.tenant.id);
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
