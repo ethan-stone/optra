@@ -110,7 +110,7 @@ export function RootClients(props: Props) {
       <DialogContent>
         <div className="mt-2">
           <p className="font-semibold">Client ID</p>
-          <pre className="inlineflex border-border focus:ring-ring bg-muted text-primary hover:border-primary ph-no-capture flex w-full items-center justify-between gap-2 rounded-md border px-2.5 py-2 font-mono text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 max-sm:text-xs sm:overflow-hidden">
+          <pre className="inlineflex ph-no-capture flex w-full items-center justify-between gap-2 rounded-md border border-border bg-muted px-2.5 py-2 font-mono text-sm text-primary transition-colors hover:border-primary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 max-sm:text-xs sm:overflow-hidden">
             <pre>{clientId}</pre>
             <div>
               <Button
@@ -124,7 +124,7 @@ export function RootClients(props: Props) {
         </div>
         <div className="mb-4">
           <p className="font-semibold">Client Secret</p>
-          <pre className="inlineflex border-border focus:ring-ring bg-muted text-primary hover:border-primary ph-no-capture flex w-full items-center justify-between gap-2 rounded-md border px-2.5 py-2 font-mono text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 max-sm:text-xs sm:overflow-hidden">
+          <pre className="inlineflex ph-no-capture flex w-full items-center justify-between gap-2 rounded-md border border-border bg-muted px-2.5 py-2 font-mono text-sm text-primary transition-colors hover:border-primary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 max-sm:text-xs sm:overflow-hidden">
             <pre>
               {showSecret ? clientSecret : "********************************"}
             </pre>

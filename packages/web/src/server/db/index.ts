@@ -7,7 +7,7 @@ import { schema } from "@optra/db";
 export const db = drizzle(
   createClient({
     url: env.DATABASE_URL,
-    // authToken: env.DRIZZLE_AUTH_TOKEN,
+    authToken: env.DATABASE_TOKEN,
   }),
   { schema },
 );
