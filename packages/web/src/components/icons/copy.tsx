@@ -1,5 +1,3 @@
-"use server";
-
 export function CopyIcon() {
   return (
     <svg

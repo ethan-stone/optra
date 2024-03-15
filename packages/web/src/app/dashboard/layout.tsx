@@ -1,12 +1,12 @@
 import { type PropsWithChildren } from "react";
-import { Dashboard } from "./sidebar";
+import { DashboardSidebar } from "./sidebar";
 
 type DashboardPageProps = PropsWithChildren;
 
 export default function DashboardPageLayout(props: DashboardPageProps) {
   return (
-    <main className="flex min-h-screen items-center">
-      <Dashboard />
+    <main className="relative flex min-h-screen flex-col">
+      <DashboardSidebar />
       {props.children}
     </main>
   );

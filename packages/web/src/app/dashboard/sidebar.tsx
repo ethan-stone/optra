@@ -1,26 +1,29 @@
 "use client";
 
 import { Sidebar } from "@/components/ui/sidebar";
-import { Copy } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Code, Settings } from "lucide-react";
 
-export function Dashboard() {
+export function DashboardSidebar() {
   return (
-    <Sidebar
-      isCollapsed={false}
-      links={[
-        {
-          title: "Inbox",
-          label: "128",
-          icon: Copy,
-          variant: "default",
-        },
-        {
-          title: "Drafts",
-          label: "9",
-          icon: Copy,
-          variant: "ghost",
-        },
-      ]}
-    />
+    <TooltipProvider delayDuration={0}>
+      <Sidebar
+        isCollapsed={false}
+        links={[
+          {
+            title: "APIs",
+            icon: Code,
+            variant: "ghost",
+            href: "/dashboard/apis",
+          },
+          {
+            title: "Settings",
+            icon: Settings,
+            variant: "ghost",
+            href: "/dashboard/settings",
+          },
+        ]}
+      />
+    </TooltipProvider>
   );
 }

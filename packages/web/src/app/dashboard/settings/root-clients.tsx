@@ -1,6 +1,5 @@
 "use client";
 
-import { CopyIcon } from "@/components/icons/copy";
 import { EyeIcon } from "@/components/icons/eye";
 import { EyeSlashIcon } from "@/components/icons/eye-slash";
 import { Spinner } from "@/components/icons/spinner";
@@ -9,6 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
+import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -117,7 +117,7 @@ export function RootClients(props: Props) {
                 className="w-min bg-transparent hover:bg-stone-200"
                 onClick={() => navigator.clipboard.writeText(clientId)}
               >
-                <CopyIcon />
+                <Copy className="h-5 w-5 text-stone-900" />
               </Button>
             </div>
           </pre>
@@ -139,7 +139,7 @@ export function RootClients(props: Props) {
                 className="w-min bg-transparent hover:bg-stone-200"
                 onClick={() => navigator.clipboard.writeText(clientSecret)}
               >
-                <CopyIcon />
+                <Copy className="h-5 w-5 text-stone-900" />
               </Button>
             </div>
           </pre>
