@@ -2,12 +2,10 @@
 
 import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 function ApiItem(props: { id: string; name: string }) {
   const router = useRouter();
@@ -60,41 +58,8 @@ type Props = {
 };
 
 export function Apis(props: Props) {
-  const [apiName, setApiName] = useState("");
-
-  const router = useRouter();
-
-  const createApi = api.apis.createApi.useMutation({
-    onSuccess() {
-      setApiName("");
-      router.refresh();
-    },
-    onError(err) {
-      console.error(err);
-      alert(err.message);
-    },
-  });
-
   return (
     <>
-      <Input
-        type="text"
-        value={apiName}
-        placeholder="API Name"
-        onChange={(e) => setApiName(e.target.value)}
-      />
-      <Button
-        className="mb-6 mt-2"
-        disabled={createApi.isLoading}
-        onClick={() =>
-          createApi.mutate({
-            name: apiName,
-            algorithm: "rsa256",
-          })
-        }
-      >
-        {createApi.isLoading ? "Creating..." : "Create API"}
-      </Button>
       {props.data.map((api, idx) => (
         <ApiItem key={idx} id={api.id} name={api.name} />
       ))}

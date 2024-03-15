@@ -37,7 +37,7 @@ export default async function SettingsPageLayout(props: SettingsPageProps) {
     <main className="flex min-h-screen flex-col items-center">
       <div className="flex w-1/2 flex-col py-10">
         <h1 className="flex text-4xl">Settings</h1>
-        <p className="rounded py-1 font-thin">Manage your workspace</p>
+        <p className="rounded py-1 text-stone-500">Manage your workspace</p>
         <Tabs tabs={tabs} />
         <main className="relative mb-20 mt-8 ">{props.children}</main>
       </div>
