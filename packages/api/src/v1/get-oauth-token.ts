@@ -172,7 +172,7 @@ export function v1GetOAuthToken(app: App) {
 				// sign the jwt with the signing secret
 				const jwt = await sign(
 					{
-						exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
+						exp: Math.floor(now.getTime() / 1000) + api.tokenExpirationInSeconds,
 						iat: Math.floor(now.getTime() / 1000),
 						sub: client.id,
 						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
@@ -201,7 +201,7 @@ export function v1GetOAuthToken(app: App) {
 					{
 						accessToken: jwt,
 						tokenType: 'Bearer',
-						expiresIn: 60 * 60 * 24 * 30,
+						expiresIn: api.tokenExpirationInSeconds,
 						scope: client.scopes?.join(' '),
 					},
 					200,
@@ -214,7 +214,7 @@ export function v1GetOAuthToken(app: App) {
 
 				const jwt = await sign(
 					{
-						exp: Math.floor(now.getTime() / 1000) + 60 * 60 * 24,
+						exp: Math.floor(now.getTime() / 1000) + api.tokenExpirationInSeconds,
 						iat: Math.floor(now.getTime() / 1000),
 						sub: client.id,
 						secret_expires_at: matchedClientSecret.expiresAt ? matchedClientSecret.expiresAt.getTime() / 1000 : null,
@@ -241,7 +241,7 @@ export function v1GetOAuthToken(app: App) {
 					{
 						accessToken: jwt,
 						tokenType: 'Bearer',
-						expiresIn: 60 * 60 * 24 * 30,
+						expiresIn: api.tokenExpirationInSeconds,
 						scope: client.scopes?.join(' '),
 					},
 					200,
