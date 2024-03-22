@@ -12,6 +12,7 @@ import {
   deleteApiScopeById,
   getApiByWorkspaceIdAndApiId,
   getApiScopeById,
+  updateApiById,
 } from "@/server/data/apis";
 
 export const apisRouter = createTRPCRouter({
@@ -73,6 +74,7 @@ export const apisRouter = createTRPCRouter({
           await tx.insert(schema.apis).values({
             id: apiId,
             currentSigningSecretId: signingSecretId,
+            tokenExpirationInSeconds: 86400,
             name: input.name,
             createdAt: now,
             updatedAt: now,
@@ -126,6 +128,7 @@ export const apisRouter = createTRPCRouter({
           await tx.insert(schema.apis).values({
             id: apiId,
             currentSigningSecretId: signingSecretId,
+            tokenExpirationInSeconds: 86400,
             name: input.name,
             createdAt: now,
             updatedAt: now,
@@ -155,6 +158,40 @@ export const apisRouter = createTRPCRouter({
           message: "Invalid algorithm",
         });
       }
+    }),
+  updateApi: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1),
+        tokenExpirationInSeconds: z.number().int().min(0),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const api = await getApiByWorkspaceIdAndApiId(workspace.id, input.id);
+
+      if (!api) {
+        console.error(`API not found for workspace ${workspace.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "API not found",
+        });
+      }
+
+      await updateApiById(input.id, {
+        tokenExpirationInSeconds: input.tokenExpirationInSeconds,
+        name: input.name,
+      });
     }),
   deleteApi: protectedProcedure
     .input(

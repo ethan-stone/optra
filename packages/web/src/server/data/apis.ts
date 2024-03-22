@@ -13,6 +13,21 @@ export async function getApiByWorkspaceIdAndApiId(
   });
 }
 
+type UpdateApiByIdArgs = {
+  tokenExpirationInSeconds: number;
+  name: string;
+};
+
+export async function updateApiById(id: string, args: UpdateApiByIdArgs) {
+  await db
+    .update(schema.apis)
+    .set({
+      tokenExpirationInSeconds: args.tokenExpirationInSeconds,
+      name: args.name,
+    })
+    .where(eq(schema.apis.id, id));
+}
+
 type AddScopeToApiArgs = {
   apiId: string;
   name: string;
