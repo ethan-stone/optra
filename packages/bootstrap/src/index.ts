@@ -235,6 +235,7 @@ async function newApi(
     name: apiName,
     currentSigningSecretId: signingSecretId,
     workspaceId: args.workspaceId,
+    tokenExpirationInSeconds: 84600,
     updatedAt: new Date(),
     createdAt: new Date(),
   });

@@ -127,6 +127,7 @@ export const apis = sqliteTable(
     id: text("id", { length: 36 }).primaryKey(),
     name: text("name", { length: 255 }).notNull(),
     workspaceId: text("workspace_id", { length: 36 }).notNull(),
+    tokenExpirationInSeconds: int("token_expiration_in_seconds").notNull(), // in seconds
     currentSigningSecretId: text("current_signing_secret_id", {
       length: 36,
     }).notNull(),

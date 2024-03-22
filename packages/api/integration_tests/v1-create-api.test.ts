@@ -145,6 +145,7 @@ describe('POST /v1/apis.createApi', () => {
 					},
 				],
 				algorithm: 'hsa256',
+				tokenExpirationInSeconds: 84600,
 			}),
 			headers: {
 				'Content-Type': 'application/json',

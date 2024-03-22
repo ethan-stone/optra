@@ -20,6 +20,7 @@ const route = createRoute({
 					schema: z.object({
 						name: z.string(),
 						algorithm: z.enum(['hsa256', 'rsa256']),
+						tokenExpirationInSeconds: z.number().int().min(0).default(86400),
 						scopes: z
 							.array(
 								z.object({
@@ -61,7 +62,7 @@ export function v1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
 
-		const { name, scopes, algorithm } = c.req.valid('json');
+		const { name, scopes, algorithm, tokenExpirationInSeconds } = c.req.valid('json');
 
 		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
@@ -135,6 +136,7 @@ export function v1CreateApi(app: App) {
 
 				const { id } = await db.createApi({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
+					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),
 					algorithm,
 					name: name,
@@ -170,6 +172,7 @@ export function v1CreateApi(app: App) {
 
 				const { id, currentSigningSecretId } = await db.createApi({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
+					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),
 					algorithm,
 					name: name,
