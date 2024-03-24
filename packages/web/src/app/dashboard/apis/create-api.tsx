@@ -50,7 +50,7 @@ export function CreateApi() {
             setIsOpen(true);
           }}
         >
-          {createApi.isLoading ? "Creating..." : "Create API"}
+          Create API
         </Button>
         <DialogContent>
           <div className="flex flex-col gap-4">
