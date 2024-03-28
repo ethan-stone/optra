@@ -53,10 +53,9 @@ export function RootClients(props: Props) {
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between">
+      <div className="mb-6 flex flex-row items-center justify-between">
         <h2 className="text-2xl">Root Clients</h2>
         <Button
-          className="mb-6 mt-2"
           onClick={() => router.push("/dashboard/settings/root-clients/new")}
         >
           Create Root Client

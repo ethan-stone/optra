@@ -7,11 +7,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function NewRootClientForm() {
-  const [rootClientName, setRootClientName] = useState("");
+export function NewClientForm() {
+  const [clientName, setClientName] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
   const [clientId, setClientId] = useState("");
@@ -19,12 +19,13 @@ export function NewRootClientForm() {
   const [showSecret, setShowSecret] = useState(false);
 
   const router = useRouter();
+  const params = useParams<{ apiId: string }>();
 
-  const createRootClient = api.clients.createRootClient.useMutation({
+  const createClient = api.clients.createClient.useMutation({
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
-      setRootClientName("");
+      setClientName("");
       setIsOpen(true);
       router.refresh();
     },
@@ -46,19 +47,20 @@ export function NewRootClientForm() {
     >
       <div className="flex flex-col gap-4">
         <Input
-          value={rootClientName}
-          placeholder="Root Client Name"
-          onChange={(e) => setRootClientName(e.target.value)}
+          value={clientName}
+          placeholder="Client Name"
+          onChange={(e) => setClientName(e.target.value)}
         />
         <Button
-          disabled={createRootClient.isLoading || rootClientName.length === 0}
+          disabled={createClient.isLoading || clientName.length === 0}
           onClick={() =>
-            createRootClient.mutate({
-              name: rootClientName,
+            createClient.mutate({
+              apiId: params.apiId,
+              name: clientName,
             })
           }
         >
-          {createRootClient.isLoading ? "Creating..." : "Create Root Client"}
+          {createClient.isLoading ? "Creating..." : "Create Client"}
         </Button>
       </div>
       <DialogContent>

@@ -7,7 +7,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function NewRootClientForm() {
@@ -18,15 +17,12 @@ export function NewRootClientForm() {
   const [clientSecret, setClientSecret] = useState("");
   const [showSecret, setShowSecret] = useState(false);
 
-  const router = useRouter();
-
   const createRootClient = api.clients.createRootClient.useMutation({
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
       setRootClientName("");
       setIsOpen(true);
-      router.refresh();
     },
     onError(err) {
       console.error(err);

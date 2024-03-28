@@ -6,6 +6,9 @@ import { uid } from "@/utils/uid";
 import { schema } from "@optra/db";
 import { createHash } from "crypto";
 import { eq } from "drizzle-orm";
+import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
+import { getWorkspaceByTenantId } from "@/server/data/workspaces";
+import { createClient } from "@/server/data/clients";
 
 export const clientsRouter = createTRPCRouter({
   createRootClient: protectedProcedure
@@ -138,5 +141,50 @@ export const clientsRouter = createTRPCRouter({
           deletedAt: new Date(),
         })
         .where(eq(schema.clients.id, input.id));
+    }),
+  createClient: protectedProcedure
+    .input(
+      z.object({
+        apiId: z.string(),
+        name: z.string().min(1),
+        clientIdPrefix: z.string().optional(),
+        clientSecretPrefix: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const api = await getApiByWorkspaceIdAndApiId(workspace.id, input.apiId);
+
+      if (!api) {
+        console.error(
+          `API not found for workspace ${workspace.id} and api ${input.apiId}`,
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "API not found",
+        });
+      }
+
+      const res = await createClient({
+        apiId: api.id,
+        workspaceId: workspace.id,
+        name: input.name,
+        clientIdPrefix: input.clientIdPrefix,
+        clientSecretPrefix: input.clientSecretPrefix,
+      });
+
+      return {
+        clientId: res.clientId,
+        clientSecret: res.clientSecret,
+      };
     }),
 });

@@ -44,6 +44,11 @@ export default async function ApiPageLayout(props: ApiPageProps) {
       segment: "overview",
     },
     {
+      name: "Clients",
+      href: `/dashboard/apis/${api.id}/clients`,
+      segment: "clients",
+    },
+    {
       name: "Settings",
       href: `/dashboard/apis/${api.id}/settings`,
       segment: "settings",
