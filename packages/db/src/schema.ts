@@ -163,7 +163,7 @@ export const apiScopes = sqliteTable(
     id: text("id", { length: 36 }).primaryKey(),
     apiId: text("api_id", { length: 36 }).notNull(),
     name: text("name", { length: 255 }).notNull(),
-    description: text("description", { length: 1024 }).default(""),
+    description: text("description", { length: 1024 }).default("").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   },

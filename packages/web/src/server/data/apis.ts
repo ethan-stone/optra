@@ -13,6 +13,12 @@ export async function getApiByWorkspaceIdAndApiId(
   });
 }
 
+export async function getScopesForApi(apiId: string) {
+  return db.query.apiScopes.findMany({
+    where: (table, { eq }) => eq(table.apiId, apiId),
+  });
+}
+
 type UpdateApiByIdArgs = {
   tokenExpirationInSeconds: number;
   name: string;

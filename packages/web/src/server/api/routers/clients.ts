@@ -6,7 +6,10 @@ import { uid } from "@/utils/uid";
 import { schema } from "@optra/db";
 import { createHash } from "crypto";
 import { eq } from "drizzle-orm";
-import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
+import {
+  getApiByWorkspaceIdAndApiId,
+  getScopesForApi,
+} from "@/server/data/apis";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import {
   createClient,
@@ -151,6 +154,7 @@ export const clientsRouter = createTRPCRouter({
       z.object({
         apiId: z.string(),
         name: z.string().min(1),
+        scopes: z.array(z.string()).optional(),
         clientIdPrefix: z.string().optional(),
         clientSecretPrefix: z.string().optional(),
       }),
@@ -178,12 +182,19 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
+      const scopes = await getScopesForApi(api.id);
+
+      const matchingScopes = scopes.filter((s) =>
+        input.scopes ? input.scopes.includes(s.name) : false,
+      );
+
       const res = await createClient({
         apiId: api.id,
         workspaceId: workspace.id,
         name: input.name,
         clientIdPrefix: input.clientIdPrefix,
         clientSecretPrefix: input.clientSecretPrefix,
+        scopes: matchingScopes.map((s) => s.id),
       });
 
       return {

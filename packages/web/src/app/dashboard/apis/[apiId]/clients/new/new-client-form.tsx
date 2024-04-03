@@ -9,8 +9,14 @@ import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useDataTable } from "@/components/ui/data-table";
+import { columns } from "./columns";
 
-export function NewClientForm() {
+type Props = {
+  scopes: { id: string; name: string; description: string }[];
+};
+
+export function NewClientForm(props: Props) {
   const [clientName, setClientName] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +41,12 @@ export function NewClientForm() {
     },
   });
 
+  const { table, DataTable } = useDataTable({
+    columns,
+    data: props.scopes,
+    getRowId: (row) => row.id,
+  });
+
   return (
     <Dialog
       open={isOpen}
@@ -51,12 +63,16 @@ export function NewClientForm() {
           placeholder="Client Name"
           onChange={(e) => setClientName(e.target.value)}
         />
+        <DataTable />
         <Button
           disabled={createClient.isLoading || clientName.length === 0}
           onClick={() =>
             createClient.mutate({
               apiId: params.apiId,
               name: clientName,
+              scopes: table
+                .getSelectedRowModel()
+                .flatRows.map((row) => row.original.name),
             })
           }
         >

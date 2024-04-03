@@ -25,6 +25,7 @@ type CreateClientArgs = {
   name: string;
   clientIdPrefix?: string;
   clientSecretPrefix?: string;
+  scopes?: string[]; // api scope ids
 };
 
 export async function createClient(args: CreateClientArgs) {
@@ -62,6 +63,18 @@ export async function createClient(args: CreateClientArgs) {
       createdAt: now,
       updatedAt: now,
     });
+
+    if (args.scopes) {
+      for (const scopeId of args.scopes) {
+        await tx.insert(schema.clientScopes).values({
+          id: uid("client_scope"),
+          clientId,
+          apiScopeId: scopeId,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
   });
 
   return {
