@@ -2,6 +2,7 @@
 
 import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 
@@ -39,6 +40,7 @@ export function ClientItem(props: Props) {
           </Button>
         </div>
       </div>
+      <Separator />
     </div>
   );
 }
