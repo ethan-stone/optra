@@ -451,6 +451,19 @@ export class TokenService implements TokenService {
 
 		if (!client.rateLimitBucketSize || !client.rateLimitRefillAmount || !client.rateLimitRefillInterval) {
 			logger.info(`Client ${client.id} has no rate limit. Token is valid.`);
+
+			ctx.executionCtx.waitUntil(
+				analytics.publish('token.verified', [
+					{
+						apiId: client.apiId,
+						clientId: client.id,
+						workspaceId: client.workspaceId,
+						timestamp: Date.now(),
+						deniedReason: null,
+					},
+				]),
+			);
+
 			return {
 				valid: true,
 				client,
