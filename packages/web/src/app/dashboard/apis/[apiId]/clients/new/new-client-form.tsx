@@ -63,6 +63,7 @@ export function NewClientForm(props: Props) {
           placeholder="Client Name"
           onChange={(e) => setClientName(e.target.value)}
         />
+        <h4>Permissions</h4>
         <DataTable />
         <Button
           disabled={createClient.isLoading || clientName.length === 0}
