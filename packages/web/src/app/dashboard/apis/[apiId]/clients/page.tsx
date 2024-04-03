@@ -15,8 +15,8 @@ export default async function Clients(props: PageProps) {
         <h2 className="text-2xl">Clients</h2>
         <CreateClientButton />
       </div>
-      {clients.map((_, idx) => (
-        <ClientItem key={idx} />
+      {clients.map((c, idx) => (
+        <ClientItem key={idx} name={c.name} id={c.id} />
       ))}
     </>
   );

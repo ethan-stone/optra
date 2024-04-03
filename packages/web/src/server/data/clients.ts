@@ -2,6 +2,7 @@ import { schema } from "@optra/db";
 import { db } from "../db";
 import { uid } from "@/utils/uid";
 import { hashSHA256 } from "@/utils/hash";
+import { eq } from "drizzle-orm";
 
 export async function getTotalClientsForApi(apiId: string) {
   const clients = await db.query.clients.findMany({
@@ -13,7 +14,8 @@ export async function getTotalClientsForApi(apiId: string) {
 
 export async function getClientsByApi(apiId: string) {
   return db.query.clients.findMany({
-    where: (table, { eq }) => eq(table.apiId, apiId),
+    where: (table, { eq, and, isNull }) =>
+      and(isNull(table.deletedAt), eq(table.apiId, apiId)),
   });
 }
 
@@ -66,4 +68,23 @@ export async function createClient(args: CreateClientArgs) {
     clientId,
     clientSecret,
   };
+}
+
+export async function getClientByWorkspaceIdAndClientId(
+  workspaceId: string,
+  clientId: string,
+) {
+  return db.query.clients.findFirst({
+    where: (table, { and, eq }) =>
+      and(eq(table.workspaceId, workspaceId), eq(table.id, clientId)),
+  });
+}
+
+export async function deleteClientById(id: string) {
+  await db
+    .update(schema.clients)
+    .set({
+      deletedAt: new Date(),
+    })
+    .where(eq(schema.clients.id, id));
 }
