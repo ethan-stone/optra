@@ -35,7 +35,7 @@ export function PermissionItem(props: PermissionItemProps) {
               {props.name}
             </h4>
             <button onClick={() => navigator.clipboard.writeText(props.name)}>
-              <Copy className="h-5 w-5 text-stone-900" />
+              <Copy className="h-4 w-4 text-stone-900" />
             </button>
           </div>
           <h4 className="text-sm font-light leading-none">
