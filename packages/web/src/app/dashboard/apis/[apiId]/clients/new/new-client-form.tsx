@@ -18,6 +18,8 @@ type Props = {
 
 export function NewClientForm(props: Props) {
   const [clientName, setClientName] = useState("");
+  const [clientIdPrefix, setClientIdPrefix] = useState("");
+  const [clientSecretPrefix, setClientSecretPrefix] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
   const [clientId, setClientId] = useState("");
@@ -32,6 +34,8 @@ export function NewClientForm(props: Props) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
       setClientName("");
+      setClientIdPrefix("");
+      setClientSecretPrefix("");
       setIsOpen(true);
       router.refresh();
     },
@@ -58,11 +62,36 @@ export function NewClientForm(props: Props) {
       }}
     >
       <div className="flex flex-col gap-4">
-        <Input
-          value={clientName}
-          placeholder="Client Name"
-          onChange={(e) => setClientName(e.target.value)}
-        />
+        <div>
+          <h4 className="pb-2">Client Name</h4>
+          <Input
+            value={clientName}
+            placeholder="Client Name"
+            onChange={(e) => setClientName(e.target.value)}
+          />
+        </div>
+        <div>
+          <h4 className="flex flex-row gap-2 pb-2">
+            Client ID Prefix
+            <p className="rounded bg-stone-200 px-1">Optional</p>
+          </h4>
+          <Input
+            value={clientIdPrefix}
+            placeholder="Client ID Prefix"
+            onChange={(e) => setClientIdPrefix(e.target.value)}
+          />
+        </div>
+        <div>
+          <h4 className="flex flex-row gap-2 pb-2">
+            Client Secret Prefix
+            <p className="rounded bg-stone-200 px-1">Optional</p>
+          </h4>
+          <Input
+            value={clientSecretPrefix}
+            placeholder="Client Secret Prefix"
+            onChange={(e) => setClientSecretPrefix(e.target.value)}
+          />
+        </div>
         <div>
           <h4 className="pb-2">Permissions</h4>
           <DataTable />
@@ -73,6 +102,12 @@ export function NewClientForm(props: Props) {
             createClient.mutate({
               apiId: params.apiId,
               name: clientName,
+              clientIdPrefix:
+                clientIdPrefix.length === 0 ? undefined : clientIdPrefix,
+              clientSecretPrefix:
+                clientSecretPrefix.length === 0
+                  ? undefined
+                  : clientSecretPrefix,
               scopes: table
                 .getSelectedRowModel()
                 .flatRows.map((row) => row.original.name),
