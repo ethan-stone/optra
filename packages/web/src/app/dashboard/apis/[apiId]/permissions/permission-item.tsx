@@ -1,10 +1,10 @@
 "use client";
 
-import { CopyIcon } from "@/components/icons/copy";
 import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
+import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type PermissionItemProps = {
@@ -35,7 +35,7 @@ export function PermissionItem(props: PermissionItemProps) {
               {props.name}
             </h4>
             <button onClick={() => navigator.clipboard.writeText(props.name)}>
-              <CopyIcon />
+              <Copy className="h-5 w-5 text-stone-900" />
             </button>
           </div>
           <h4 className="text-sm font-light leading-none">
