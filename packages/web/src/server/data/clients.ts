@@ -26,6 +26,7 @@ type CreateClientArgs = {
   clientIdPrefix?: string;
   clientSecretPrefix?: string;
   scopes?: string[]; // api scope ids
+  metadata?: Record<string, unknown>;
 };
 
 export async function createClient(args: CreateClientArgs) {
@@ -59,6 +60,7 @@ export async function createClient(args: CreateClientArgs) {
       currentClientSecretId: clientSecretId,
       name: args.name,
       workspaceId: args.workspaceId,
+      metadata: args.metadata,
       version: 1,
       createdAt: now,
       updatedAt: now,

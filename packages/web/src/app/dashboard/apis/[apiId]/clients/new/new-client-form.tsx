@@ -11,6 +11,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
+import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
   scopes: { id: string; name: string; description: string }[];
@@ -20,6 +21,7 @@ export function NewClientForm(props: Props) {
   const [clientName, setClientName] = useState("");
   const [clientIdPrefix, setClientIdPrefix] = useState("");
   const [clientSecretPrefix, setClientSecretPrefix] = useState("");
+  const [metadata, setMetadata] = useState("{}");
 
   const [isOpen, setIsOpen] = useState(false);
   const [clientId, setClientId] = useState("");
@@ -93,6 +95,17 @@ export function NewClientForm(props: Props) {
           />
         </div>
         <div>
+          <h4 className="flex flex-row gap-2 pb-2">
+            Metadata
+            <p className="rounded bg-stone-200 px-1">Optional</p>
+          </h4>
+          <Textarea
+            value={metadata}
+            onChange={(e) => setMetadata(e.target.value)}
+            placeholder="{}"
+          />
+        </div>
+        <div>
           <h4 className="pb-2">Permissions</h4>
           <DataTable />
         </div>
@@ -111,6 +124,7 @@ export function NewClientForm(props: Props) {
               scopes: table
                 .getSelectedRowModel()
                 .flatRows.map((row) => row.original.name),
+              metadata: JSON.parse(metadata) as Record<string, unknown>,
             })
           }
         >

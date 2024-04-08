@@ -17,6 +17,25 @@ import {
   getClientByWorkspaceIdAndClientId,
 } from "@/server/data/clients";
 
+function getStringSizeInBytes(str: string): number {
+  let sizeInBytes = 0;
+  for (let i = 0; i < str.length; i++) {
+    const charCode = str.charCodeAt(i);
+    if (charCode < 0x80) {
+      sizeInBytes += 1;
+    } else if (charCode < 0x800) {
+      sizeInBytes += 2;
+    } else if (charCode < 0xd800 || charCode >= 0xe000) {
+      sizeInBytes += 3;
+    } else {
+      // Surrogate pair
+      i++;
+      sizeInBytes += 4;
+    }
+  }
+  return sizeInBytes;
+}
+
 export const clientsRouter = createTRPCRouter({
   createRootClient: protectedProcedure
     .input(
@@ -157,6 +176,18 @@ export const clientsRouter = createTRPCRouter({
         scopes: z.array(z.string()).optional(),
         clientIdPrefix: z.string().optional(),
         clientSecretPrefix: z.string().optional(),
+        metadata: z
+          .record(z.unknown())
+          .optional()
+          .refine(
+            (value) => {
+              if (value === undefined) return true;
+              const stringified = JSON.stringify(value);
+              const sizeInBytes = getStringSizeInBytes(stringified);
+              return sizeInBytes <= 1024;
+            },
+            { message: "Metadata size can not be larger than 1KB" },
+          ),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -195,6 +226,7 @@ export const clientsRouter = createTRPCRouter({
         clientIdPrefix: input.clientIdPrefix,
         clientSecretPrefix: input.clientSecretPrefix,
         scopes: matchingScopes.map((s) => s.id),
+        metadata: input.metadata,
       });
 
       return {
