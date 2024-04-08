@@ -19,7 +19,7 @@ type Props = {
 
 export const Tabs: React.FC<React.PropsWithChildren<Props>> = ({ tabs }) => {
   return (
-    <nav className="sticky top-0 bg-background py-2">
+    <nav className="sticky top-0 z-50 bg-background py-2">
       <div className="flex w-full items-center overflow-x-auto">
         <ul className="flex flex-row gap-4">
           {tabs.map(({ name, href, segment }) => (
