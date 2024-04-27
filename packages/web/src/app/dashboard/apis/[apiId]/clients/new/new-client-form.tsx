@@ -12,17 +12,20 @@ import { useState } from "react";
 import { useDataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
 import { Textarea } from "@/components/ui/textarea";
+import { type SubmitHandler, useForm } from "react-hook-form";
 
 type Props = {
   scopes: { id: string; name: string; description: string }[];
 };
 
-export function NewClientForm(props: Props) {
-  const [clientName, setClientName] = useState("");
-  const [clientIdPrefix, setClientIdPrefix] = useState("");
-  const [clientSecretPrefix, setClientSecretPrefix] = useState("");
-  const [metadata, setMetadata] = useState("{}");
+type FormInput = {
+  clientName: string;
+  clientIdPrefix: string;
+  clientSecretPrefix: string;
+  metadata: string;
+};
 
+export function NewClientForm(props: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
@@ -35,9 +38,6 @@ export function NewClientForm(props: Props) {
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
-      setClientName("");
-      setClientIdPrefix("");
-      setClientSecretPrefix("");
       setIsOpen(true);
       router.refresh();
     },
@@ -46,6 +46,38 @@ export function NewClientForm(props: Props) {
       alert(err.message);
     },
   });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormInput>({
+    defaultValues: {
+      metadata: "{}",
+    },
+  });
+
+  const onSubmit: SubmitHandler<FormInput> = (data) => {
+    createClient.mutate({
+      apiId: params.apiId,
+      name: data.clientName,
+      clientIdPrefix:
+        data.clientIdPrefix.length === 0 ? undefined : data.clientIdPrefix,
+      clientSecretPrefix:
+        data.clientSecretPrefix.length === 0
+          ? undefined
+          : data.clientSecretPrefix,
+      scopes: table
+        .getSelectedRowModel()
+        .flatRows.map((row) => row.original.name),
+      metadata: JSON.parse(data.metadata) as Record<string, unknown>,
+    });
+
+    reset({
+      metadata: "{}",
+    });
+  };
 
   const { table, DataTable } = useDataTable({
     columns,
@@ -63,13 +95,12 @@ export function NewClientForm(props: Props) {
         setShowSecret(false);
       }}
     >
-      <div className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <h4 className="pb-2">Client Name</h4>
           <Input
-            value={clientName}
+            {...register("clientName", { required: true })}
             placeholder="Client Name"
-            onChange={(e) => setClientName(e.target.value)}
           />
         </div>
         <div>
@@ -78,10 +109,17 @@ export function NewClientForm(props: Props) {
             <p className="rounded bg-stone-200 px-1">Optional</p>
           </h4>
           <Input
-            value={clientIdPrefix}
+            {...register("clientIdPrefix", {
+              maxLength: 12,
+              pattern: RegExp(/^[A-Za-z]+$/),
+            })}
             placeholder="Client ID Prefix"
-            onChange={(e) => setClientIdPrefix(e.target.value)}
           />
+          {errors.clientIdPrefix !== undefined && (
+            <p className="text-sm text-red-500">
+              Prefixes must be a max of 12 characters a-z, A-Z
+            </p>
+          )}
         </div>
         <div>
           <h4 className="flex flex-row gap-2 pb-2">
@@ -89,10 +127,17 @@ export function NewClientForm(props: Props) {
             <p className="rounded bg-stone-200 px-1">Optional</p>
           </h4>
           <Input
-            value={clientSecretPrefix}
+            {...register("clientSecretPrefix", {
+              maxLength: 12,
+              pattern: RegExp(/^[A-Za-z]+$/),
+            })}
             placeholder="Client Secret Prefix"
-            onChange={(e) => setClientSecretPrefix(e.target.value)}
           />
+          {errors.clientSecretPrefix !== undefined && (
+            <p className="text-sm text-red-500">
+              Prefixes must be a max of 12 characters a-z, A-Z
+            </p>
+          )}
         </div>
         <div>
           <h4 className="flex flex-row gap-2 pb-2">
@@ -100,37 +145,30 @@ export function NewClientForm(props: Props) {
             <p className="rounded bg-stone-200 px-1">Optional</p>
           </h4>
           <Textarea
-            value={metadata}
-            onChange={(e) => setMetadata(e.target.value)}
+            {...register("metadata", {
+              validate: (data) => {
+                try {
+                  JSON.parse(data);
+                  return true;
+                } catch (error) {
+                  return false;
+                }
+              },
+            })}
             placeholder="{}"
           />
+          {errors.metadata !== undefined && (
+            <p className="text-sm text-red-500">Metadata must be JSON string</p>
+          )}
         </div>
         <div>
           <h4 className="pb-2">Permissions</h4>
           <DataTable />
         </div>
-        <Button
-          disabled={createClient.isLoading || clientName.length === 0}
-          onClick={() =>
-            createClient.mutate({
-              apiId: params.apiId,
-              name: clientName,
-              clientIdPrefix:
-                clientIdPrefix.length === 0 ? undefined : clientIdPrefix,
-              clientSecretPrefix:
-                clientSecretPrefix.length === 0
-                  ? undefined
-                  : clientSecretPrefix,
-              scopes: table
-                .getSelectedRowModel()
-                .flatRows.map((row) => row.original.name),
-              metadata: JSON.parse(metadata) as Record<string, unknown>,
-            })
-          }
-        >
+        <Button type="submit" disabled={createClient.isLoading}>
           {createClient.isLoading ? "Creating..." : "Create Client"}
         </Button>
-      </div>
+      </form>
       <DialogContent>
         <div className="mt-2">
           <p className="font-semibold">Client ID</p>
