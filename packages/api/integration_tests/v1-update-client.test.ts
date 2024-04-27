@@ -8,8 +8,6 @@ describe('POST /v1/clients.updateClient', () => {
 	let clientId: string;
 
 	beforeAll(async () => {
-		console.log('============================');
-		console.log(env);
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const client = await createClient(env.TEST_BASE_URL, token, {
