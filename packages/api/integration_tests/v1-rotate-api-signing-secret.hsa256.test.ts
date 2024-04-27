@@ -8,9 +8,9 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 	let apiId: string;
 
 	beforeAll(async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const api = await createApi(env.BASE_URL, token, {
+		const api = await createApi(env.TEST_BASE_URL, token, {
 			algorithm: 'hsa256',
 		});
 
@@ -18,9 +18,9 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 	});
 
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.rotateSigningSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.rotateSigningSecret`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -40,9 +40,9 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 	});
 
 	it('should respond with 403 FORBIDDEN if not root client', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.rotateSigningSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.rotateSigningSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId,
@@ -65,9 +65,9 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if api does not actually exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.rotateSigningSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.rotateSigningSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: 'does-not-exist',
@@ -90,9 +90,9 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if client does not have access to api', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.rotateSigningSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.rotateSigningSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: apiId,
@@ -115,9 +115,9 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 	});
 
 	it('should respond with 200 OK and be able to create new token with secret', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.rotateSigningSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.rotateSigningSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: apiId,
@@ -138,11 +138,11 @@ describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
 
 		const signingSecretId = (resJson as any).id;
 
-		const client = await createClient(env.BASE_URL, token, {
+		const client = await createClient(env.TEST_BASE_URL, token, {
 			apiId,
 		});
 
-		const clientToken = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
+		const clientToken = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
 		const header = clientToken.split('.')[0];
 

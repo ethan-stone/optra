@@ -7,7 +7,7 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -40,10 +40,10 @@ describe('POST /v1/tokens.verifyToken', () => {
 					kid: 'wefwef',
 					typ: 'JWT',
 				},
-			}
+			},
 		);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -64,7 +64,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with invalid if token is of an invalid format', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token: 'invalid',
@@ -100,10 +100,10 @@ describe('POST /v1/tokens.verifyToken', () => {
 					kid: 'wefwef',
 					typ: 'JWT',
 				},
-			}
+			},
 		);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token: token + 'somerandomtexttomakeitinvalid',
@@ -160,10 +160,10 @@ describe('POST /v1/tokens.verifyToken', () => {
 					kid: 'wefwef',
 					typ: 'JWT',
 				},
-			}
+			},
 		);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -184,10 +184,14 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with invalid if ratelimit exceeded', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID_WITH_LOW_RATELIMIT, env.BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT);
+		const token = await getOAuthToken(
+			env.TEST_BASE_URL,
+			env.BASIC_CLIENT_ID_WITH_LOW_RATELIMIT,
+			env.BASIC_CLIENT_SECRET_WITH_LOW_RATELIMIT,
+		);
 
 		while (true) {
-			const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+			const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 				method: 'POST',
 				body: JSON.stringify({
 					token,
@@ -215,9 +219,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it.todo('should respond with 200 OK with invalid if version mismatch', async () => {});
 
 	it('should respond with 200 OK with invalid if token is missing scopes', async () => {
-		const createClientToken = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const createClientToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createClient = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -232,9 +236,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
-		const token = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
+		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -259,9 +263,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with valid if token has all required scopes', async () => {
-		const createClientToken = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const createClientToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createClient = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -277,9 +281,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
-		const token = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
+		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -302,9 +306,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with valid if token has one of required scopes', async () => {
-		const createClientToken = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const createClientToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createClient = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -320,9 +324,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
-		const token = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
+		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -345,9 +349,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with valid if token is valid for rsa256 tokens', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -366,9 +370,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with valid if token is valid for hsa256 tokens', async () => {
-		const rootToken = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const rootToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createApi = new Request(`${env.BASE_URL}/v1/apis.createApi`, {
+		const createApi = new Request(`${env.TEST_BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -382,7 +386,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 
 		const newApi = await fetch(createApi);
 
-		const createClient = new Request(`${env.BASE_URL}/v1/clients.createClient`, {
+		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -397,9 +401,9 @@ describe('POST /v1/tokens.verifyToken', () => {
 		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
-		const token = await getOAuthToken(env.BASE_URL, client.clientId, client.clientSecret);
+		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.BASE_URL}/v1/tokens.verifyToken`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,

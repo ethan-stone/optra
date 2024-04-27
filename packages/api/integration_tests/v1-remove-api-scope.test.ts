@@ -6,9 +6,9 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/apis.removeScope', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -27,9 +27,9 @@ describe('POST /v1/apis.removeScope', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if api does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: 'non-existent-api-id',
@@ -51,9 +51,9 @@ describe('POST /v1/apis.removeScope', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if token does not have access to api', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -75,9 +75,9 @@ describe('POST /v1/apis.removeScope', () => {
 	});
 
 	it('should respond with 200 OK if scope does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -95,9 +95,9 @@ describe('POST /v1/apis.removeScope', () => {
 	});
 
 	it('should respond with 200 OK if scope does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -115,10 +115,10 @@ describe('POST /v1/apis.removeScope', () => {
 	});
 
 	it('should respond with 200 OK if scope exists and is deleted', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		// add a new scope before handle to not conflict with other tests
-		const addScopeReq = new Request(`${env.BASE_URL}/v1/apis.addScope`, {
+		const addScopeReq = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -135,7 +135,7 @@ describe('POST /v1/apis.removeScope', () => {
 
 		await fetch(addScopeReq);
 
-		const req = new Request(`${env.BASE_URL}/v1/apis.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,

@@ -6,7 +6,7 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/clients.rotateSecret', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/clients.rotateSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.rotateSecret`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -24,9 +24,9 @@ describe('POST /v1/clients.rotateSecret', () => {
 	});
 
 	it('should respond with 200 OK using root client', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const getClientReq = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID_FOR_ROTATING}`, {
+		const getClientReq = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID_FOR_ROTATING}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -35,7 +35,7 @@ describe('POST /v1/clients.rotateSecret', () => {
 
 		const clientBefore = await (await fetch(getClientReq)).json();
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.rotateSecret`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.rotateSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID_FOR_ROTATING,

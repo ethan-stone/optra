@@ -8,9 +8,9 @@ describe('POST /v1/clients.deleteClient', () => {
 	let clientId: string;
 
 	beforeAll(async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const client = await createClient(env.BASE_URL, token, {
+		const client = await createClient(env.TEST_BASE_URL, token, {
 			apiId: env.API_ID,
 		});
 
@@ -18,9 +18,9 @@ describe('POST /v1/clients.deleteClient', () => {
 	});
 
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.deleteClient`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.deleteClient`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -39,9 +39,9 @@ describe('POST /v1/clients.deleteClient', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if client does not exist because it actually does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.deleteClient`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.deleteClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: 'does-not-exist',
@@ -62,9 +62,9 @@ describe('POST /v1/clients.deleteClient', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if client does not exist because client does not have access', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.deleteClient`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.deleteClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: clientId,
@@ -85,9 +85,9 @@ describe('POST /v1/clients.deleteClient', () => {
 	});
 
 	it('should respond with 200 OK if successfully deleted', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.deleteClient`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.deleteClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: clientId,

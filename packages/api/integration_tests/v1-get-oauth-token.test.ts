@@ -6,7 +6,7 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/oauth/token', () => {
 	it('should get oauth token', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
 				grantType: 'client_credentials',
@@ -28,7 +28,7 @@ describe('POST /v1/oauth/token', () => {
 	});
 
 	it('should respond with 400 BAD_REQUEST if request body is invalid', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -42,7 +42,7 @@ describe('POST /v1/oauth/token', () => {
 	});
 
 	it('should respond with 403 FORBIDDEN client is not found', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
 				grantType: 'client_credentials',
@@ -60,7 +60,7 @@ describe('POST /v1/oauth/token', () => {
 	});
 
 	it('should respond with 403 FORBIDDEN if no secret matches', async () => {
-		const req = new Request(`${env.BASE_URL}/v1/oauth/token`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
 				grantType: 'client_credentials',

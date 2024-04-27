@@ -7,9 +7,9 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/clients.removeScope', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -28,9 +28,9 @@ describe('POST /v1/clients.removeScope', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if client does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: 'non-existent-client-id',
@@ -52,9 +52,9 @@ describe('POST /v1/clients.removeScope', () => {
 	});
 
 	it('should respond with 200 OK if scope does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
@@ -72,11 +72,11 @@ describe('POST /v1/clients.removeScope', () => {
 	});
 
 	it('should respond with 200 OK if scope is successfully removed', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const newScope = generateRandomName();
 
-		const addApiScope = new Request(`${env.BASE_URL}/v1/apis.addScope`, {
+		const addApiScope = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -90,7 +90,7 @@ describe('POST /v1/clients.removeScope', () => {
 
 		await fetch(addApiScope);
 
-		const addClientScope = new Request(`${env.BASE_URL}/v1/clients.addScope`, {
+		const addClientScope = new Request(`${env.TEST_BASE_URL}/v1/clients.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,
@@ -104,7 +104,7 @@ describe('POST /v1/clients.removeScope', () => {
 
 		await fetch(addClientScope);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.removeScope`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.removeScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID,

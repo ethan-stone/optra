@@ -18,7 +18,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 
 function format(obj: Record<string, any>): string {
 	return Object.entries(obj)
-		.map(([key, value]) => `${key}=${value}`)
+		.map(([key, value]) => `${key}="${value}"`)
 		.join('\n');
 }
 
@@ -52,7 +52,7 @@ export async function bootstrapTests() {
 
 	const dataStr = format({
 		...data,
-		BASE_URL: 'http://localhost:8787',
+		TEST_BASE_URL: 'http://localhost:8787',
 		JWKS_BUCKET_URL: 'https://pub-a5afc02c7f8144f0b982fd75f6846a06.r2.dev',
 	});
 

@@ -6,9 +6,9 @@ const env = testEnvSchema.parse(process.env);
 
 describe('GET /v1/clients.getClient', () => {
 	it('should respond with 400 BAD_REQUEST if invalid query params', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.getClient`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -25,9 +25,9 @@ describe('GET /v1/clients.getClient', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if client does not exist', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${'fake client'}`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${'fake client'}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -44,9 +44,9 @@ describe('GET /v1/clients.getClient', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if client does not belong to root client workspace', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -63,9 +63,9 @@ describe('GET /v1/clients.getClient', () => {
 	});
 
 	it('should respond with 403 FORBIDDEN if request made with basic client', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -82,9 +82,9 @@ describe('GET /v1/clients.getClient', () => {
 	});
 
 	it('should respond with 200 OK if client is found', async () => {
-		const token = await getOAuthToken(env.BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
