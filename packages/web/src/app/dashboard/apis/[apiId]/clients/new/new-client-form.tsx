@@ -34,19 +34,6 @@ export function NewClientForm(props: Props) {
   const router = useRouter();
   const params = useParams<{ apiId: string }>();
 
-  const createClient = api.clients.createClient.useMutation({
-    onSuccess(data) {
-      setClientId(data.clientId);
-      setClientSecret(data.clientSecret);
-      setIsOpen(true);
-      router.refresh();
-    },
-    onError(err) {
-      console.error(err);
-      alert(err.message);
-    },
-  });
-
   const {
     register,
     handleSubmit,
@@ -55,6 +42,22 @@ export function NewClientForm(props: Props) {
   } = useForm<FormInput>({
     defaultValues: {
       metadata: "{}",
+    },
+  });
+
+  const createClient = api.clients.createClient.useMutation({
+    onSuccess(data) {
+      setClientId(data.clientId);
+      setClientSecret(data.clientSecret);
+      setIsOpen(true);
+      router.refresh();
+      reset({
+        metadata: "{}",
+      });
+    },
+    onError(err) {
+      console.error(err);
+      alert(err.message);
     },
   });
 
@@ -72,10 +75,6 @@ export function NewClientForm(props: Props) {
         .getSelectedRowModel()
         .flatRows.map((row) => row.original.name),
       metadata: JSON.parse(data.metadata) as Record<string, unknown>,
-    });
-
-    reset({
-      metadata: "{}",
     });
   };
 
