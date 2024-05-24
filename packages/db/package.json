@@ -19,6 +19,7 @@
     "@libsql/client": "^0.5.3",
     "@planetscale/database": "^1.15.0",
     "mysql2": "^3.9.1",
+    "postgres": "^3.4.4",
     "zod": "^3.22.4"
   }
 }

@@ -3,7 +3,6 @@ import {
   sqliteTable,
   index,
   text,
-  int,
   integer,
   unique,
 } from "drizzle-orm/sqlite-core";
@@ -14,7 +13,7 @@ export const clients = sqliteTable(
   {
     id: text("id", { length: 100 }).primaryKey(),
     name: text("name", { length: 255 }).notNull(),
-    version: int("version").notNull(),
+    version: integer("version").notNull(),
     clientIdPrefix: text("client_id_prefix", { length: 36 }), // will be applied to client id
     clientSecretPrefix: text("client_secret_prefix", { length: 36 }), // will be applied to client id
     workspaceId: text("workspace_id", { length: 36 }).notNull(),
@@ -24,9 +23,9 @@ export const clients = sqliteTable(
       length: 36,
     }).notNull(),
     nextClientSecretId: text("next_client_secret_id", { length: 36 }),
-    rateLimitBucketSize: int("rate_limit_bucket_size"),
-    rateLimitRefillAmount: int("rate_limit_refill_amount"),
-    rateLimitRefillInterval: int("rate_limit_refill_interval"), // in milliseconds
+    rateLimitBucketSize: integer("rate_limit_bucket_size"),
+    rateLimitRefillAmount: integer("rate_limit_refill_amount"),
+    rateLimitRefillInterval: integer("rate_limit_refill_interval"), // in milliseconds
     metadata: text("metadata", { mode: "json" }).$type<
       Record<string, unknown>
     >(),
@@ -127,7 +126,7 @@ export const apis = sqliteTable(
     id: text("id", { length: 36 }).primaryKey(),
     name: text("name", { length: 255 }).notNull(),
     workspaceId: text("workspace_id", { length: 36 }).notNull(),
-    tokenExpirationInSeconds: int("token_expiration_in_seconds").notNull(), // in seconds
+    tokenExpirationInSeconds: integer("token_expiration_in_seconds").notNull(), // in seconds
     currentSigningSecretId: text("current_signing_secret_id", {
       length: 36,
     }).notNull(),
