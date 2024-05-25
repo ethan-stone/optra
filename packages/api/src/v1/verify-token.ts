@@ -24,7 +24,7 @@ const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
 export type VerifyTokenResponse = z.infer<typeof verifyTokenResponseSchema>;
 
 const route = createRoute({
-	method: 'post',
+	method: 'post' as const,
 	path: '/v1/tokens.verifyToken',
 	request: {
 		body: {
@@ -74,19 +74,19 @@ export function v1VerifyToken(app: App) {
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
 
-			return c.json<VerifyTokenResponse>(
+			return c.json<VerifyTokenResponse, 200>(
 				{
 					valid: false,
 					message: verifiedToken.message,
 					reason: verifiedToken.reason,
 				},
-				200
+				200,
 			);
 		}
 
 		logger.info(`Token is valid for client ${verifiedToken.client.id}`);
 
-		return c.json<VerifyTokenResponse>(
+		return c.json<VerifyTokenResponse, 200>(
 			{
 				valid: true,
 				clientId: verifiedToken.client.id,
@@ -97,7 +97,7 @@ export function v1VerifyToken(app: App) {
 				rateLimitRefillInterval: verifiedToken.client.rateLimitRefillInterval,
 				scopes: verifiedToken.client.scopes,
 			},
-			200
+			200,
 		);
 	});
 }

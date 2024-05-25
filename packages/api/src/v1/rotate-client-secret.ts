@@ -4,7 +4,7 @@ import { db, scheduler, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
-	method: 'post',
+	method: 'post' as const,
 	path: '/v1/clients.rotateSecret',
 	request: {
 		body: {
@@ -138,7 +138,7 @@ export function v1RotateClientSecret(app: App) {
 				createdAt: newSecret.createdAt.toISOString(),
 				expiresAt: newSecret.expiresAt?.toISOString() ?? null,
 			},
-			200
+			200,
 		);
 	});
 }

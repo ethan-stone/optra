@@ -4,7 +4,7 @@ import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
-	method: 'get',
+	method: 'get' as const,
 	path: '/v1/apis.getApi',
 	request: {
 		query: z.object({
@@ -81,7 +81,7 @@ export function v1GetApi(app: App) {
 				createdAt: api.createdAt.toISOString(),
 				updatedAt: api.updatedAt.toISOString(),
 			},
-			200
+			200,
 		);
 	});
 }

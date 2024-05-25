@@ -4,7 +4,7 @@ import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
-	method: 'post',
+	method: 'post' as const,
 	path: '/v1/clients.deleteClient',
 	request: {
 		body: {

@@ -22,7 +22,7 @@ const res = z.object({
 export type GetOAuthTokenRes = z.infer<typeof res>;
 
 const route = createRoute({
-	method: 'post',
+	method: 'post' as const,
 	path: '/v1/oauth/token',
 	request: {
 		body: {

@@ -23,7 +23,7 @@ function getStringSizeInBytes(str: string): number {
 }
 
 const route = createRoute({
-	method: 'post',
+	method: 'post' as const,
 	path: '/v1/clients.createClient',
 	security: [
 		{

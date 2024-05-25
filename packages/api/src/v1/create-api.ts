@@ -5,7 +5,7 @@ import { createRoute, z } from '@hono/zod-openapi';
 import { Buffer } from '@/buffer';
 
 const route = createRoute({
-	method: 'post',
+	method: 'post' as const,
 	path: '/v1/apis.createApi',
 	security: [
 		{
