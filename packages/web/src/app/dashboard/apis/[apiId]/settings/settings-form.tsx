@@ -44,7 +44,7 @@ export function SettingsForm(props: SettingsFormProps) {
   const onSubmit: SubmitHandler<FormInput> = (data) => {
     updateApi.mutate({
       id: props.apiId,
-      name: props.apiName,
+      name: data.apiName,
       tokenExpirationInSeconds: data.tokenExpirationInSeconds,
     });
   };
