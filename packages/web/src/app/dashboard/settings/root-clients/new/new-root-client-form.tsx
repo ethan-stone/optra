@@ -9,10 +9,13 @@ import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
+
+type FormInput = {
+  rootClientName: string;
+};
 
 export function NewRootClientForm() {
-  const [rootClientName, setRootClientName] = useState("");
-
   const [isOpen, setIsOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
@@ -20,19 +23,38 @@ export function NewRootClientForm() {
 
   const router = useRouter();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormInput>({
+    defaultValues: {
+      rootClientName: "",
+    },
+  });
+
   const createRootClient = api.clients.createRootClient.useMutation({
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);
-      setRootClientName("");
       setIsOpen(true);
       router.refresh();
+      reset({
+        rootClientName: "",
+      });
     },
     onError(err) {
       console.error(err);
       alert(err.message);
     },
   });
+
+  const onSubmit: SubmitHandler<FormInput> = (data) => {
+    createRootClient.mutate({
+      name: data.rootClientName,
+    });
+  };
 
   return (
     <Dialog
@@ -44,23 +66,27 @@ export function NewRootClientForm() {
         setShowSecret(false);
       }}
     >
-      <div className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <Input
-          value={rootClientName}
+          {...register("rootClientName", {
+            required: true,
+            minLength: 1,
+            maxLength: 100,
+          })}
           placeholder="Root Client Name"
-          onChange={(e) => setRootClientName(e.target.value)}
         />
+        {errors.rootClientName !== undefined && (
+          <p className="text-sm text-red-500">A client name is required</p>
+        )}
         <Button
-          disabled={createRootClient.isLoading || rootClientName.length === 0}
-          onClick={() =>
-            createRootClient.mutate({
-              name: rootClientName,
-            })
+          type="submit"
+          disabled={
+            Object.keys(errors).length > 0 || createRootClient.isLoading
           }
         >
           {createRootClient.isLoading ? "Creating..." : "Create Root Client"}
         </Button>
-      </div>
+      </form>
       <DialogContent>
         <div className="mt-2">
           <p className="font-semibold">Client ID</p>

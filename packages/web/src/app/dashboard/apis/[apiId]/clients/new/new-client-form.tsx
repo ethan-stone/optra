@@ -98,9 +98,16 @@ export function NewClientForm(props: Props) {
         <div>
           <h4 className="pb-2">Client Name</h4>
           <Input
-            {...register("clientName", { required: true })}
+            {...register("clientName", {
+              required: true,
+              minLength: 1,
+              maxLength: 100,
+            })}
             placeholder="Client Name"
           />
+          {errors.clientName !== undefined && (
+            <p className="text-sm text-red-500">A client name is required</p>
+          )}
         </div>
         <div>
           <h4 className="flex flex-row gap-2 pb-2">

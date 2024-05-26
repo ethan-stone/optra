@@ -19,8 +19,6 @@ export default async function SettingsPageLayout(props: SettingsPageProps) {
     },
   });
 
-  console.log("SettingsPageLayout");
-
   if (!workspace) {
     return redirect("/onboarding");
   }
