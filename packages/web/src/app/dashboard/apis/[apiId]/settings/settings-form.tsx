@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
 
 type SettingsFormProps = {
   apiId: string;
@@ -12,13 +12,24 @@ type SettingsFormProps = {
   tokenExpirationInSeconds: number;
 };
 
-export function SettingsForm(props: SettingsFormProps) {
-  const [tokenExpirationInSeconds, setTokenExpirationInSeconds] = useState(
-    props.tokenExpirationInSeconds,
-  );
-  const [apiName, setApiName] = useState(props.apiName);
+type FormInput = {
+  apiName: string;
+  tokenExpirationInSeconds: number;
+};
 
+export function SettingsForm(props: SettingsFormProps) {
   const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormInput>({
+    defaultValues: {
+      apiName: props.apiName,
+      tokenExpirationInSeconds: props.tokenExpirationInSeconds,
+    },
+  });
 
   const updateApi = api.apis.updateApi.useMutation({
     onSuccess() {
@@ -30,38 +41,43 @@ export function SettingsForm(props: SettingsFormProps) {
     },
   });
 
+  const onSubmit: SubmitHandler<FormInput> = (data) => {
+    updateApi.mutate({
+      id: props.apiId,
+      name: props.apiName,
+      tokenExpirationInSeconds: data.tokenExpirationInSeconds,
+    });
+  };
+
   return (
-    <div className="flex flex-col gap-4">
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
       <div>
         <h2>Name</h2>
         <Input
+          {...register("apiName", {
+            required: true,
+            minLength: 1,
+            maxLength: 100,
+          })}
           type="string"
-          value={apiName}
-          onChange={(e) => setApiName(e.target.value)}
         />
+        {errors.apiName !== undefined && (
+          <p className="text-sm text-red-500">Name is required</p>
+        )}
       </div>
       <div>
         <h2>Token Expiration</h2>
         <Input
+          {...register("tokenExpirationInSeconds", { required: true })}
           type="number"
-          value={tokenExpirationInSeconds}
-          onChange={(e) =>
-            setTokenExpirationInSeconds(parseInt(e.target.value))
-          }
         />
+        {errors.tokenExpirationInSeconds !== undefined && (
+          <p className="text-sm text-red-500">Token expiration is required</p>
+        )}
       </div>
-      <Button
-        className="mt-4"
-        onClick={() => {
-          updateApi.mutate({
-            id: props.apiId,
-            tokenExpirationInSeconds,
-            name: apiName,
-          });
-        }}
-      >
+      <Button type="submit" className="mt-4">
         {updateApi.isLoading ? "Updating..." : "Update"}
       </Button>
-    </div>
+    </form>
   );
 }
