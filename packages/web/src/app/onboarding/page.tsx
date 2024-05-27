@@ -4,6 +4,7 @@ import { uid } from "@/utils/uid";
 import { auth } from "@clerk/nextjs";
 import { schema } from "@optra/db";
 import { redirect } from "next/navigation";
+import { CreateWorkspace } from "./create-workspace";
 
 export default async function Onboarding() {
   const { userId } = auth();
@@ -46,5 +47,11 @@ export default async function Onboarding() {
   }
 
   // TODO: load component to create a new paid workspace
+
+  return (
+    <main className="flex min-h-screen flex-col items-center">
+      <CreateWorkspace />
+    </main>
+  );
   return redirect("/");
 }
