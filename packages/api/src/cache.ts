@@ -1,4 +1,4 @@
-import { Api, Client, ClientScope, Workspace } from '@/db';
+import { Api, Client, Workspace } from '@/db';
 import { Logger } from '@/logger';
 
 type CacheRecord<Value> = {

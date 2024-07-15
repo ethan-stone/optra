@@ -1,28 +1,27 @@
 import * as schema from '@optra/db/schema';
-import { createClient } from '@libsql/client/web';
-import { drizzle, LibSQLDatabase } from 'drizzle-orm/libsql';
-import { InferSelectModel, InferInsertModel, eq, and, isNull } from 'drizzle-orm';
+import postgres from 'postgres';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { eq, and, isNull } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
-import { z } from 'zod';
 
 export * from 'drizzle-orm';
 export * from '@optra/db/index';
 
-export function createConnection(url: string, authToken: string) {
-	const client = createClient({
-		url,
-		authToken,
+export function createConnection(url: string) {
+	const sql = postgres(url);
+
+	const db = drizzle(sql, {
+		schema: schema,
 	});
 
-	return drizzle(client, {
-		schema,
-	});
+	return { conn: db, sql };
 }
 
-type InsertClientModel = InferInsertModel<(typeof schema)['clients']>;
+type InsertClientModel = typeof schema.clients.$inferInsert;
 
-export type Client = InferSelectModel<(typeof schema)['clients']> & { scopes?: string[] };
+export type Client = typeof schema.clients.$inferSelect & { scopes?: string[] };
+
 export type CreateRootClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId' | 'currentClientSecretId' | 'nextClientSecretId'> &
 	Required<Pick<InsertClientModel, 'forWorkspaceId'>>;
 export type CreateBasicClientParams = Omit<InsertClientModel, 'id' | 'forWorkspaceId' | 'currentClientSecretId' | 'nextClientSecretId'> & {
@@ -34,26 +33,26 @@ export type UpdateClientParams = {
 	rateLimitRefillInterval?: number;
 	metadata?: Record<string, unknown>;
 };
-export type CreateClientScopeParams = Omit<InferInsertModel<(typeof schema)['clientScopes']>, 'id'>;
-export type ClientSecret = Omit<InferSelectModel<(typeof schema)['clientSecrets']>, 'secret'>;
-export type ClientScope = InferSelectModel<(typeof schema)['clientScopes']>;
-export type ClientSecretCreateResult = InferSelectModel<(typeof schema)['clientSecrets']>;
-export type InsertApiModel = InferInsertModel<(typeof schema)['apis']>;
+export type CreateClientScopeParams = Omit<typeof schema.clientScopes.$inferInsert, 'id'>;
+export type ClientSecret = Omit<typeof schema.clientSecrets.$inferSelect, 'secret'>;
+export type ClientScope = typeof schema.clientScopes.$inferSelect;
+export type ClientSecretCreateResult = typeof schema.clientSecrets.$inferSelect;
+export type InsertApiModel = typeof schema.apis.$inferInsert;
 export type CreateApiParams = Omit<InsertApiModel, 'id' | 'currentSigningSecretId' | 'nextSigningSecretId'> & {
 	scopes?: { name: string; description: string }[];
 	algorithm: 'hsa256' | 'rsa256';
 	encryptedSigningSecret: string;
 	iv: string;
 };
-export type ApiScope = InferSelectModel<(typeof schema)['apiScopes']>;
-export type CreateApiScopeParams = Omit<InferInsertModel<(typeof schema)['apiScopes']>, 'id'>;
-export type Api = InferSelectModel<(typeof schema)['apis']> & { scopes: ApiScope[] };
-export type WorkspaceBillingInfo = InferSelectModel<(typeof schema)['workspaceBillingInfo']>;
-export type Workspace = InferSelectModel<(typeof schema)['workspaces']> & { billingInfo: WorkspaceBillingInfo | null };
-export type InsertWorkspaceModel = InferInsertModel<(typeof schema)['workspaces']>;
+export type ApiScope = typeof schema.apiScopes.$inferSelect;
+export type CreateApiScopeParams = Omit<typeof schema.apiScopes.$inferInsert, 'id'>;
+export type Api = typeof schema.apis.$inferSelect & { scopes: ApiScope[] };
+export type WorkspaceBillingInfo = typeof schema.workspaceBillingInfo.$inferSelect;
+export type Workspace = typeof schema.workspaces.$inferSelect & { billingInfo: WorkspaceBillingInfo | null };
+export type InsertWorkspaceModel = typeof schema.workspaces.$inferInsert;
 export type CreateWorkspaceParams = Omit<InsertWorkspaceModel, 'id'>;
-export type DataEncryptionKey = InferSelectModel<(typeof schema)['dataEncryptionKeys']>;
-export type SigningSecret = InferSelectModel<(typeof schema)['signingSecrets']>;
+export type DataEncryptionKey = typeof schema.dataEncryptionKeys.$inferSelect;
+export type SigningSecret = typeof schema.signingSecrets.$inferSelect;
 export type RotateClientSecretParams = {
 	clientId: string;
 	expiresAt: Date;
@@ -91,10 +90,8 @@ export interface Db {
 	rotateApiSigningSecret(params: RotateApiSigningSecretParams): Promise<{ id: string }>;
 }
 
-export class LibSQLDb implements Db {
-	constructor(private readonly db: LibSQLDatabase<typeof schema>) {
-		this.db.query;
-	}
+export class PostgresDb implements Db {
+	constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
 	async getClientById(id: string): Promise<Client | null> {
 		const client = await this.db.query.clients.findFirst({

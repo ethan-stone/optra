@@ -8,22 +8,21 @@
     "typecheck": "tsc -noEmit"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.137",
-    "@types/node": "^20.12.7",
+    "@types/aws-lambda": "^8.10.141",
+    "@types/node": "^20.14.10",
     "sst": "2.40.1",
-    "tsx": "^4.7.3",
-    "vite": "^5.2.10",
-    "vitest": "^1.5.2"
+    "tsx": "^4.16.2",
+    "vite": "^5.3.3",
+    "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.564.0",
-    "@aws-sdk/client-lambda": "^3.564.0",
-    "@aws-sdk/client-sqs": "^3.564.0",
-    "@aws-sdk/lib-dynamodb": "^3.564.0",
-    "@libsql/client": "^0.5.6",
-    "@planetscale/database": "^1.17.0",
-    "drizzle-orm": "^0.29.5",
+    "@aws-sdk/client-dynamodb": "^3.614.0",
+    "@aws-sdk/client-lambda": "^3.614.0",
+    "@aws-sdk/client-sqs": "^3.614.0",
+    "@aws-sdk/lib-dynamodb": "^3.614.0",
+    "drizzle-orm": "^0.32.0",
+    "postgres": "^3.4.4",
     "stripe": "^14.25.0",
-    "zod": "^3.23.4"
+    "zod": "^3.23.8"
   }
 }

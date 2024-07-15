@@ -160,7 +160,7 @@ export class TokenService implements TokenService {
 
 			// check if workspace has reached token verification limit
 			if ((!workspace.billingInfo || !workspace.billingInfo.subscriptions) && workspaceVerifications.successful >= 5000) {
-				logger.info(`Workspace has reached free tier limit`);
+				logger.info(`Workspace ${workspace.id} has reached free tier limit`);
 
 				return null;
 			}

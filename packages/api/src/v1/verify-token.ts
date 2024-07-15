@@ -1,6 +1,5 @@
 import { App } from '@/app';
 import { ErrorReason, errorResponseSchemas } from '@/errors';
-import { tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
@@ -62,6 +61,7 @@ const route = createRoute({
 export function v1VerifyToken(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
+		const { tokenService } = c.get('root');
 
 		logger.info(`Verifying token`);
 

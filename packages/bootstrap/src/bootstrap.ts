@@ -1,9 +1,9 @@
 import { schema } from "@optra/db";
 import { bootstrap } from "./index";
-import { drizzle } from "drizzle-orm/libsql";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { S3Client } from "@aws-sdk/client-s3";
-import { createClient } from "@libsql/client";
+import postgres from "postgres";
 
 function format(obj: Record<string, any>): string {
   return Object.entries(obj)
@@ -12,10 +12,7 @@ function format(obj: Record<string, any>): string {
 }
 
 async function main() {
-  const connection = createClient({
-    url: process.env.DRIZZLE_DATABASE_URL!,
-    authToken: process.env.DRIZZLE_DATABASE_TOKEN!,
-  });
+  const connection = postgres(process.env.DRIZZLE_DATABASE_URL!);
 
   const db = drizzle(connection, {
     schema: schema,

@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const envSchema = z.object({
 	DRIZZLE_DATABASE_URL: z.string(),
-	DRIZZLE_DATABASE_TOKEN: z.string(),
 	ENVIRONMENT: z.enum(['development', 'production']),
 	JWT_SECRET: z.string(),
 	BASELIME_API_KEY: z.string().optional(),

@@ -1,5 +1,5 @@
 import { schema } from "@optra/db";
-import { LibSQLDatabase } from "drizzle-orm/libsql";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { randomBytes, createHash, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -93,7 +93,7 @@ const defaultInternalWorkspaceScopes = [
 ];
 
 async function newWorkspace(
-  db: LibSQLDatabase<typeof schema>,
+  db: PostgresJsDatabase<typeof schema>,
   kmsClient: KMSClient,
   awsKMSKeyArn: string,
   internal = false
@@ -131,7 +131,7 @@ async function newWorkspace(
 }
 
 async function newApi(
-  db: LibSQLDatabase<typeof schema>,
+  db: PostgresJsDatabase<typeof schema>,
   s3Client: S3Client,
   args: {
     workspaceId: string;
@@ -262,7 +262,7 @@ async function newApi(
 }
 
 async function newApiScope(
-  db: LibSQLDatabase<typeof schema>,
+  db: PostgresJsDatabase<typeof schema>,
   args: {
     apiId: string;
     workspaceId: string;
@@ -283,7 +283,7 @@ async function newApiScope(
 }
 
 async function newClient(
-  db: LibSQLDatabase<typeof schema>,
+  db: PostgresJsDatabase<typeof schema>,
   args: {
     workspaceId: string;
     forWorkspaceId?: string;
@@ -330,7 +330,7 @@ async function newClient(
  * This generates an internal workspace and api that represents optra itself
  */
 export async function bootstrap(
-  db: LibSQLDatabase<typeof schema>,
+  db: PostgresJsDatabase<typeof schema>,
   kmsClient: KMSClient,
   s3Client: S3Client,
   awsKMSKeyArn: string

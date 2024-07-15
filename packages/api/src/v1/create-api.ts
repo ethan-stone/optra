@@ -1,6 +1,5 @@
 import { App } from '@/app';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db, keyManagementService, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 import { Buffer } from '@/buffer';
 
@@ -61,6 +60,9 @@ const route = createRoute({
 export function v1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
+		const root = c.get('root');
+
+		const { tokenService, db, keyManagementService } = root;
 
 		const { name, scopes, algorithm, tokenExpirationInSeconds } = c.req.valid('json');
 

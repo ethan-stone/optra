@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { testEnvSchema } from './test-env-schema';
 import { generateRandomName, getOAuthToken } from './helpers';
-import { aw } from 'vitest/dist/reporters-OH1c16Kq';
 
 const env = testEnvSchema.parse(process.env);
 

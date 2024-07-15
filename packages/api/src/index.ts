@@ -18,6 +18,9 @@ import { v1DeleteApi } from '@/v1/delete-api';
 import { v1GetApi } from '@/v1/get-api';
 import { v1RotateApiSigningSecret } from '@/v1/rotate-api-signing-secret';
 import { v1UpdateClient } from '@/v1/update-client';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { PostgresDb, schema } from './db';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -37,6 +40,31 @@ app.use('*', async (c, next) => {
 	try {
 		const reqId = uid('req', 14);
 		c.set('reqId', reqId);
+
+		const root = initialize({
+			env: c.env.ENVIRONMENT,
+			dbUrl: c.env.DRIZZLE_DATABASE_URL,
+			awsAccessKeyId: c.env.AWS_ACCESS_KEY_ID,
+			awsSecretAccessKey: c.env.AWS_SECRET_ACCESS_KEY,
+			awsKMSKeyArn: c.env.AWS_KMS_KEY_ARN,
+			awsMessageQueueArn: c.env.AWS_MESSAGE_QUEUE_ARN,
+			awsSchedulerRoleArn: c.env.AWS_SCHEDULER_ROLE_ARN,
+			awsSchedulerFailedDLQ: c.env.AWS_SCHEDULER_FAILED_DQL,
+			tinyBirdApiKey: c.env.TINY_BIRD_API_KEY,
+			tinyBirdBaseUrl: c.env.TINY_BIRD_BASE_URL,
+			tinyBirdMonthlyVerificationsEndpoint: c.env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
+			tinyBirdMonthlyGenerationsEndpoint: c.env.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
+		});
+
+		c.set('root', {
+			sql: root.sql,
+			analytics: root.analytics,
+			cache: root.cache,
+			db: root.db,
+			keyManagementService: root.keyManagementService,
+			scheduler: root.scheduler,
+			tokenService: root.tokenService,
+		});
 
 		let logger: Logger;
 
@@ -81,6 +109,7 @@ app.use('*', async (c, next) => {
 		throw error;
 	} finally {
 		const logger = c.get('logger');
+		const root = c.get('root');
 
 		const duration = Date.now() - start;
 
@@ -89,23 +118,24 @@ app.use('*', async (c, next) => {
 		});
 
 		c.executionCtx.waitUntil(logger.flush());
+		c.executionCtx.waitUntil(root.sql.end());
 	}
 });
 
 v1GetOAuthToken(app);
 v1CreateApi(app);
-v1GetApi(app);
-v1DeleteApi(app);
-v1AddApiScope(app);
-v1RemoveApiScope(app);
-v1RotateApiSigningSecret(app);
-v1CreateClient(app);
-v1GetClient(app);
-v1UpdateClient(app);
-v1DeleteClient(app);
-v1AddClientScope(app);
-v1RemoveClientScope(app);
-v1RotateClientSecret(app);
+// v1GetApi(app);
+// v1DeleteApi(app);
+// v1AddApiScope(app);
+// v1RemoveApiScope(app);
+// v1RotateApiSigningSecret(app);
+// v1CreateClient(app);
+// v1GetClient(app);
+// v1UpdateClient(app);
+// v1DeleteClient(app);
+// v1AddClientScope(app);
+// v1RemoveClientScope(app);
+// v1RotateClientSecret(app);
 v1VerifyToken(app);
 
 export default {
@@ -121,22 +151,6 @@ export default {
 				},
 				{ status: 500 },
 			);
-
-		initialize({
-			dbUrl: env.DRIZZLE_DATABASE_URL,
-			dbAuthToken: env.DRIZZLE_DATABASE_TOKEN,
-			env: env.ENVIRONMENT,
-			awsAccessKeyId: env.AWS_ACCESS_KEY_ID,
-			awsSecretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-			awsKMSKeyArn: env.AWS_KMS_KEY_ARN,
-			awsMessageQueueArn: env.AWS_MESSAGE_QUEUE_ARN,
-			awsSchedulerRoleArn: env.AWS_SCHEDULER_ROLE_ARN,
-			awsSchedulerFailedDLQ: env.AWS_SCHEDULER_FAILED_DQL,
-			tinyBirdApiKey: env.TINY_BIRD_API_KEY,
-			tinyBirdBaseUrl: env.TINY_BIRD_BASE_URL,
-			tinyBirdMonthlyVerificationsEndpoint: env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
-			tinyBirdMonthlyGenerationsEndpoint: env.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
-		});
 
 		return app.fetch(request, parsedEnv.data, ctx);
 	},

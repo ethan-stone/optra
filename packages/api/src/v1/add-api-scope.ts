@@ -1,6 +1,5 @@
 import { App } from '@/app';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -40,6 +39,9 @@ const route = createRoute({
 export function v1AddApiScope(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
+		const root = c.get('root');
+
+		const { tokenService, db } = root;
 
 		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 

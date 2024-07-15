@@ -3,12 +3,31 @@ import { prettyJSON } from 'hono/pretty-json';
 import { Env } from './env';
 import { handleError, handleZodError } from './errors';
 import { Logger } from './logger';
+import { Db } from './db';
+import { TokenBucket } from './ratelimit';
+import { KeyManagementService } from './key-management';
+import { Cache, CacheNamespaces } from './cache';
+import { Scheduler } from './scheduler';
+import { TokenService } from './token-service';
+import { Analytics } from './analytics';
+import { Sql } from 'postgres';
+
+type Root = {
+	sql: Sql;
+	db: Db;
+	keyManagementService: KeyManagementService;
+	cache: Cache<CacheNamespaces>;
+	scheduler: Scheduler;
+	tokenService: TokenService;
+	analytics: Analytics;
+};
 
 export type HonoEnv = {
 	Bindings: Env;
 	Variables: {
 		reqId: string;
 		logger: Logger;
+		root: Root;
 	};
 };
 

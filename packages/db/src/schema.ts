@@ -1,37 +1,37 @@
 import { relations } from "drizzle-orm";
 import {
-  sqliteTable,
+  pgTable,
   index,
-  text,
+  varchar,
   integer,
   unique,
-} from "drizzle-orm/sqlite-core";
+  json,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { z } from "zod";
 
-export const clients = sqliteTable(
+export const clients = pgTable(
   "clients",
   {
-    id: text("id", { length: 100 }).primaryKey(),
-    name: text("name", { length: 255 }).notNull(),
+    id: varchar("id", { length: 100 }).primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
     version: integer("version").notNull(),
-    clientIdPrefix: text("client_id_prefix", { length: 36 }), // will be applied to client id
-    clientSecretPrefix: text("client_secret_prefix", { length: 36 }), // will be applied to client id
-    workspaceId: text("workspace_id", { length: 36 }).notNull(),
-    forWorkspaceId: text("for_workspace_id", { length: 36 }),
-    apiId: text("api_id", { length: 36 }).notNull(),
-    currentClientSecretId: text("current_client_secret_id", {
+    clientIdPrefix: varchar("client_id_prefix", { length: 36 }), // will be applied to client id
+    clientSecretPrefix: varchar("client_secret_prefix", { length: 36 }), // will be applied to client id
+    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+    forWorkspaceId: varchar("for_workspace_id", { length: 36 }),
+    apiId: varchar("api_id", { length: 36 }).notNull(),
+    currentClientSecretId: varchar("current_client_secret_id", {
       length: 36,
     }).notNull(),
-    nextClientSecretId: text("next_client_secret_id", { length: 36 }),
+    nextClientSecretId: varchar("next_client_secret_id", { length: 36 }),
     rateLimitBucketSize: integer("rate_limit_bucket_size"),
     rateLimitRefillAmount: integer("rate_limit_refill_amount"),
     rateLimitRefillInterval: integer("rate_limit_refill_interval"), // in milliseconds
-    metadata: text("metadata", { mode: "json" }).$type<
-      Record<string, unknown>
-    >(),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-    deletedAt: integer("deleted_at", { mode: "timestamp" }),
+    metadata: json("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "date" }),
   },
   (table) => {
     return {
@@ -41,13 +41,13 @@ export const clients = sqliteTable(
   }
 );
 
-export const clientSecrets = sqliteTable("client_secrets", {
-  id: text("id", { length: 36 }).primaryKey(),
-  secret: text("secret", { length: 255 }).notNull(),
-  status: text("status", { enum: ["active", "revoked"] }).notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  deletedAt: integer("deleted_at", { mode: "timestamp" }),
+export const clientSecrets = pgTable("client_secrets", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  secret: varchar("secret", { length: 255 }).notNull(),
+  status: varchar("status", { enum: ["active", "revoked"] }).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
 });
 
 /**
@@ -58,6 +58,7 @@ export const clientSecrets = sqliteTable("client_secrets", {
  * If the next pricing element is minUnits 11, maxUnits 20, and centsPerUnit 90, then the price is $0.90 for the next 10 units.
  * If the next pricing element is minUnits 21, maxUnits null, and centsPerUnit 80, then the price is $0.80 for each additional unit.
  */
+
 export const SubscriptionPricing = z.object({
   minUnits: z.number(),
   maxUnits: z.number().nullable(),
@@ -86,17 +87,17 @@ export type SubscriptionPricing = z.infer<typeof SubscriptionPricing>;
 
 export type Subscriptions = z.infer<typeof Subscriptions>;
 
-export const workspaces = sqliteTable(
+export const workspaces = pgTable(
   "workspaces",
   {
-    id: text("id", { length: 36 }).primaryKey(),
-    name: text("name", { length: 255 }).notNull(),
-    tenantId: text("tenant_id", { length: 36 }).notNull(),
-    dataEncryptionKeyId: text("data_encryption_key_id", {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+    dataEncryptionKeyId: varchar("data_encryption_key_id", {
       length: 36,
     }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -110,32 +111,32 @@ export const workspaces = sqliteTable(
 
 // separate table for billing to decouple billing from the rest of the workspace
 // otherwise it would be very difficult to test and bootstrap
-export const workspaceBillingInfo = sqliteTable("workspace_billing_info", {
-  id: text("id", { length: 36 }).primaryKey(),
-  workspaceId: text("workspace_id", { length: 36 }).notNull(),
-  plan: text("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
-  customerId: text("customer_id", { length: 36 }).notNull(),
-  subscriptions: text("subscription", { mode: "json" }).$type<Subscriptions>(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+export const workspaceBillingInfo = pgTable("workspace_billing_info", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+  plan: varchar("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
+  customerId: varchar("customer_id", { length: 36 }).notNull(),
+  subscriptions: json("subscription").$type<Subscriptions>(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
 
-export const apis = sqliteTable(
+export const apis = pgTable(
   "apis",
   {
-    id: text("id", { length: 36 }).primaryKey(),
-    name: text("name", { length: 255 }).notNull(),
-    workspaceId: text("workspace_id", { length: 36 }).notNull(),
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
     tokenExpirationInSeconds: integer("token_expiration_in_seconds").notNull(), // in seconds
-    currentSigningSecretId: text("current_signing_secret_id", {
+    currentSigningSecretId: varchar("current_signing_secret_id", {
       length: 36,
     }).notNull(),
-    nextSigningSecretId: text("next_signing_secret_id", {
+    nextSigningSecretId: varchar("next_signing_secret_id", {
       length: 36,
     }),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-    deletedAt: integer("deleted_at", { mode: "timestamp" }),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+    deletedAt: timestamp("deleted_at", { mode: "date" }),
   },
   (table) => {
     return {
@@ -144,27 +145,27 @@ export const apis = sqliteTable(
   }
 );
 
-export const signingSecrets = sqliteTable("signing_secrets", {
-  id: text("id", { length: 36 }).primaryKey(),
-  secret: text("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
-  iv: text("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
-  algorithm: text("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
-  status: text("status", { enum: ["active", "revoked"] }).notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-  deletedAt: integer("deleted_at", { mode: "timestamp" }),
+export const signingSecrets = pgTable("signing_secrets", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  secret: varchar("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
+  iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
+  algorithm: varchar("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
+  status: varchar("status", { enum: ["active", "revoked"] }).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+  deletedAt: timestamp("deleted_at", { mode: "date" }),
 });
 
-export const apiScopes = sqliteTable(
+export const apiScopes = pgTable(
   "api_scopes",
   {
-    id: text("id", { length: 36 }).primaryKey(),
-    apiId: text("api_id", { length: 36 }).notNull(),
-    name: text("name", { length: 255 }).notNull(),
-    description: text("description", { length: 1024 }).default("").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    id: varchar("id", { length: 36 }).primaryKey(),
+    apiId: varchar("api_id", { length: 36 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: varchar("description", { length: 1024 }).default("").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -174,14 +175,14 @@ export const apiScopes = sqliteTable(
   }
 );
 
-export const clientScopes = sqliteTable(
+export const clientScopes = pgTable(
   "client_scopes",
   {
-    id: text("id", { length: 36 }).primaryKey(),
-    clientId: text("client_id", { length: 36 }).notNull(),
-    apiScopeId: text("api_scope_id", { length: 36 }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    id: varchar("id", { length: 36 }).primaryKey(),
+    clientId: varchar("client_id", { length: 36 }).notNull(),
+    apiScopeId: varchar("api_scope_id", { length: 36 }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
   (table) => {
     return {
@@ -191,10 +192,10 @@ export const clientScopes = sqliteTable(
   }
 );
 
-export const dataEncryptionKeys = sqliteTable("data_encryption_keys", {
-  id: text("id", { length: 36 }).primaryKey(),
-  key: text("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+export const dataEncryptionKeys = pgTable("data_encryption_keys", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  key: varchar("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
 });
 
 export const clientRelations = relations(clients, ({ one, many }) => {

@@ -1,4 +1,4 @@
-import { createConnection, Db, LibSQLDb } from '@/db';
+import { createConnection, Db, PostgresDb, schema } from '@/db';
 import { TokenBucket } from '@/ratelimit';
 import { KeyManagementService, AWSKeyManagementService } from '@/key-management';
 import { KMSClient } from '@aws-sdk/client-kms';
@@ -7,21 +7,16 @@ import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
 import { Analytics, NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
+import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres, { Sql } from 'postgres';
 
-export let db: Db;
-export const tokenBuckets: Map<string, TokenBucket> = new Map();
-export let keyManagementService: KeyManagementService;
-export let cache: Cache<CacheNamespaces>;
-export let scheduler: Scheduler;
-export let tokenService: TokenService;
-export let analytics: Analytics;
-
-let hasInitialized = false;
+const cache = new InMemoryCache<CacheNamespaces>({
+	ttl: 60 * 1000, // 1 minute
+});
 
 export function initialize(env: {
 	env: 'development' | 'production';
 	dbUrl: string;
-	dbAuthToken: string;
 	awsAccessKeyId: string;
 	awsSecretAccessKey: string;
 	awsKMSKeyArn: string;
@@ -33,15 +28,13 @@ export function initialize(env: {
 	tinyBirdMonthlyVerificationsEndpoint?: string;
 	tinyBirdMonthlyGenerationsEndpoint?: string;
 }) {
-	if (hasInitialized) {
-		return;
-	}
+	const sql = postgres(env.dbUrl);
 
-	const conn = createConnection(env.dbUrl, env.dbAuthToken);
+	const conn = drizzle(sql, { schema: schema });
 
-	db = new LibSQLDb(conn);
+	const db = new PostgresDb(conn);
 
-	keyManagementService = new AWSKeyManagementService(
+	const keyManagementService = new AWSKeyManagementService(
 		new KMSClient({
 			credentials: {
 				accessKeyId: env.awsAccessKeyId,
@@ -53,11 +46,7 @@ export function initialize(env: {
 		env.awsKMSKeyArn,
 	);
 
-	cache = new InMemoryCache<CacheNamespaces>({
-		ttl: 60 * 1000, // 1 minute
-	});
-
-	scheduler = new AWSEventScheduler(
+	const scheduler = new AWSEventScheduler(
 		new SchedulerClient({
 			credentials: {
 				accessKeyId: env.awsAccessKeyId,
@@ -75,7 +64,7 @@ export function initialize(env: {
 		},
 	);
 
-	analytics =
+	const analytics =
 		env.env === 'production' &&
 		env.tinyBirdApiKey &&
 		env.tinyBirdMonthlyVerificationsEndpoint &&
@@ -93,7 +82,18 @@ export function initialize(env: {
 				})
 			: new NoopAnalytics();
 
-	tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
+	const tokenBuckets: Map<string, TokenBucket> = new Map();
 
-	hasInitialized = true;
+	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
+
+	return {
+		sql,
+		db,
+		conn,
+		cache,
+		analytics,
+		scheduler,
+		tokenService,
+		keyManagementService,
+	};
 }
