@@ -1,4 +1,4 @@
-import { createConnection, Db, PostgresDb, schema } from '@/db';
+import { Db, PostgresDb, schema } from '@/db';
 import { TokenBucket } from '@/ratelimit';
 import { KeyManagementService, AWSKeyManagementService } from '@/key-management';
 import { KMSClient } from '@aws-sdk/client-kms';
@@ -7,14 +7,10 @@ import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
 import { Analytics, NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
-import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres, { Sql } from 'postgres';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { Client } from 'pg';
 
-const cache = new InMemoryCache<CacheNamespaces>({
-	ttl: 60 * 1000, // 1 minute
-});
-
-export function initialize(env: {
+export async function initialize(env: {
 	env: 'development' | 'production';
 	dbUrl: string;
 	awsAccessKeyId: string;
@@ -28,11 +24,20 @@ export function initialize(env: {
 	tinyBirdMonthlyVerificationsEndpoint?: string;
 	tinyBirdMonthlyGenerationsEndpoint?: string;
 }) {
-	const sql = postgres(env.dbUrl);
+	const sql = new Client({
+		connectionString: env.dbUrl,
+	});
+	await sql.connect();
 
-	const conn = drizzle(sql, { schema: schema });
+	const conn = drizzle(sql, { schema });
 
 	const db = new PostgresDb(conn);
+
+	const cache = new InMemoryCache<CacheNamespaces>({
+		ttl: 60 * 1000, // 1 minute
+	});
+
+	const tokenBuckets: Map<string, TokenBucket> = new Map();
 
 	const keyManagementService = new AWSKeyManagementService(
 		new KMSClient({
@@ -81,8 +86,6 @@ export function initialize(env: {
 					generationsForWorkspaceEndpoint: env.tinyBirdMonthlyGenerationsEndpoint,
 				})
 			: new NoopAnalytics();
-
-	const tokenBuckets: Map<string, TokenBucket> = new Map();
 
 	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
 

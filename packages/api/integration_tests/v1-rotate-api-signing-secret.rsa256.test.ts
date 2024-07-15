@@ -4,7 +4,7 @@ import { createApi, createClient, getOAuthToken } from './helpers';
 
 const env = testEnvSchema.parse(process.env);
 
-describe('POST /v1/apis.rotateSigningSecret for hsa256 apis', () => {
+describe('POST /v1/apis.rotateSigningSecret for rsa256 apis', () => {
 	let apiId: string;
 	let apiName: string;
 

@@ -7,12 +7,14 @@
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"test:integration": "tsx ./integration_tests/bootstrap.ts && dotenv -e .env.test vitest",
-		"test:smoke": "k6 run load_tests/smoke.js"
+		"test:smoke": "k6 run load_tests/smoke.js",
+		"gen:supabase:types": "supabase gen types --lang=typescript --project-id zkfacwibmxqkhnmgkviy > src/database.types.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.4.11",
 		"@cloudflare/workers-types": "^4.20240712.0",
 		"@optra/bootstrap": "workspace:^",
+		"@types/pg": "^8.11.6",
 		"tsx": "^4.16.2",
 		"typescript": "^5.5.3",
 		"vite": "^5.3.3",
@@ -36,6 +38,7 @@
 		"drizzle-orm": "^0.32.0",
 		"hono": "^4.4.13",
 		"nanoid": "^5.0.7",
+		"pg": "^8.12.0",
 		"postgres": "^3.4.4",
 		"stripe": "^14.25.0",
 		"zod": "^3.23.8",

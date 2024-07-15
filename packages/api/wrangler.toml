@@ -1,7 +1,7 @@
 name = "optra-api"
 main = "src/index.ts"
 compatibility_date = "2023-11-21"
-compatibility_flags = [ "nodejs_compat" ]
+node_compat = true
 account_id = "ef2049072c297ac2caf34423b1929c4e"
 
 

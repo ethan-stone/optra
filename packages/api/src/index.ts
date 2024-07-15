@@ -41,7 +41,7 @@ app.use('*', async (c, next) => {
 		const reqId = uid('req', 14);
 		c.set('reqId', reqId);
 
-		const root = initialize({
+		const root = await initialize({
 			env: c.env.ENVIRONMENT,
 			dbUrl: c.env.DRIZZLE_DATABASE_URL,
 			awsAccessKeyId: c.env.AWS_ACCESS_KEY_ID,
@@ -124,18 +124,18 @@ app.use('*', async (c, next) => {
 
 v1GetOAuthToken(app);
 v1CreateApi(app);
-// v1GetApi(app);
-// v1DeleteApi(app);
-// v1AddApiScope(app);
-// v1RemoveApiScope(app);
-// v1RotateApiSigningSecret(app);
-// v1CreateClient(app);
-// v1GetClient(app);
-// v1UpdateClient(app);
-// v1DeleteClient(app);
-// v1AddClientScope(app);
-// v1RemoveClientScope(app);
-// v1RotateClientSecret(app);
+v1GetApi(app);
+v1DeleteApi(app);
+v1AddApiScope(app);
+v1RemoveApiScope(app);
+v1RotateApiSigningSecret(app);
+v1CreateClient(app);
+v1GetClient(app);
+v1UpdateClient(app);
+v1DeleteClient(app);
+v1AddClientScope(app);
+v1RemoveClientScope(app);
+v1RotateClientSecret(app);
 v1VerifyToken(app);
 
 export default {

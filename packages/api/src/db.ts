@@ -1,22 +1,11 @@
 import * as schema from '@optra/db/schema';
-import postgres from 'postgres';
-import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { eq, and, isNull } from 'drizzle-orm';
 import { uid } from '@/uid';
 import { hashSHA256 } from '@/crypto-utils';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export * from 'drizzle-orm';
 export * from '@optra/db/index';
-
-export function createConnection(url: string) {
-	const sql = postgres(url);
-
-	const db = drizzle(sql, {
-		schema: schema,
-	});
-
-	return { conn: db, sql };
-}
 
 type InsertClientModel = typeof schema.clients.$inferInsert;
 
@@ -91,7 +80,7 @@ export interface Db {
 }
 
 export class PostgresDb implements Db {
-	constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
+	constructor(private readonly db: NodePgDatabase<typeof schema>) {}
 
 	async getClientById(id: string): Promise<Client | null> {
 		const client = await this.db.query.clients.findFirst({

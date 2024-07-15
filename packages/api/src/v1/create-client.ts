@@ -1,6 +1,5 @@
 import { App } from '@/app';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 function getStringSizeInBytes(str: string): number {
@@ -84,6 +83,7 @@ const route = createRoute({
 export function v1CreateClient(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
+		const { db, tokenService } = c.get('root');
 
 		const {
 			apiId,

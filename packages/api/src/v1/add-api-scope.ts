@@ -39,9 +39,7 @@ const route = createRoute({
 export function v1AddApiScope(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
-		const root = c.get('root');
-
-		const { tokenService, db } = root;
+		const { tokenService, db } = c.get('root');
 
 		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 

@@ -10,10 +10,10 @@ import { Cache, CacheNamespaces } from './cache';
 import { Scheduler } from './scheduler';
 import { TokenService } from './token-service';
 import { Analytics } from './analytics';
-import { Sql } from 'postgres';
+import { Client } from 'pg';
 
 type Root = {
-	sql: Sql;
+	sql: Client;
 	db: Db;
 	keyManagementService: KeyManagementService;
 	cache: Cache<CacheNamespaces>;

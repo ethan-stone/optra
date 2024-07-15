@@ -1,6 +1,5 @@
 import { App } from '@/app';
 import { HTTPException } from '@/errors';
-import { db, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -33,6 +32,7 @@ const route = createRoute({
 export function v1DeleteClient(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
+		const { tokenService, db } = c.get('root');
 
 		const { id } = c.req.valid('json');
 

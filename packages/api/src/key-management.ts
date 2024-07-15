@@ -2,7 +2,7 @@ import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
 import * as schema from '@optra/db/schema';
 import { eq } from '@/db';
 import { Buffer } from '@/buffer';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export interface KeyManagementService {
 	encryptWithCustomerKey: (plaintext: Uint8Array) => Promise<Uint8Array>;
@@ -14,7 +14,7 @@ export interface KeyManagementService {
 export class AWSKeyManagementService implements KeyManagementService {
 	constructor(
 		private client: KMSClient,
-		private db: PostgresJsDatabase<typeof schema>,
+		private db: NodePgDatabase<typeof schema>,
 		private customerKeyId: string,
 	) {}
 

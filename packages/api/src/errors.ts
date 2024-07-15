@@ -46,7 +46,7 @@ export const errorResponseSchemas = {
 		content: {
 			'application/json': {
 				schema: createErrorSchema(['BAD_JWT', 'EXPIRED', 'INVALID_SIGNATURE', 'SECRET_EXPIRED', 'VERSION_MISMATCH']).openapi(
-					'ErrorUnauthorized'
+					'ErrorUnauthorized',
 				),
 			},
 		},
@@ -152,7 +152,7 @@ export function handleZodError(parseResult: { success: true; data: any } | { suc
 				reason: 'BAD_REQUEST',
 				message: readableMessage,
 			},
-			400
+			400,
 		);
 	}
 }
@@ -166,7 +166,7 @@ export function handleError(err: Error, ctx: Context<HonoEnv>): Response {
 				reason: err.reason,
 				message: err.message,
 			},
-			err.status
+			err.status,
 		);
 	}
 
@@ -183,6 +183,6 @@ export function handleError(err: Error, ctx: Context<HonoEnv>): Response {
 			reason: 'INTERNAL_SERVER_ERROR',
 			message: 'An internal server error occurred',
 		},
-		500
+		500,
 	);
 }

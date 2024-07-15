@@ -60,9 +60,7 @@ const route = createRoute({
 export function v1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
-		const root = c.get('root');
-
-		const { tokenService, db, keyManagementService } = root;
+		const { tokenService, db, keyManagementService } = c.get('root');
 
 		const { name, scopes, algorithm, tokenExpirationInSeconds } = c.req.valid('json');
 

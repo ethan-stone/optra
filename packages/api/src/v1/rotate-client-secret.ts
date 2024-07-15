@@ -1,6 +1,5 @@
 import { App } from '@/app';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { db, scheduler, tokenService } from '@/root';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
@@ -43,6 +42,7 @@ const route = createRoute({
 export function v1RotateClientSecret(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
+		const { db, scheduler, tokenService } = c.get('root');
 
 		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
