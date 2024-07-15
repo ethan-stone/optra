@@ -181,7 +181,7 @@ export class NoopAnalytics implements Analytics {
 
 	async getVerificationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetVerificationsForWorkspaceResponse> {
 		return {
-			successful: 10000,
+			successful: 1000,
 			failed: 500,
 		};
 	}
