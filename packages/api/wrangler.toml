@@ -4,6 +4,8 @@ compatibility_date = "2023-11-21"
 node_compat = true
 account_id = "ef2049072c297ac2caf34423b1929c4e"
 
+[limits]
+cpu_ms = 30000
 
 # Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
 # Note: Use secrets to store sensitive data.
