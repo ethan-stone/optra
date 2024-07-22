@@ -9,6 +9,16 @@ import { TokenService } from '@/token-service';
 import { Analytics, NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { AWSS3Storage } from './storage';
+import { S3Client } from '@aws-sdk/client-s3';
+
+let sql: Client | undefined = undefined;
+
+const cache = new InMemoryCache<CacheNamespaces>({
+	ttl: 60 * 1000, // 1 minute
+});
+
+const tokenBuckets: Map<string, TokenBucket> = new Map();
 
 export async function initialize(env: {
 	env: 'development' | 'production';
@@ -19,25 +29,24 @@ export async function initialize(env: {
 	awsMessageQueueArn: string;
 	awsSchedulerRoleArn: string;
 	awsSchedulerFailedDLQ: string;
+	awsS3BucketArn: string;
+	awsS3PublicUrl: string;
 	tinyBirdApiKey?: string;
 	tinyBirdBaseUrl?: string;
 	tinyBirdMonthlyVerificationsEndpoint?: string;
 	tinyBirdMonthlyGenerationsEndpoint?: string;
 }) {
-	const sql = new Client({
-		connectionString: env.dbUrl,
-	});
-	await sql.connect();
+	if (!sql) {
+		sql = new Client({
+			connectionString: env.dbUrl,
+		});
+
+		await sql.connect();
+	}
 
 	const conn = drizzle(sql, { schema });
 
 	const db = new PostgresDb(conn);
-
-	const cache = new InMemoryCache<CacheNamespaces>({
-		ttl: 60 * 1000, // 1 minute
-	});
-
-	const tokenBuckets: Map<string, TokenBucket> = new Map();
 
 	const keyManagementService = new AWSKeyManagementService(
 		new KMSClient({
@@ -87,11 +96,24 @@ export async function initialize(env: {
 				})
 			: new NoopAnalytics();
 
-	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
+	const storage = new AWSS3Storage(
+		new S3Client({
+			credentials: {
+				accessKeyId: env.awsAccessKeyId,
+				secretAccessKey: env.awsSecretAccessKey,
+			},
+			region: 'us-east-1',
+		}),
+		env.awsS3BucketArn,
+		env.awsS3PublicUrl,
+	);
+
+	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics, storage);
 
 	return {
 		sql,
 		db,
+		storage,
 		conn,
 		cache,
 		analytics,

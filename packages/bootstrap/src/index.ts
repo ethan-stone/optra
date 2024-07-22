@@ -137,6 +137,7 @@ async function newApi(
     workspaceId: string;
     dataEncryptionKey: string;
     algorithm: "hsa256" | "rsa256";
+    bucketName: string;
   }
 ) {
   const apiId = `api_` + uid();
@@ -217,7 +218,7 @@ async function newApi(
 
       await s3Client.send(
         new PutObjectCommand({
-          Bucket: "jwks-dev",
+          Bucket: args.bucketName,
           Key: `${args.workspaceId}/${apiId}/.well-known/jwks.json`,
           Body: JSON.stringify({
             keys: [{ ...publicKey, kid: signingSecretId }],
@@ -333,7 +334,8 @@ export async function bootstrap(
   db: PostgresJsDatabase<typeof schema>,
   kmsClient: KMSClient,
   s3Client: S3Client,
-  awsKMSKeyArn: string
+  awsKMSKeyArn: string,
+  bucketName: string
 ) {
   const {
     workspaceId: internalWorkspaceId,
@@ -344,6 +346,7 @@ export async function bootstrap(
     workspaceId: internalWorkspaceId,
     dataEncryptionKey: internalDataEncryptionKey,
     algorithm: "rsa256",
+    bucketName,
   });
 
   const { workspaceId, dataEncryptionKey } = await newWorkspace(
@@ -378,6 +381,7 @@ export async function bootstrap(
     workspaceId,
     dataEncryptionKey: dataEncryptionKey,
     algorithm: "rsa256",
+    bucketName,
   });
 
   const { clientId: basicClientId, clientSecretValue: basicClientSecretValue } =

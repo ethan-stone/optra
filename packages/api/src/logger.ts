@@ -21,8 +21,6 @@ export type LoggerOptions =
 	  }
 	| {
 			env: 'production';
-			baseLimeApiKey: string;
-			executionCtx: ExecutionContext;
 			service: string;
 			namespace: string;
 			dataset: string;
@@ -44,17 +42,6 @@ export class Logger implements Logger {
 			requestId: opts.requestId,
 			...defaultFields,
 		};
-
-		if (this.opts.env === 'production') {
-			this.baselime = new BaselimeLogger({
-				apiKey: this.opts.baseLimeApiKey,
-				ctx: this.opts.executionCtx,
-				service: this.opts.service,
-				namespace: this.opts.namespace,
-				dataset: this.opts.dataset,
-				requestId: this.opts.requestId,
-			});
-		}
 	}
 
 	private log(message: string, fields?: Fields) {

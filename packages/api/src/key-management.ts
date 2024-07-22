@@ -1,7 +1,6 @@
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
 import * as schema from '@optra/db/schema';
 import { eq } from '@/db';
-import { Buffer } from '@/buffer';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export interface KeyManagementService {

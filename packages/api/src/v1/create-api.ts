@@ -1,7 +1,7 @@
 import { App } from '@/app';
 import { HTTPException, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
-import { Buffer } from '@/buffer';
+import { webcrypto } from 'crypto';
 
 const route = createRoute({
 	method: 'post' as const,
@@ -60,7 +60,7 @@ const route = createRoute({
 export function v1CreateApi(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
-		const { tokenService, db, keyManagementService } = c.get('root');
+		const { tokenService, db, keyManagementService, storage } = c.get('root');
 
 		const { name, scopes, algorithm, tokenExpirationInSeconds } = c.req.valid('json');
 
@@ -124,15 +124,19 @@ export function v1CreateApi(app: App) {
 					},
 					true,
 					['sign', 'verify'],
-				)) as CryptoKey;
+				)) as webcrypto.CryptoKey;
 
 				const exportedSigningSecret = Buffer.from((await crypto.subtle.exportKey('raw', signingSecret)) as ArrayBuffer).toString('base64');
+
+				logger.info(`Encrypting signing secret...`);
 
 				// Encrypt the signing secret with the data encryption key for the workspace.
 				const encryptResult = await keyManagementService.encryptWithDataKey(
 					workspace.dataEncryptionKeyId,
 					Buffer.from(exportedSigningSecret, 'base64'),
 				);
+
+				logger.info(`Encrypted signing secret.`);
 
 				const { id } = await db.createApi({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -160,15 +164,19 @@ export function v1CreateApi(app: App) {
 					},
 					true,
 					['sign', 'verify'],
-				)) as CryptoKeyPair;
+				)) as webcrypto.CryptoKeyPair;
 
-				const publicKey = (await crypto.subtle.exportKey('jwk', keyPair.publicKey)) as JsonWebKey;
+				const publicKey = (await crypto.subtle.exportKey('jwk', keyPair.publicKey)) as webcrypto.JsonWebKey;
 				const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+
+				logger.info(`Encrypting signing secret...`);
 
 				const encryptResult = await keyManagementService.encryptWithDataKey(
 					workspace.dataEncryptionKeyId,
 					Buffer.from(privateKey as ArrayBuffer),
 				);
+
+				logger.info(`Encrypted signing secret.`);
 
 				const { id, currentSigningSecretId } = await db.createApi({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -182,10 +190,9 @@ export function v1CreateApi(app: App) {
 					updatedAt: now,
 				});
 
-				// upload the public key to R2
-				await c.env.JWKS_BUCKET.put(
-					`${workspace.id}/${id}/.well-known/jwks.json`,
-					JSON.stringify({
+				await storage.put({
+					key: `${workspace.id}/${id}/.well-known/jwks.json`,
+					content: JSON.stringify({
 						keys: [
 							{
 								...publicKey,
@@ -193,12 +200,7 @@ export function v1CreateApi(app: App) {
 							},
 						],
 					}),
-					{
-						httpMetadata: {
-							contentType: 'application/json',
-						},
-					},
-				);
+				});
 
 				logger.info(`Successfully created api with id ${id}`);
 

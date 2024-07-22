@@ -3,7 +3,6 @@ import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
 import { HTTPException, errorResponseSchemas } from '@/errors';
-import { Buffer } from '@/buffer';
 
 const bodySchema = z.object({
 	clientId: z.string(),
@@ -188,16 +187,16 @@ export function v1GetOAuthToken(app: App) {
 
 				logger.info(`Created JWT for client ${clientId}`);
 
-				c.executionCtx.waitUntil(
-					analytics.publish('token.generated', [
-						{
-							apiId: client.apiId,
-							clientId: client.id,
-							workspaceId: client.workspaceId,
-							timestamp: Date.now(),
-						},
-					]),
-				);
+				// c.executionCtx.waitUntil(
+				// 	analytics.publish('token.generated', [
+				// 		{
+				// 			apiId: client.apiId,
+				// 			clientId: client.id,
+				// 			workspaceId: client.workspaceId,
+				// 			timestamp: Date.now(),
+				// 		},
+				// 	]),
+				// );
 
 				return c.json(
 					{
@@ -228,16 +227,16 @@ export function v1GetOAuthToken(app: App) {
 					{ algorithm: 'RS256', header: { typ: 'JWT', kid: signingSecretToUse.id } },
 				);
 
-				c.executionCtx.waitUntil(
-					analytics.publish('token.generated', [
-						{
-							apiId: client.apiId,
-							clientId: client.id,
-							workspaceId: client.workspaceId,
-							timestamp: Date.now(),
-						},
-					]),
-				);
+				// c.executionCtx.waitUntil(
+				// 	analytics.publish('token.generated', [
+				// 		{
+				// 			apiId: client.apiId,
+				// 			clientId: client.id,
+				// 			workspaceId: client.workspaceId,
+				// 			timestamp: Date.now(),
+				// 		},
+				// 	]),
+				// );
 
 				return c.json(
 					{
