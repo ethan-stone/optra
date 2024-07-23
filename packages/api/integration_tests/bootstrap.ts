@@ -48,7 +48,7 @@ export async function bootstrapTests() {
 
 	const dataStr = format({
 		...data,
-		TEST_BASE_URL: 'http://localhost:8787',
+		TEST_BASE_URL: 'https://optra-api-dev.ethan-stone9352.workers.dev',
 		JWKS_BUCKET_URL: 'https://pub-a5afc02c7f8144f0b982fd75f6846a06.r2.dev',
 	});
 

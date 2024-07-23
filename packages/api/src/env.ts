@@ -3,7 +3,6 @@ import { z } from 'zod';
 export const envSchema = z.object({
 	DRIZZLE_DATABASE_URL: z.string(),
 	ENVIRONMENT: z.enum(['development', 'production']),
-	JWT_SECRET: z.string(),
 	BASELIME_API_KEY: z.string().optional(),
 	AWS_ACCESS_KEY_ID: z.string(),
 	AWS_SECRET_ACCESS_KEY: z.string(),
