@@ -68,13 +68,13 @@ app.use('*', async (c, next) => {
 
 		let logger: Logger;
 
-		if (c.env.ENVIRONMENT === 'production' && !c.env.BASELIME_API_KEY) {
-			throw new Error('Missing Axiom environment variables for production');
-		}
+		// if (c.env.ENVIRONMENT === 'production' && !c.env.BASELIME_API_KEY) {
+		// 	throw new Error('Missing Axiom environment variables for production');
+		// }
 
-		if (c.env.ENVIRONMENT === 'production' && c.env.BASELIME_API_KEY) {
+		if (c.env.BASELIME_API_KEY) {
 			logger = new Logger({
-				env: c.env.ENVIRONMENT,
+				env: 'production',
 				baseLimeApiKey: c.env.BASELIME_API_KEY,
 				executionCtx: c.executionCtx,
 				dataset: 'api-logs',
@@ -142,7 +142,8 @@ export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const parsedEnv = envSchema.safeParse(env);
 
-		if (!parsedEnv.success)
+		if (!parsedEnv.success) {
+			console.log(parsedEnv.error);
 			return Response.json(
 				{
 					errors: parsedEnv.error,
@@ -151,6 +152,7 @@ export default {
 				},
 				{ status: 500 },
 			);
+		}
 
 		return app.fetch(request, parsedEnv.data, ctx);
 	},

@@ -10,6 +10,12 @@ import { Analytics, NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 
+const cache = new InMemoryCache<CacheNamespaces>({
+	ttl: 60 * 1000, // 1 minute
+});
+
+const tokenBuckets: Map<string, TokenBucket> = new Map();
+
 export async function initialize(env: {
 	env: 'development' | 'production';
 	dbUrl: string;
@@ -32,12 +38,6 @@ export async function initialize(env: {
 	const conn = drizzle(sql, { schema });
 
 	const db = new PostgresDb(conn);
-
-	const cache = new InMemoryCache<CacheNamespaces>({
-		ttl: 60 * 1000, // 1 minute
-	});
-
-	const tokenBuckets: Map<string, TokenBucket> = new Map();
 
 	const keyManagementService = new AWSKeyManagementService(
 		new KMSClient({
