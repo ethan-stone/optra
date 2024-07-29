@@ -24,7 +24,7 @@ export async function initialize(env: {
 	awsKMSKeyArn: string;
 	awsMessageQueueArn: string;
 	awsSchedulerRoleArn: string;
-	awsSchedulerFailedDLQ: string;
+	awsSchedulerFailedDLQArn: string;
 	tinyBirdApiKey?: string;
 	tinyBirdBaseUrl?: string;
 	tinyBirdMonthlyVerificationsEndpoint?: string;
@@ -65,7 +65,7 @@ export async function initialize(env: {
 				'api.signing_secret.expired': { arn: env.awsMessageQueueArn },
 				'client.secret.expired': { arn: env.awsMessageQueueArn },
 			},
-			dlqArn: env.awsSchedulerFailedDLQ,
+			dlqArn: env.awsSchedulerFailedDLQArn,
 		},
 	);
 

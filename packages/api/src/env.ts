@@ -9,7 +9,7 @@ export const envSchema = z.object({
 	AWS_KMS_KEY_ARN: z.string(),
 	AWS_MESSAGE_QUEUE_ARN: z.string(),
 	AWS_SCHEDULER_ROLE_ARN: z.string(),
-	AWS_SCHEDULER_FAILED_DQL: z.string(),
+	AWS_SCHEDULER_FAILED_DLQ_ARN: z.string(),
 	JWKS_BUCKET: z.custom<R2Bucket>((bucket) => typeof bucket === 'object'),
 	TINY_BIRD_API_KEY: z.string().optional(),
 	TINY_BIRD_BASE_URL: z.string().optional(),

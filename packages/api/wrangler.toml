@@ -10,7 +10,7 @@ bucket_name = "jwks"
 preview_bucket_name = "jwks-dev"
 
 [env.dev]
-vars = { ENVIRONMENT = "development", AWS_KMS_KEY_ARN = "arn:aws:kms:us-east-1:475216627762:key/59582df9-5519-4700-953b-dcdc6f696f48", AWS_MESSAGE_QUEUE_ARN = "arn:aws:sqs:us-east-1:475216627762:ethanstone-optra-MessageQueue", AWS_SCHEDULER_ROLE_ARN = "arn:aws:iam::475216627762:role/ethanstone-optra-SchedulerSta-SchedulerRole59E73443-SyNqksJjh2sC", AWS_SCHEDULER_FAILED_DQL = "arn:aws:sqs:us-east-1:475216627762:ethanstone-optra-SchedulerFailedDLQ", JWKS_BUCKET_URL = "https://pub-a5afc02c7f8144f0b982fd75f6846a06.r2.dev" }
+vars = { ENVIRONMENT = "development", AWS_KMS_KEY_ARN = "arn:aws:kms:us-east-1:475216627762:key/59582df9-5519-4700-953b-dcdc6f696f48", AWS_MESSAGE_QUEUE_ARN = "arn:aws:sqs:us-east-1:475216627762:ethanstone-optra-MessageQueue", AWS_SCHEDULER_ROLE_ARN = "arn:aws:iam::475216627762:role/SchedulerRole-c61c73f", AWS_SCHEDULER_FAILED_DLQ_ARN = "arn:aws:sqs:us-east-1:475216627762:ethanstone-optra-SchedulerFailedDLQ", JWKS_BUCKET_URL = "https://pub-a5afc02c7f8144f0b982fd75f6846a06.r2.dev" }
 r2_buckets = [
     { binding = "JWKS_BUCKET", bucket_name = "jwks-dev" }
 ]

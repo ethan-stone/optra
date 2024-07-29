@@ -49,7 +49,7 @@ app.use('*', async (c, next) => {
 			awsKMSKeyArn: c.env.AWS_KMS_KEY_ARN,
 			awsMessageQueueArn: c.env.AWS_MESSAGE_QUEUE_ARN,
 			awsSchedulerRoleArn: c.env.AWS_SCHEDULER_ROLE_ARN,
-			awsSchedulerFailedDLQ: c.env.AWS_SCHEDULER_FAILED_DQL,
+			awsSchedulerFailedDLQArn: c.env.AWS_SCHEDULER_FAILED_DLQ_ARN,
 			tinyBirdApiKey: c.env.TINY_BIRD_API_KEY,
 			tinyBirdBaseUrl: c.env.TINY_BIRD_BASE_URL,
 			tinyBirdMonthlyVerificationsEndpoint: c.env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
