@@ -1,18 +1,23 @@
 import { ScheduledHandler } from "aws-lambda";
-import { db } from "./db";
+import { db, schema } from "./db";
 import { sqsClient } from "./sqs";
 import {
   SendMessageBatchCommand,
   SendMessageBatchRequestEntry,
 } from "@aws-sdk/client-sqs";
 import { InvoiceWorkspaceEvent } from "@optra/core/event-schemas";
-import { Config } from "sst/node/config";
-import { getIdempotencyKey, putIdempotencyKey } from "./dynamodb";
+import { Resource } from "sst";
 
 export const handler: ScheduledHandler = async (event) => {
-  const idempotencyKey = await getIdempotencyKey(event.id);
+  const idempotencyKeyRecord = await db.query.idempotencyKeys.findFirst({
+    where: (tables, { eq, and, gt, or, isNull }) =>
+      and(
+        or(gt(tables.expiresAt, new Date()), isNull(tables.expiresAt)),
+        eq(tables.key, event.id)
+      ),
+  });
 
-  if (idempotencyKey !== null) {
+  if (idempotencyKeyRecord !== undefined) {
     console.log(`Skipping event ${event.id} because it was already processed`);
     return;
   }
@@ -87,7 +92,11 @@ export const handler: ScheduledHandler = async (event) => {
     console.error(`Failed messages:`, failedMessages);
   }
 
-  await putIdempotencyKey(event.id);
+  await db.insert(schema.idempotencyKeys).values({
+    key: event.id,
+    createdAt: new Date(),
+    expiresAt: null,
+  });
   console.log("Done queueing invoice generation for all workspaces");
 };
 
@@ -114,7 +123,7 @@ async function sendBatch(
   try {
     const command = new SendMessageBatchCommand({
       Entries: entries,
-      QueueUrl: Config.MESSAGE_QUEUE_URL,
+      QueueUrl: Resource.MessageQueue.url,
     });
 
     const res = await sqsClient.send(command);

@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { SendMessageBatchCommand, SQSClient } from '@aws-sdk/client-sqs';
+import { uid } from './uid';
+import { TokenGeneratedEvent } from '@optra/core/event-schemas';
 
 const AnalyticsEventTypes = z.enum(['token.generated', 'token.verified']);
 
@@ -170,6 +173,55 @@ export class TinyBirdAnalytics implements Analytics {
 
 		return {
 			total: validData.total,
+		};
+	}
+}
+
+export class SQSAndPgAnalytics implements Analytics {
+	constructor(
+		private sqsClient: SQSClient,
+		private queueUrl: string,
+	) {}
+
+	async publish<T extends AnalyticsEventType>(eventType: T, payloads: AnalyticsEventPayload<T>[]): Promise<void> {
+		const validEventType = await AnalyticsEventTypes.safeParseAsync(eventType);
+
+		if (!validEventType.success) {
+			throw new Error(`Invalid event type: ${eventType}`);
+		}
+
+		const payloadSchema = AnalyticsEventPayloads[eventType];
+
+		const validPayloads = await payloadSchema.array().safeParseAsync(payloads);
+
+		if (!validPayloads.success) {
+			throw new Error(`Invalid payload: ${JSON.stringify(validPayloads.error.issues)}`);
+		}
+
+		const sendMessageCommand = new SendMessageBatchCommand({
+			QueueUrl: this.queueUrl,
+			Entries: validPayloads.data.map((p) => ({
+				Id: uid(),
+				MessageBody: JSON.stringify({
+					eventType: 'token.generated',
+					payload: p,
+					timestamp: Date.now(),
+				} satisfies TokenGeneratedEvent),
+			})),
+		});
+
+		await this.sqsClient.send(sendMessageCommand);
+	}
+
+	async getVerificationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetVerificationsForWorkspaceResponse> {
+		return {
+			successful: 1000,
+			failed: 500,
+		};
+	}
+	async getGenerationsForWorkspace(_: GetVerificationForWorkspace): Promise<GetGenerationsForWorkspaceResponse> {
+		return {
+			total: 1000,
 		};
 	}
 }

@@ -193,7 +193,7 @@ export const dataEncryptionKeys = pgTable("data_encryption_keys", {
 export const idempotencyKeys = pgTable("idempotency_keys", {
   key: text("key").primaryKey(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
-  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
 });
 
 // In supabase this is actually a hyper table using timescaledb extension.

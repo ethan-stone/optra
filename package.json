@@ -16,7 +16,6 @@
     "@types/aws-lambda": "8.10.142",
     "aws-cdk-lib": "2.124.0",
     "constructs": "10.3.0",
-    "sst": "2.40.1",
     "typescript": "^5.5.3"
   },
   "workspaces": [

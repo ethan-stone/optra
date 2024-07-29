@@ -23,19 +23,31 @@ export default $config({
         "arn:aws:kms:us-east-1:475216627762:key/59582df9-5519-4700-953b-dcdc6f696f48",
     });
 
+    const dbUrl = new sst.Secret("DbUrl");
+
+    const stripeApiKey = new sst.Secret("StripeApiKey");
+
     const messageDLQ = new sst.aws.Queue("MessageDLQ", {});
 
     const messageQueue = new sst.aws.Queue("MessageQueue", {
       dlq: messageDLQ.arn,
     });
 
-    messageQueue.subscribe("packages/lambdas/src/handle-message.handler", {
-      transform: {
-        eventSourceMapping: {
-          functionResponseTypes: ["ReportBatchItemFailures"],
-        },
+    messageQueue.subscribe(
+      {
+        handler: "packages/lambdas/src/handle-message.handler",
+        link: [dbUrl, stripeApiKey],
       },
-    });
+      {
+        transform: {
+          eventSourceMapping: {
+            batchSize: 100,
+            maximumBatchingWindowInSeconds: 5,
+            functionResponseTypes: ["ReportBatchItemFailures"],
+          },
+        },
+      }
+    );
 
     const schedulerDLQ = new sst.aws.Queue("SchedulerFailedDLQ", {});
 
@@ -70,26 +82,33 @@ export default $config({
     });
 
     const apiPolicy = new aws.iam.Policy("ApiPolicy", {
-      policy: JSON.stringify({
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Effect: "Allow",
-            Action: [
-              "kms:Encrypt",
-              "kms:Decrypt",
-              "kms:ReEncrypt*",
-              "kms:GenerateDataKey*",
-              "kms:DescribeKey",
-            ],
-            Resource: "*",
-          },
-          {
-            Effect: "Allow",
-            Action: ["scheduler:CreateSchedule", "iam:PassRole"],
-            Resource: "*",
-          },
-        ],
+      policy: messageQueue.arn.apply((arn) => {
+        return JSON.stringify({
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Action: "sqs:SendMessage",
+              Resource: arn,
+              Effect: "Allow",
+            },
+            {
+              Effect: "Allow",
+              Action: [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey",
+              ],
+              Resource: "*",
+            },
+            {
+              Effect: "Allow",
+              Action: ["scheduler:CreateSchedule", "iam:PassRole"],
+              Resource: "*",
+            },
+          ],
+        });
       }),
     });
 
@@ -101,7 +120,7 @@ export default $config({
     new sst.aws.Cron("InvoiceCron", {
       job: {
         handler: "packages/lambdas/src/handle-invoice-cron.handler",
-        link: [messageQueue],
+        link: [messageQueue, dbUrl],
         timeout: "15 minutes",
       },
       schedule: "cron(0 12 1 * ? *)",
@@ -111,6 +130,7 @@ export default $config({
       KMSKeyArn: kmsKey.arn,
       APIUserArn: apiUser.arn,
       MessageQueueArn: messageQueue.arn,
+      MessageQueueUrl: messageQueue.url,
       MessageDLQArn: messageDLQ.arn,
       SchedulerRoleArn: schedulerRole.arn,
       SchedulerDLQArn: schedulerDLQ.arn,

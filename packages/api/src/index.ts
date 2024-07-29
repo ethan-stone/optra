@@ -48,6 +48,7 @@ app.use('*', async (c, next) => {
 			awsSecretAccessKey: c.env.AWS_SECRET_ACCESS_KEY,
 			awsKMSKeyArn: c.env.AWS_KMS_KEY_ARN,
 			awsMessageQueueArn: c.env.AWS_MESSAGE_QUEUE_ARN,
+			awsMessageQueueUrl: c.env.AWS_MESSAGE_QUEUE_URL,
 			awsSchedulerRoleArn: c.env.AWS_SCHEDULER_ROLE_ARN,
 			awsSchedulerFailedDLQArn: c.env.AWS_SCHEDULER_FAILED_DLQ_ARN,
 			tinyBirdApiKey: c.env.TINY_BIRD_API_KEY,

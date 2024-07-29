@@ -6,9 +6,10 @@ import { Cache, CacheNamespaces, InMemoryCache } from '@/cache';
 import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
-import { Analytics, NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
+import { Analytics, NoopAnalytics, SQSAndPgAnalytics, TinyBirdAnalytics } from '@/analytics';
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import { SQSClient } from '@aws-sdk/client-sqs';
 
 const cache = new InMemoryCache<CacheNamespaces>({
 	ttl: 60 * 1000, // 1 minute
@@ -23,6 +24,7 @@ export async function initialize(env: {
 	awsSecretAccessKey: string;
 	awsKMSKeyArn: string;
 	awsMessageQueueArn: string;
+	awsMessageQueueUrl: string;
 	awsSchedulerRoleArn: string;
 	awsSchedulerFailedDLQArn: string;
 	tinyBirdApiKey?: string;
@@ -69,23 +71,15 @@ export async function initialize(env: {
 		},
 	);
 
-	const analytics =
-		env.env === 'production' &&
-		env.tinyBirdApiKey &&
-		env.tinyBirdMonthlyVerificationsEndpoint &&
-		env.tinyBirdMonthlyGenerationsEndpoint &&
-		env.tinyBirdBaseUrl
-			? new TinyBirdAnalytics({
-					apiKey: env.tinyBirdApiKey,
-					baseUrl: 'https://api.us-east.aws.tinybird.co',
-					eventTypeDatasourceMap: {
-						'token.generated': 'token_generated__v0',
-						'token.verified': 'token_verified__v0',
-					},
-					verificationForWorkspaceEndpoint: env.tinyBirdMonthlyVerificationsEndpoint,
-					generationsForWorkspaceEndpoint: env.tinyBirdMonthlyGenerationsEndpoint,
-				})
-			: new NoopAnalytics();
+	const sqsClient = new SQSClient({
+		region: 'us-east-1',
+		credentials: {
+			accessKeyId: env.awsAccessKeyId,
+			secretAccessKey: env.awsSecretAccessKey,
+		},
+	});
+
+	const analytics = env.env === 'development' ? new SQSAndPgAnalytics(sqsClient, env.awsMessageQueueUrl) : new NoopAnalytics();
 
 	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
 
