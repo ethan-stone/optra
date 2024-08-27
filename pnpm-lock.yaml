@@ -10,7 +10,7 @@ importers:
     dependencies:
       sst:
         specifier: ion
-        version: 0.1.54(aws-crt@1.21.3)(hono@4.5.3)
+        version: 0.1.56(aws-crt@1.21.3)(hono@4.5.3)
     devDependencies:
       '@tsconfig/node18':
         specifier: ^18.2.4
@@ -258,6 +258,43 @@ importers:
       vitest:
         specifier: ^1.6.0
         version: 1.6.0(@types/node@20.14.10)
+
+  packages/scripts:
+    dependencies:
+      chance:
+        specifier: ^1.1.12
+        version: 1.1.12
+      dotenv-cli:
+        specifier: ^7.4.2
+        version: 7.4.2
+      drizzle-orm:
+        specifier: ^0.32.0
+        version: 0.32.0(@aws-sdk/client-rds-data@3.620.0(aws-crt@1.21.3))(@cloudflare/workers-types@4.20240725.0)(@libsql/client@0.5.6)(@opentelemetry/api@1.9.0)(@planetscale/database@1.18.0)(@types/pg@8.11.6)(@types/react@18.3.3)(kysely@0.25.0)(mysql2@3.10.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)
+      pg:
+        specifier: ^8.12.0
+        version: 8.12.0
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@types/chance':
+        specifier: ^1.1.6
+        version: 1.1.6
+      '@types/node':
+        specifier: ^20.14.10
+        version: 20.14.13
+      '@types/pg':
+        specifier: ^8.11.6
+        version: 8.11.6
+      tsx:
+        specifier: ^4.16.2
+        version: 4.16.2
+      vite:
+        specifier: ^5.3.3
+        version: 5.3.5(@types/node@20.14.13)
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@20.14.13)
 
   packages/web:
     dependencies:
@@ -3241,6 +3278,9 @@ packages:
   '@types/body-parser@1.19.5':
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
 
+  '@types/chance@1.1.6':
+    resolution: {integrity: sha512-V+pm3stv1Mvz8fSKJJod6CglNGVqEQ6OyuqitoDkWywEODM/eJd1eSuIp9xt6DrX8BWZ2eDSIzbw1tPCUTvGbQ==}
+
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
@@ -3781,6 +3821,9 @@ packages:
   chalk@5.3.0:
     resolution: {integrity: sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
+  chance@1.1.12:
+    resolution: {integrity: sha512-vVBIGQVnwtUG+SYe0ge+3MvF78cvSpuCOEUJr7sVEk2vSBuMW6OXNJjSzdtzrlxNUEaoqH2GBd5Y/+18BEB01Q==}
 
   check-error@1.0.3:
     resolution: {integrity: sha512-iKEoDYaRmd1mxM90a2OEfWhjsjPpYPuQ+lMYsoxB126+t8fw7ySEO48nmDg5COTjxDI65/Y2OWpeEHk3ZOe8zg==}
@@ -5278,6 +5321,7 @@ packages:
 
   libsql@0.3.19:
     resolution: {integrity: sha512-Aj5cQ5uk/6fHdmeW0TiXK42FqUlwx7ytmMLPSaUQPin5HKKKuUPD62MAbN4OEweGBBI7q1BekoEN4gPUEL6MZA==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -6397,33 +6441,33 @@ packages:
     engines: {node: '>= 14.15.0'}
     hasBin: true
 
-  sst-darwin-arm64@0.1.54:
-    resolution: {integrity: sha512-izVZXPwDjh0uBG4k7lfeKlrndNeqHKKcfeTPglW1xPdixoRZ1vyLl1j8gLE61c9Dp0QA+HNj+CMF72KFCBJWeQ==}
+  sst-darwin-arm64@0.1.56:
+    resolution: {integrity: sha512-Q0t+DwQ/CE8/iuVzqRZ+SS8ryMwocVYsKmIVE/nwwq2MviVzUT8vyqOU+8FaayS8xVCgmVkVE2AmxfNXqI3m3Q==}
     cpu: [arm64]
     os: [darwin]
 
-  sst-darwin-x64@0.1.54:
-    resolution: {integrity: sha512-nrfP42G+yZT8/7fCmsdH7mQi+wIhuSeq1BS7kvNxA1ULkhYp+LYaHkt7jjyb+49WxSe0Q0TwltkdKn0anu0aAQ==}
+  sst-darwin-x64@0.1.56:
+    resolution: {integrity: sha512-M6uY0MULzylEAa0CW/r/vjoCIPO6+Watt+AJeyGzYqivzzYzCpMDzYfqXN89VM2KwLpeLgPj0WCkgL02LeRIZg==}
     cpu: [x64]
     os: [darwin]
 
-  sst-linux-arm64@0.1.54:
-    resolution: {integrity: sha512-J3WME8En7oMWI7w7ScPWfaO4fo0krdThp8KLoHvm3Qsx/Hzccgnk36x03P3mGQL7WdUWHmL4l5tG6bjyPudYBA==}
+  sst-linux-arm64@0.1.56:
+    resolution: {integrity: sha512-FUI0iXQpm59AqbljCMlh51k0RKI+B1tYZ6SIHYGYr/EkP7ljtU5CRsZZty/3chd91YsvDfQxaZYJPscQsxi78w==}
     cpu: [arm64]
     os: [linux]
 
-  sst-linux-x64@0.1.54:
-    resolution: {integrity: sha512-rf+nLW4ewcIGnX06JCo17v09nnSgjcMiRo1+RWVImo+9v/Uiykd1m1LfBcEJX2glSseWu5gN5Qb3aq9lQ3N4vA==}
+  sst-linux-x64@0.1.56:
+    resolution: {integrity: sha512-jc0CXt+dIAqRp7ctXF/+5eC3B3IoNrolAtKjgxrddXa+cmu4L9/ZDA1LdGQC9xg1bUkB/4b/El2WETkG/dgQ0Q==}
     cpu: [x64]
     os: [linux]
 
-  sst-linux-x86@0.1.54:
-    resolution: {integrity: sha512-eY6vcKw/iAC9KFDTRF5GUE5orTur0NWDJsxSBzO9xdlwxjKe+2j2C9/UhX/1aKkVlHu31FBotbuqZAdXDaAMig==}
+  sst-linux-x86@0.1.56:
+    resolution: {integrity: sha512-fMIyQXSeBdhUPOYOUErJMcrHld2XbvflBe7G66Lg3cvNolI0nYsnophytJeZiOfhKVPQlpN+AahRjL5PBEo4dg==}
     cpu: [x86]
     os: [linux]
 
-  sst@0.1.54:
-    resolution: {integrity: sha512-jUlYHJgtHQdfF3SP7xizwEExKfPnIHnjCv/bbPVkDteSU8fMJX1q8j7psduHUntF1svRPrBZstdHprP0CqON1g==}
+  sst@0.1.56:
+    resolution: {integrity: sha512-SoUyQixZtnQRAqG+KiXeZmzouorQN26/JdmB3W1KLqdGOD1E0qsuAoeL4G2mhYJ7gzrIgJGSxtx9rdSEPGdo+g==}
     hasBin: true
     peerDependencies:
       hono: 4.x
@@ -11596,18 +11640,20 @@ snapshots:
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
+
+  '@types/chance@1.1.6': {}
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
 
   '@types/cookies@0.7.7':
     dependencies:
       '@types/connect': 3.4.38
       '@types/express': 4.17.14
       '@types/keygrip': 1.0.6
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
 
   '@types/eslint@8.56.10':
     dependencies:
@@ -11618,7 +11664,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.5':
     dependencies:
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
       '@types/qs': 6.9.15
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -11642,17 +11688,17 @@ snapshots:
 
   '@types/node-fetch@2.6.11':
     dependencies:
-      '@types/node': 22.0.0
+      '@types/node': 20.14.13
       form-data: 4.0.0
 
   '@types/node-fetch@2.6.2':
     dependencies:
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
       form-data: 3.0.1
 
   '@types/node-forge@1.3.11':
     dependencies:
-      '@types/node': 22.0.0
+      '@types/node': 20.14.13
 
   '@types/node@16.18.6': {}
 
@@ -11671,10 +11717,11 @@ snapshots:
   '@types/node@22.0.0':
     dependencies:
       undici-types: 6.11.1
+    optional: true
 
   '@types/pg@8.11.6':
     dependencies:
-      '@types/node': 22.0.0
+      '@types/node': 20.14.13
       pg-protocol: 1.6.1
       pg-types: 4.0.2
 
@@ -11698,17 +11745,17 @@ snapshots:
   '@types/send@0.17.4':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
 
   '@types/serve-static@1.15.7':
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 18.19.39
+      '@types/node': 20.14.13
       '@types/send': 0.17.4
 
   '@types/ws@8.5.12':
     dependencies:
-      '@types/node': 22.0.0
+      '@types/node': 20.14.13
 
   '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)':
     dependencies:
@@ -12318,6 +12365,8 @@ snapshots:
       supports-color: 7.2.0
 
   chalk@5.3.0: {}
+
+  chance@1.1.12: {}
 
   check-error@1.0.3:
     dependencies:
@@ -15130,22 +15179,22 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  sst-darwin-arm64@0.1.54:
+  sst-darwin-arm64@0.1.56:
     optional: true
 
-  sst-darwin-x64@0.1.54:
+  sst-darwin-x64@0.1.56:
     optional: true
 
-  sst-linux-arm64@0.1.54:
+  sst-linux-arm64@0.1.56:
     optional: true
 
-  sst-linux-x64@0.1.54:
+  sst-linux-x64@0.1.56:
     optional: true
 
-  sst-linux-x86@0.1.54:
+  sst-linux-x86@0.1.56:
     optional: true
 
-  sst@0.1.54(aws-crt@1.21.3)(hono@4.5.3):
+  sst@0.1.56(aws-crt@1.21.3)(hono@4.5.3):
     dependencies:
       '@aws-sdk/client-lambda': 3.478.0(aws-crt@1.21.3)
       aws4fetch: 1.0.19
@@ -15153,11 +15202,11 @@ snapshots:
       openid-client: 5.6.4
     optionalDependencies:
       hono: 4.5.3
-      sst-darwin-arm64: 0.1.54
-      sst-darwin-x64: 0.1.54
-      sst-linux-arm64: 0.1.54
-      sst-linux-x64: 0.1.54
-      sst-linux-x86: 0.1.54
+      sst-darwin-arm64: 0.1.56
+      sst-darwin-x64: 0.1.56
+      sst-linux-arm64: 0.1.56
+      sst-linux-x64: 0.1.56
+      sst-linux-x86: 0.1.56
     transitivePeerDependencies:
       - aws-crt
 
@@ -15356,7 +15405,7 @@ snapshots:
 
   stripe@14.25.0:
     dependencies:
-      '@types/node': 20.14.10
+      '@types/node': 20.14.13
       qs: 6.12.3
 
   strnum@1.0.5: {}
@@ -15583,7 +15632,8 @@ snapshots:
 
   undici-types@5.26.5: {}
 
-  undici-types@6.11.1: {}
+  undici-types@6.11.1:
+    optional: true
 
   undici@5.28.4:
     dependencies:
