@@ -38,8 +38,8 @@ export async function bootstrapTests() {
 
 	const dataStr = format({
 		...data,
-		TEST_BASE_URL: 'https://imvoqg7k6b.execute-api.us-east-1.amazonaws.com',
-		JWKS_BUCKET_URL: 'https://optra-ethanstone-jwksbucket-bszkfrko.s3.amazonaws.com',
+		TEST_BASE_URL: 'https://cxji4tkbg6.execute-api.us-east-1.amazonaws.com',
+		JWKS_BUCKET_URL: 'https://optra-ethanstone-jwksbucket-ectxfxuo.s3.amazonaws.com',
 	});
 
 	writeFileSync('./.env.test', dataStr);

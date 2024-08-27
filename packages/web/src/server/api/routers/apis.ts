@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { keyManagementService } from "@/server/key-management";
 import { uid } from "@/utils/uid";
-import { schema } from "@optra/db";
+import { schema } from "@optra/db/index";
 import { storageBucket } from "@/server/storage-bucket";
 import { eq } from "drizzle-orm";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
@@ -24,9 +24,7 @@ export const apisRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const workspace = await ctx.db.query.workspaces.findFirst({
-        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
-      });
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);

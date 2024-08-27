@@ -3,8 +3,6 @@ import { z } from 'zod';
 export const envSchema = z.object({
 	ENVIRONMENT: z.enum(['development', 'production']),
 	BASELIME_API_KEY: z.string().optional(),
-	AWS_ACCESS_KEY_ID: z.string(),
-	AWS_SECRET_ACCESS_KEY: z.string(),
 	AWS_KMS_KEY_ARN: z.string(),
 	AWS_MESSAGE_QUEUE_ARN: z.string(),
 	AWS_SCHEDULER_ROLE_ARN: z.string(),

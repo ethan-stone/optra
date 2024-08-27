@@ -7,16 +7,15 @@
     "bootstrap": "dotenv -e .env tsx ./src/bootstrap.ts"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
+    "@types/node": "^20.16.1",
     "dotenv-cli": "^7.4.2",
-    "drizzle-kit": "^0.23.0",
-    "drizzle-orm": "^0.32.0",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
+    "drizzle-orm": "^0.33.0",
+    "tsx": "^4.18.0",
+    "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@aws-sdk/client-kms": "^3.614.0",
-    "@aws-sdk/client-s3": "^3.614.0",
+    "@aws-sdk/client-kms": "^3.637.0",
+    "@aws-sdk/client-s3": "^3.637.0",
     "@optra/db": "workspace:^",
     "postgres": "^3.4.4"
   }

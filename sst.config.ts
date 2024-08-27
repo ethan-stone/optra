@@ -167,7 +167,8 @@ export default $config({
         awsAccessKeyId,
         awsSecretAccessKey,
       ],
-      transform: {
+      // only transform if not dev because in dev a stub function is used which needs different permissions
+      transform: !$dev && {
         role: {
           inlinePolicies: [
             {

@@ -398,7 +398,7 @@ export async function bootstrap(
     workspaceId,
     rateLimitBucketSize: 3,
     rateLimitRefillAmount: 1,
-    rateLimitRefillInterval: 333,
+    rateLimitRefillInterval: 3000,
   });
 
   const {

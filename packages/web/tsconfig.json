@@ -26,7 +26,8 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@optra/db/*": ["../db/src/*"]
     }
   },
   "include": [
