@@ -92,7 +92,7 @@ export function v1CreateApi(app: App) {
 			});
 		}
 
-		const workspace = await db.getWorkspaceById(verifiedToken.client.forWorkspaceId);
+		const workspace = await db.workspaces.getById(verifiedToken.client.forWorkspaceId);
 
 		if (!workspace) {
 			logger.error(`Somehow could not find workspace for verfied token.`);
@@ -102,7 +102,7 @@ export function v1CreateApi(app: App) {
 			});
 		}
 
-		const existingApi = await db.getApiByWorkspaceAndName(workspace.id, name);
+		const existingApi = await db.apis.getByWorkspaceAndName(workspace.id, name);
 
 		if (existingApi) {
 			logger.info(`Api with name ${name} already exists in workspace ${workspace.id}`);
@@ -138,7 +138,7 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Encrypted signing secret.`);
 
-				const { id } = await db.createApi({
+				const { id } = await db.apis.create({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),
@@ -178,7 +178,7 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Encrypted signing secret.`);
 
-				const { id, currentSigningSecretId } = await db.createApi({
+				const { id, currentSigningSecretId } = await db.apis.create({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),

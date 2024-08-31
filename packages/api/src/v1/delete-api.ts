@@ -62,7 +62,7 @@ export function v1DeleteApi(app: App) {
 			});
 		}
 
-		const api = await db.getApiById(id);
+		const api = await db.apis.getById(id);
 
 		if (!api || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${id} does not exist or client ${verifiedToken.client.id} is not allowed to delete it.`);
@@ -72,7 +72,7 @@ export function v1DeleteApi(app: App) {
 			});
 		}
 
-		await db.deleteApiById(id);
+		await db.apis.delete(id);
 
 		return c.json(null, 200);
 	});

@@ -65,7 +65,7 @@ export function v1AddClientScope(app: App) {
 
 		const { clientId, scopeName } = c.req.valid('json');
 
-		const client = await db.getClientById(clientId);
+		const client = await db.clients.getById(clientId);
 
 		if (!client || verifiedToken.client.forWorkspaceId !== client.workspaceId) {
 			logger.info(`Could not find client ${clientId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
@@ -75,7 +75,7 @@ export function v1AddClientScope(app: App) {
 			});
 		}
 
-		const api = await db.getApiById(client.apiId);
+		const api = await db.apis.getById(client.apiId);
 
 		if (!api) {
 			logger.error(`Somehow api ${client.apiId} for client ${client.id} does not exist.`);
@@ -102,7 +102,7 @@ export function v1AddClientScope(app: App) {
 
 		logger.info(`Checking if client ${client.id} already has scope ${scope.id}`);
 
-		const clientScopes = await db.getClientScopesByClientId(client.id);
+		const clientScopes = await db.clients.getScopesByClientId(client.id);
 
 		if (clientScopes.find((s) => s.apiScopeId === scope.id)) {
 			logger.info(`Client ${client.id} already has scope ${scope.id}`);
@@ -118,7 +118,7 @@ export function v1AddClientScope(app: App) {
 
 		logger.info(`Adding scope ${scope.id} to client ${client.id}`);
 
-		await db.createClientScope({
+		await db.clients.createScope({
 			apiScopeId: scope.id,
 			clientId: client.id,
 			createdAt: now,

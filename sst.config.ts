@@ -55,13 +55,13 @@ export default $config({
       dlq: messageDLQ.arn,
     });
 
-    messageQueue.subscribe("packages/lambdas/src/handle-message.handler", {
-      transform: {
-        eventSourceMapping: {
-          functionResponseTypes: ["ReportBatchItemFailures"],
-        },
-      },
-    });
+    // messageQueue.subscribe("packages/lambdas/src/handle-message.handler", {
+    //   transform: {
+    //     eventSourceMapping: {
+    //       functionResponseTypes: ["ReportBatchItemFailures"],
+    //     },
+    //   },
+    // });
 
     const schedulerDLQ = new sst.aws.Queue("SchedulerFailedDLQ", {});
 
@@ -131,14 +131,14 @@ export default $config({
       policyArn: apiPolicy.arn,
     });
 
-    new sst.aws.Cron("InvoiceCron", {
-      job: {
-        handler: "packages/lambdas/src/handle-invoice-cron.handler",
-        link: [messageQueue],
-        timeout: "15 minutes",
-      },
-      schedule: "cron(0 12 1 * ? *)",
-    });
+    // new sst.aws.Cron("InvoiceCron", {
+    //   job: {
+    //     handler: "packages/lambdas/src/handle-invoice-cron.handler",
+    //     link: [messageQueue],
+    //     timeout: "15 minutes",
+    //   },
+    //   schedule: "cron(0 12 1 * ? *)",
+    // });
 
     const api = new sst.aws.ApiGatewayV2("Api", {
       accessLog: {

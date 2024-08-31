@@ -67,7 +67,7 @@ export function v1RotateApiSigningSecret(app: App) {
 
 		const { apiId, expiresIn: providedExpiresIn } = c.req.valid('json');
 
-		const api = await db.getApiById(apiId);
+		const api = await db.apis.getById(apiId);
 
 		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
 			logger.info(`Api ${apiId} does not exist or client ${verifiedToken.client.id} is not allowed to modify it.`);
@@ -81,7 +81,7 @@ export function v1RotateApiSigningSecret(app: App) {
 
 		const expiresAt = new Date(Date.now() + expiresIn);
 
-		const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
+		const currentSigningSecret = await db.signingSecrets.getById(api.currentSigningSecretId);
 
 		if (!currentSigningSecret) {
 			logger.error(`Somehow api ${apiId} current signing does not exist. This should never happen.`);
@@ -91,7 +91,7 @@ export function v1RotateApiSigningSecret(app: App) {
 			});
 		}
 
-		const workspace = await db.getWorkspaceById(api.workspaceId);
+		const workspace = await db.workspaces.getById(api.workspaceId);
 
 		if (!workspace) {
 			logger.error(`Somehow could not find workspace for api ${apiId}. This should never happen.`);
@@ -118,7 +118,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				Buffer.from(exportedSigningSecret, 'base64'),
 			);
 
-			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
+			const { id: nextSigningSecretId } = await db.signingSecrets.rotate({
 				apiId: api.id,
 				algorithm: 'hsa256',
 				encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -152,7 +152,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				Buffer.from(privateKey as ArrayBuffer),
 			);
 
-			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
+			const { id: nextSigningSecretId } = await db.signingSecrets.rotate({
 				apiId: api.id,
 				algorithm: 'rsa256',
 				encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),

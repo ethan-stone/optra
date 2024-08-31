@@ -104,7 +104,7 @@ export function v1UpdateClient(app: App) {
 			});
 		}
 
-		const clientToUpdate = await db.getClientById(clientId);
+		const clientToUpdate = await db.clients.getById(clientId);
 
 		if (!clientToUpdate || verifiedToken.client.forWorkspaceId !== clientToUpdate.workspaceId) {
 			logger.info(`Client with id ${clientId} does not exist or client ${verifiedToken.client.id} does not have access to it`);
@@ -114,7 +114,7 @@ export function v1UpdateClient(app: App) {
 			});
 		}
 
-		await db.updateClientById(clientId, {
+		await db.clients.update(clientId, {
 			metadata,
 			rateLimitBucketSize,
 			rateLimitRefillAmount,

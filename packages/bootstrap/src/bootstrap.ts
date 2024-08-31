@@ -1,4 +1,4 @@
-import { schema } from "@optra/db";
+import { schema } from "../../core/src";
 import { bootstrap } from "./index";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { KMSClient } from "@aws-sdk/client-kms";

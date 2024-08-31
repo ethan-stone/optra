@@ -70,7 +70,7 @@ export function v1GetClient(app: App) {
 			});
 		}
 
-		const client = await db.getClientById(clientId);
+		const client = await db.clients.getById(clientId);
 
 		if (client === null || client.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Client with id ${clientId} does not exist or does not belong to the root clients workspace.`);

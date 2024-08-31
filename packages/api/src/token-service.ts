@@ -1,14 +1,15 @@
-import { Client, Db, SigningSecret } from '@/db';
 import { InvalidReason, decode, verify } from '@/crypto-utils';
 import { Context } from 'hono';
 import { HonoEnv } from '@/app';
-import { KeyManagementService } from '@/key-management';
 import { Cache, CacheNamespaces } from '@/cache';
 import { TokenBucket } from '@/ratelimit';
 import { Analytics } from '@/analytics';
 import { Storage } from './storage';
 import { webcrypto } from 'crypto';
-
+import { Db } from './db';
+import { Client } from '@optra/core/clients';
+import { SigningSecret } from '@optra/core/signing-secrets';
+import { KeyManagementService } from '@optra/core/key-management';
 export type VerifyAuthHeaderResult =
 	| {
 			valid: true;
@@ -111,7 +112,7 @@ export class TokenService implements TokenService {
 		const tokensScopes = payload.scope ? payload.scope.split(' ') : [];
 
 		const data = await cache.fetchOrPopulate({ logger }, 'clientById', payload.sub, async (key) => {
-			const client = await db.getClientById(key);
+			const client = await db.clients.getById(key);
 
 			if (!client) {
 				logger.info(`Client with id ${key} not found.`);
@@ -121,7 +122,7 @@ export class TokenService implements TokenService {
 
 			logger.info(`Fetched client ${client.id} from token.`);
 
-			const [workspace, api] = await Promise.all([db.getWorkspaceById(client.workspaceId), db.getApiById(client.apiId)]);
+			const [workspace, api] = await Promise.all([db.workspaces.getById(client.workspaceId), db.apis.getById(client.apiId)]);
 
 			if (!workspace) {
 				logger.info(`Workspace with id ${client.workspaceId} not found.`);
@@ -170,8 +171,8 @@ export class TokenService implements TokenService {
 
 			let nextSigningSecret: SigningSecret | null = null;
 
-			const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
-			if (api.nextSigningSecretId) nextSigningSecret = await db.getSigningSecretById(api.nextSigningSecretId);
+			const currentSigningSecret = await db.signingSecrets.getById(api.currentSigningSecretId);
+			if (api.nextSigningSecretId) nextSigningSecret = await db.signingSecrets.getById(api.nextSigningSecretId);
 
 			if (!currentSigningSecret) {
 				logger.info(`Somehow current signing secret ${api.currentSigningSecretId} for api ${api.id} does not exist. This is fatal`);

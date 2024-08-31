@@ -67,7 +67,6 @@ app.use('*', async (c, next) => {
 		});
 
 		c.set('root', {
-			sql: root.sql,
 			storage: root.storage,
 			analytics: root.analytics,
 			cache: root.cache,

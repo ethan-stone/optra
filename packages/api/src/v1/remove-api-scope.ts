@@ -60,7 +60,7 @@ export function v1RemoveApiScope(app: App) {
 
 		const { apiId, scopeName } = c.req.valid('json');
 
-		const api = await db.getApiById(apiId);
+		const api = await db.apis.getById(apiId);
 
 		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
 			logger.info(`Could not find api ${apiId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
@@ -79,7 +79,7 @@ export function v1RemoveApiScope(app: App) {
 			return c.json(null, 200);
 		}
 
-		await db.deleteApiScopeById(existingScope.id);
+		await db.apis.deleteScopeById(existingScope.id);
 
 		logger.info(`Removed scope ${existingScope.id} from api ${apiId}`);
 

@@ -1,8 +1,8 @@
 import { App } from '@/app';
-import { ClientSecret } from '@/db';
 import { hashSHA256, sign } from '@/crypto-utils';
 import { createRoute, z } from '@hono/zod-openapi';
 import { HTTPException, errorResponseSchemas } from '@/errors';
+import { ClientSecret } from '@optra/core/client-secrets';
 
 const bodySchema = z.object({
 	clientId: z.string(),
@@ -53,7 +53,7 @@ export function v1GetOAuthToken(app: App) {
 
 		const { clientId, clientSecret } = c.req.valid('json');
 
-		const client = await db.getClientById(clientId);
+		const client = await db.clients.getById(clientId);
 
 		if (client === null) {
 			logger.info(`Client ${clientId} not found`);
@@ -72,7 +72,7 @@ export function v1GetOAuthToken(app: App) {
 		let matchedClientSecret: ClientSecret | null = null;
 
 		for (const secretId of secretIds) {
-			const secretValue = await db.getClientSecretValueById(secretId);
+			const secretValue = await db.clientSecrets.getValueById(secretId);
 
 			if (!secretValue) {
 				throw new HTTPException({
@@ -84,7 +84,7 @@ export function v1GetOAuthToken(app: App) {
 			const hashedClientSecret = await hashSHA256(clientSecret);
 
 			if (hashedClientSecret === secretValue) {
-				matchedClientSecret = await db.getClientSecretById(secretId);
+				matchedClientSecret = await db.clientSecrets.getById(secretId);
 				break;
 			}
 		}
@@ -102,9 +102,9 @@ export function v1GetOAuthToken(app: App) {
 
 		const now = new Date();
 
-		const workspace = await db.getWorkspaceById(client.workspaceId);
+		const workspace = await db.workspaces.getById(client.workspaceId);
 
-		const api = await db.getApiById(client.apiId);
+		const api = await db.apis.getById(client.apiId);
 
 		if (!workspace || !api) {
 			logger.error(`Could not find workspace or api for client ${clientId}`);
@@ -146,8 +146,8 @@ export function v1GetOAuthToken(app: App) {
 			});
 		}
 
-		const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
-		const nextSigningSecret = api.nextSigningSecretId ? await db.getSigningSecretById(api.nextSigningSecretId) : null;
+		const currentSigningSecret = await db.signingSecrets.getById(api.currentSigningSecretId);
+		const nextSigningSecret = api.nextSigningSecretId ? await db.signingSecrets.getById(api.nextSigningSecretId) : null;
 
 		if (!currentSigningSecret) {
 			logger.info(`Could not find signing secret ${api.currentSigningSecretId} for api ${api.id}`);

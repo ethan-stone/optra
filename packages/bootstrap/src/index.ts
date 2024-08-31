@@ -1,8 +1,15 @@
-import { schema } from "@optra/db";
+import { schema } from "../../core/src";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { randomBytes, createHash, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getDrizzle } from "@optra/core/drizzle";
+import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
+import { DrizzleApiRepo } from "@optra/core/apis";
+import { DrizzleClientRepo } from "@optra/core/clients";
+import { DrizzleClientSecretRepo } from "@optra/core/client-secrets";
+import { DrizzleSigningSecretRepo } from "@optra/core/signing-secrets";
+import { AWSKeyManagementService } from "@optra/core/key-management";
 
 function uid() {
   return randomBytes(10).toString("hex");
@@ -131,7 +138,10 @@ async function newWorkspace(
 }
 
 async function newApi(
-  db: PostgresJsDatabase<typeof schema>,
+  db: {
+    apis: DrizzleApiRepo;
+    signingSecrets: DrizzleSigningSecretRepo;
+  },
   s3Client: S3Client,
   args: {
     workspaceId: string;
@@ -140,11 +150,9 @@ async function newApi(
     bucketName: string;
   }
 ) {
-  const apiId = `api_` + uid();
-
   const apiName = generateRandomName();
 
-  const signingSecretId = `ssk_` + uid();
+  let apiId: string;
 
   switch (args.algorithm) {
     case "hsa256": {
@@ -166,15 +174,26 @@ async function newApi(
         Buffer.from(args.dataEncryptionKey, "base64")
       );
 
-      await db.insert(schema.signingSecrets).values({
-        id: signingSecretId,
-        secret: Buffer.from(encryptedData).toString("base64"),
+      const { id } = await db.apis.create({
+        name: apiName,
+        workspaceId: args.workspaceId,
+        algorithm: "rsa256",
+        encryptedSigningSecret: Buffer.from(encryptedData).toString("base64"),
         iv: Buffer.from(iv).toString("base64"),
-        algorithm: "hsa256",
-        status: "active",
+        tokenExpirationInSeconds: 84600,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      });
+
+      await db.apis.createScope({
+        apiId: id,
+        name: "example-scope",
+        description: "Just an example scope",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+
+      apiId = id;
 
       break;
     }
@@ -206,12 +225,23 @@ async function newApi(
         Buffer.from(args.dataEncryptionKey, "base64")
       );
 
-      await db.insert(schema.signingSecrets).values({
-        id: signingSecretId,
-        secret: Buffer.from(encryptedData).toString("base64"),
-        iv: Buffer.from(iv).toString("base64"),
+      const { id, currentSigningSecretId } = await db.apis.create({
+        name: apiName,
+        workspaceId: args.workspaceId,
         algorithm: "rsa256",
-        status: "active",
+        encryptedSigningSecret: Buffer.from(encryptedData).toString("base64"),
+        iv: Buffer.from(iv).toString("base64"),
+        tokenExpirationInSeconds: 84600,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      });
+
+      apiId = id;
+
+      await db.apis.createScope({
+        apiId: id,
+        name: "example-scope",
+        description: "Just an example scope",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -221,7 +251,7 @@ async function newApi(
           Bucket: args.bucketName,
           Key: `${args.workspaceId}/${apiId}/.well-known/jwks.json`,
           Body: JSON.stringify({
-            keys: [{ ...publicKey, kid: signingSecretId }],
+            keys: [{ ...publicKey, kid: currentSigningSecretId }],
           }),
           ContentType: "application/json",
         })
@@ -230,34 +260,6 @@ async function newApi(
       break;
     }
   }
-
-  await db.insert(schema.apis).values({
-    id: apiId,
-    name: apiName,
-    currentSigningSecretId: signingSecretId,
-    workspaceId: args.workspaceId,
-    tokenExpirationInSeconds: 84600,
-    updatedAt: new Date(),
-    createdAt: new Date(),
-  });
-
-  await db.insert(schema.apiScopes).values({
-    id: `api_scope_` + uid(),
-    apiId: apiId,
-    name: "example-scope",
-    description: "Just an example scope",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
-  await db.insert(schema.apiScopes).values({
-    id: `api_scope_` + uid(),
-    apiId: apiId,
-    name: "another-example-scope",
-    description: "Just another example scope",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
 
   return { apiId };
 }
@@ -331,23 +333,50 @@ async function newClient(
  * This generates an internal workspace and api that represents optra itself
  */
 export async function bootstrap(
+  dbUrl: string,
   db: PostgresJsDatabase<typeof schema>,
   kmsClient: KMSClient,
   s3Client: S3Client,
   awsKMSKeyArn: string,
   bucketName: string
 ) {
-  const {
-    workspaceId: internalWorkspaceId,
-    dataEncryptionKey: internalDataEncryptionKey,
-  } = await newWorkspace(db, kmsClient, awsKMSKeyArn);
+  const { db: drizzleClient } = await getDrizzle(dbUrl);
+  const workspaces = new DrizzleWorkspaceRepo(drizzleClient);
+  const apis = new DrizzleApiRepo(drizzleClient);
+  const clients = new DrizzleClientRepo(drizzleClient);
+  const clientSecrets = new DrizzleClientSecretRepo(drizzleClient);
+  const signingSecrets = new DrizzleSigningSecretRepo(drizzleClient);
 
-  const { apiId: internalApiId } = await newApi(db, s3Client, {
-    workspaceId: internalWorkspaceId,
-    dataEncryptionKey: internalDataEncryptionKey,
-    algorithm: "rsa256",
-    bucketName,
+  const keyManager = new AWSKeyManagementService(
+    kmsClient,
+    drizzleClient,
+    awsKMSKeyArn
+  );
+
+  const { keyId: dataEncryptionKeyId, plaintextKey } =
+    await keyManager.createDataKey();
+
+  const { id: internalWorkspaceId } = await workspaces.create({
+    name: "Optra",
+    tenantId: "optra",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    dataEncryptionKeyId: dataEncryptionKeyId,
   });
+
+  const { apiId: internalApiId } = await newApi(
+    {
+      apis: apis,
+      signingSecrets: signingSecrets,
+    },
+    s3Client,
+    {
+      workspaceId: internalWorkspaceId,
+      dataEncryptionKey: Buffer.from(plaintextKey).toString("base64"),
+      algorithm: "rsa256",
+      bucketName,
+    }
+  );
 
   const { workspaceId, dataEncryptionKey } = await newWorkspace(
     db,
@@ -377,12 +406,19 @@ export async function bootstrap(
     forWorkspaceId: otherWorkspaceId,
   });
 
-  const { apiId } = await newApi(db, s3Client, {
-    workspaceId,
-    dataEncryptionKey: dataEncryptionKey,
-    algorithm: "rsa256",
-    bucketName,
-  });
+  const { apiId } = await newApi(
+    {
+      apis: apis,
+      signingSecrets: signingSecrets,
+    },
+    s3Client,
+    {
+      workspaceId,
+      dataEncryptionKey: dataEncryptionKey,
+      algorithm: "rsa256",
+      bucketName,
+    }
+  );
 
   const { clientId: basicClientId, clientSecretValue: basicClientSecretValue } =
     await newClient(db, {

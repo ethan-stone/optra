@@ -67,7 +67,7 @@ export function v1RemoveClientScope(app: App) {
 
 		logger.info(`Fetching client ${clientId}`);
 
-		const client = await db.getClientById(clientId);
+		const client = await db.clients.getById(clientId);
 
 		if (!client || verifiedToken.client.forWorkspaceId !== client.workspaceId) {
 			logger.info(`Could not find client ${clientId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
@@ -81,7 +81,7 @@ export function v1RemoveClientScope(app: App) {
 
 		logger.info(`Fetching api ${client.apiId}`);
 
-		const api = await db.getApiById(client.apiId);
+		const api = await db.apis.getById(client.apiId);
 
 		if (!api) {
 			logger.info(`Could not find api ${client.apiId} for client ${client.id}. This shouldn't happen.`);
@@ -102,7 +102,7 @@ export function v1RemoveClientScope(app: App) {
 
 		logger.info(`Removing scope ${scope.name} from client ${client.id}`);
 
-		await db.deleteClientScopeByApiScopeId(scope.id);
+		await db.clients.deleteScopeByApiScopeId(scope.id);
 
 		logger.info(`Removed scope ${scope.name} from client ${client.id}`);
 

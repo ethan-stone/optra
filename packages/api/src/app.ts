@@ -9,11 +9,9 @@ import { Cache, CacheNamespaces } from './cache';
 import { Scheduler } from './scheduler';
 import { TokenService } from './token-service';
 import { Analytics } from './analytics';
-import { Client } from 'pg';
 import { Storage } from './storage';
 
 type Root = {
-	sql: Client;
 	db: Db;
 	keyManagementService: KeyManagementService;
 	storage: Storage;

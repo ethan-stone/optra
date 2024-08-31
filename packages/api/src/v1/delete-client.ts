@@ -56,7 +56,7 @@ export function v1DeleteClient(app: App) {
 			});
 		}
 
-		const client = await db.getClientById(id);
+		const client = await db.clients.getById(id);
 
 		if (!client || client.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Client with id ${id} does not exist or client ${verifiedToken.client.id} does not have permission to modify it.`);
@@ -66,7 +66,7 @@ export function v1DeleteClient(app: App) {
 			});
 		}
 
-		await db.deleteClientById(id);
+		await db.clients.delete(id);
 
 		return c.json(null, 200);
 	});

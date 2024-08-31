@@ -66,7 +66,7 @@ export function v1RotateClientSecret(app: App) {
 
 		const { clientId, expiresIn: providedExpiresIn } = c.req.valid('json');
 
-		const clientFromToken = await db.getClientById(verifiedToken.client.id);
+		const clientFromToken = await db.clients.getById(verifiedToken.client.id);
 
 		if (!clientFromToken) {
 			logger.error(`Client ${verifiedToken.client.id} not found despite being verified. This should never happen.`);
@@ -77,7 +77,7 @@ export function v1RotateClientSecret(app: App) {
 		}
 
 		// this is the client of which we are rotating the secret
-		const clientFromRequestParams = await db.getClientById(clientId);
+		const clientFromRequestParams = await db.clients.getById(clientId);
 
 		// root clients can rotate secrets for any client in their workspace
 		// non-root clients can only rotate secrets for themselves
@@ -99,7 +99,7 @@ export function v1RotateClientSecret(app: App) {
 			});
 		}
 
-		const currentSecret = await db.getClientSecretById(clientFromRequestParams.currentClientSecretId);
+		const currentSecret = await db.clientSecrets.getById(clientFromRequestParams.currentClientSecretId);
 
 		if (!currentSecret) {
 			logger.error(`Client ${clientId} does not have a current secret despite being verified. This should never happen.`);
@@ -116,7 +116,7 @@ export function v1RotateClientSecret(app: App) {
 
 		const expiresAt = new Date(now.getTime() + expiresIn);
 
-		const newSecret = await db.rotateClientSecret({
+		const newSecret = await db.clientSecrets.rotate({
 			clientId,
 			expiresAt,
 		});
