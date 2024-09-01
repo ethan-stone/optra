@@ -1,4 +1,4 @@
-import { SubscriptionPricing } from "@optra/db/schema";
+import { SubscriptionPricing } from "@optra/core/schema";
 
 type TieredPrice = {
   tiers: (SubscriptionPricing & { quantity: number })[];

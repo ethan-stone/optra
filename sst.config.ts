@@ -26,6 +26,8 @@ export default $config({
     const awsAccessKeyId = new sst.Secret("AWSAccessKeyId");
     const awsSecretAccessKey = new sst.Secret("AWSSecretAccessKey");
 
+    const stripeApiKey = new sst.Secret("StripeApiKey");
+
     const dbUrl = new sst.Secret("DbUrl");
 
     const tinyBirdUrl = new sst.Secret(
@@ -55,13 +57,26 @@ export default $config({
       dlq: messageDLQ.arn,
     });
 
-    messageQueue.subscribe("packages/lambdas/src/handle-message.handler", {
-      transform: {
-        eventSourceMapping: {
-          functionResponseTypes: ["ReportBatchItemFailures"],
-        },
+    messageQueue.subscribe(
+      {
+        handler: "packages/lambdas/src/handle-message.handler",
+        link: [
+          stripeApiKey,
+          dbUrl,
+          tinyBirdUrl,
+          tinyBirdApiKey,
+          tinyBirdGenerationsEndpoint,
+          tinyBirdVerificationsEndpoint,
+        ],
       },
-    });
+      {
+        transform: {
+          eventSourceMapping: {
+            functionResponseTypes: ["ReportBatchItemFailures"],
+          },
+        },
+      }
+    );
 
     const schedulerDLQ = new sst.aws.Queue("SchedulerFailedDLQ", {});
 
@@ -90,9 +105,33 @@ export default $config({
       }
     );
 
-    new aws.iam.RolePolicyAttachment("SchedulerRoleAttachment", {
+    const schedulerMessageQueueSendMessagePolicy = new aws.iam.Policy(
+      "SchedulerMessageQueueSendMessagePolicy",
+      {
+        description: "Allows sending messages to the message queue",
+        policy: messageQueue.arn.apply((arn) =>
+          JSON.stringify({
+            Version: "2012-10-17",
+            Statement: [
+              {
+                Action: "sqs:SendMessage",
+                Resource: arn,
+                Effect: "Allow",
+              },
+            ],
+          })
+        ),
+      }
+    );
+
+    new aws.iam.RolePolicyAttachment("SchedulerDLQRoleAttachment", {
       role: schedulerRole.name,
       policyArn: schedulerDLQSendMessagePolicy.arn,
+    });
+
+    new aws.iam.RolePolicyAttachment("SchedulerMessageQueueRoleAttachment", {
+      role: schedulerRole.name,
+      policyArn: schedulerMessageQueueSendMessagePolicy.arn,
     });
 
     const apiPolicy = new aws.iam.Policy("ApiPolicy", {
@@ -134,7 +173,7 @@ export default $config({
     new sst.aws.Cron("InvoiceCron", {
       job: {
         handler: "packages/lambdas/src/handle-invoice-cron.handler",
-        link: [messageQueue],
+        link: [messageQueue, dbUrl],
         timeout: "15 minutes",
       },
       schedule: "cron(0 12 1 * ? *)",

@@ -35,6 +35,10 @@ declare module "sst" {
       "type": "sst.aws.Queue"
       "url": string
     }
+    "StripeApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "TinyBirdApiKey": {
       "type": "sst.sst.Secret"
       "value": string

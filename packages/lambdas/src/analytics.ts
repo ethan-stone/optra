@@ -1,4 +1,4 @@
-import { Config } from "sst/node/config";
+import { Resource } from "sst";
 import { z } from "zod";
 
 type GetVerificationForWorkspace = {
@@ -149,11 +149,10 @@ export class NoopAnalytics implements Analytics {
 
 export function getAnalytics(): Analytics {
   return new TinyBirdAnalytics({
-    apiKey: Config.TINY_BIRD_API_KEY,
-    baseUrl: Config.TINY_BIRD_BASE_URL,
-    generationsForWorkspaceEndpoint:
-      Config.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
+    apiKey: Resource.TinyBirdApiKey.value,
+    baseUrl: Resource.TinyBirdUrl.value,
+    generationsForWorkspaceEndpoint: Resource.TinyBirdGenerationsEndpoint.value,
     verificationForWorkspaceEndpoint:
-      Config.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
+      Resource.TinyBirdVerificationsEndpoint.value,
   });
 }

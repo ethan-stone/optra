@@ -198,6 +198,12 @@ export const dataEncryptionKeys = pgTable("data_encryption_keys", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
 });
 
+export const idempotencyKeys = pgTable("idempotency_keys", {
+  key: varchar("key", { length: 255 }).primaryKey(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }),
+});
+
 export const clientRelations = relations(clients, ({ one, many }) => {
   return {
     secrets: many(clientSecrets),

@@ -6,15 +6,16 @@ import {
 } from "@aws-sdk/client-sqs";
 import { InvoiceWorkspaceEvent } from "@optra/events/event-schemas";
 import { Resource } from "sst";
-import { getIdempotencyKey, putIdempotencyKey } from "./dynamodb";
 import { getDrizzle } from "@optra/core/drizzle";
 import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
+import { DrizzleIdempotencyKeyRepo } from "@optra/core/idempotency-keys";
 
 export const handler: ScheduledHandler = async (event) => {
   const { db } = await getDrizzle(Resource.DbUrl.value);
   const workspaces = new DrizzleWorkspaceRepo(db);
+  const idempotencyKeyRepo = new DrizzleIdempotencyKeyRepo(db);
 
-  const idempotencyKey = await getIdempotencyKey(event.id);
+  const idempotencyKey = await idempotencyKeyRepo.getByKey(event.id);
 
   if (idempotencyKey !== null) {
     console.log(`Skipping event ${event.id} because it was already processed`);
@@ -88,7 +89,14 @@ export const handler: ScheduledHandler = async (event) => {
     console.error(`Failed messages:`, failedMessages);
   }
 
-  await putIdempotencyKey(event.id);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7); // Set expiration to 7 days from now
+  await idempotencyKeyRepo.create({
+    key: event.id,
+    expiresAt,
+    createdAt: new Date(),
+  });
+
   console.log("Done queueing invoice generation for all workspaces");
 };
 

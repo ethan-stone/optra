@@ -1,5 +1,5 @@
 import { DeleteMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
-import { Config } from "sst/node/config";
+import { Resource } from "sst";
 
 export const sqsClient = new SQSClient({
   region: "us-east-1",
@@ -8,7 +8,7 @@ export const sqsClient = new SQSClient({
 export async function deleteMessage(receiptHandle: string): Promise<void> {
   await sqsClient.send(
     new DeleteMessageCommand({
-      QueueUrl: Config.MESSAGE_QUEUE_URL,
+      QueueUrl: Resource.MessageQueue.url,
       ReceiptHandle: receiptHandle,
     })
   );

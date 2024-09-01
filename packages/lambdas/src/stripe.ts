@@ -1,6 +1,6 @@
 import { Stripe } from "stripe";
-import { Config } from "sst/node/config";
+import { Resource } from "sst";
 
-export const stripe = new Stripe(Config.STRIPE_API_KEY, {
+export const stripe = new Stripe(Resource.StripeApiKey.value, {
   apiVersion: "2023-10-16",
 });
