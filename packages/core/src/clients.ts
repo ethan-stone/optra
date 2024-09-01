@@ -96,7 +96,7 @@ export class DrizzleClientRepo implements ClientRepo {
 
       await tx.insert(schema.clientSecrets).values({
         id: secretId,
-        secret: secretValue,
+        secret: await hashSHA256(secretValue),
         status: "active",
         createdAt: new Date(),
       });
