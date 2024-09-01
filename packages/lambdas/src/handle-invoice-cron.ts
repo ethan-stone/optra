@@ -1,15 +1,19 @@
 import { ScheduledHandler } from "aws-lambda";
-import { db } from "./db";
 import { sqsClient } from "./sqs";
 import {
   SendMessageBatchCommand,
   SendMessageBatchRequestEntry,
 } from "@aws-sdk/client-sqs";
-import { InvoiceWorkspaceEvent } from "@optra/core/event-schemas";
-import { Config } from "sst/node/config";
+import { InvoiceWorkspaceEvent } from "@optra/events/event-schemas";
+import { Resource } from "sst";
 import { getIdempotencyKey, putIdempotencyKey } from "./dynamodb";
+import { getDrizzle } from "@optra/core/drizzle";
+import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
 
 export const handler: ScheduledHandler = async (event) => {
+  const { db } = await getDrizzle(Resource.DbUrl.value);
+  const workspaces = new DrizzleWorkspaceRepo(db);
+
   const idempotencyKey = await getIdempotencyKey(event.id);
 
   if (idempotencyKey !== null) {
@@ -19,12 +23,9 @@ export const handler: ScheduledHandler = async (event) => {
 
   console.log("Queueing invoice generation for all workspaces");
 
-  const workspaces = await db.query.workspaceBillingInfo.findMany({
-    where: (table, { and, not, eq, isNotNull }) =>
-      and(not(eq(table.plan, "free")), isNotNull(table.subscriptions)),
-  });
+  const workspacesArray = await workspaces.getBillableWorkspaces();
 
-  console.log(`Found ${workspaces.length} workspaces to invoice`);
+  console.log(`Found ${workspacesArray.length} workspaces to invoice`);
 
   const now = new Date();
   now.setUTCMonth(now.getUTCMonth() - 1);
@@ -36,7 +37,7 @@ export const handler: ScheduledHandler = async (event) => {
 
   console.log(`Validating messages`);
 
-  for (const workspace of workspaces) {
+  for (const workspace of workspacesArray) {
     const msg: InvoiceWorkspaceEvent = {
       eventType: "workspace.invoice",
       payload: {
@@ -114,7 +115,7 @@ async function sendBatch(
   try {
     const command = new SendMessageBatchCommand({
       Entries: entries,
-      QueueUrl: Config.MESSAGE_QUEUE_URL,
+      QueueUrl: Resource.MessageDLQ.url,
     });
 
     const res = await sqsClient.send(command);

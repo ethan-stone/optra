@@ -3,9 +3,13 @@ import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { uid } from "./uid";
 
+export type WorkspaceBillingInfo =
+  typeof schema.workspaceBillingInfo.$inferSelect;
+
 export type Workspace = typeof schema.workspaces.$inferSelect & {
-  billingInfo: typeof schema.workspaceBillingInfo.$inferSelect | null;
+  billingInfo: WorkspaceBillingInfo;
 };
+
 export type CreateWorkspaceParams = Omit<
   typeof schema.workspaces.$inferInsert,
   "id"
@@ -14,6 +18,7 @@ export type CreateWorkspaceParams = Omit<
 export interface WorkspaceRepo {
   create(params: CreateWorkspaceParams): Promise<{ id: string }>;
   getById(id: string): Promise<Workspace | null>;
+  getBillableWorkspaces(): Promise<WorkspaceBillingInfo[]>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -45,5 +50,12 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       schema.Subscriptions.parse(workspace.billingInfo.subscriptions);
 
     return workspace;
+  }
+
+  async getBillableWorkspaces(): Promise<WorkspaceBillingInfo[]> {
+    return this.db.query.workspaceBillingInfo.findMany({
+      where: (table, { and, not, eq, isNotNull }) =>
+        and(not(eq(table.plan, "free")), isNotNull(table.subscriptions)),
+    });
   }
 }

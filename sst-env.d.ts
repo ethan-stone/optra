@@ -12,7 +12,7 @@ declare module "sst" {
       "value": string
     }
     "Api": {
-      "type": "sst.aws.ApiGatewayV1"
+      "type": "sst.aws.ApiGatewayV2"
       "url": string
     }
     "DbUrl": {

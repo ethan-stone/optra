@@ -55,13 +55,13 @@ export default $config({
       dlq: messageDLQ.arn,
     });
 
-    // messageQueue.subscribe("packages/lambdas/src/handle-message.handler", {
-    //   transform: {
-    //     eventSourceMapping: {
-    //       functionResponseTypes: ["ReportBatchItemFailures"],
-    //     },
-    //   },
-    // });
+    messageQueue.subscribe("packages/lambdas/src/handle-message.handler", {
+      transform: {
+        eventSourceMapping: {
+          functionResponseTypes: ["ReportBatchItemFailures"],
+        },
+      },
+    });
 
     const schedulerDLQ = new sst.aws.Queue("SchedulerFailedDLQ", {});
 
@@ -131,19 +131,27 @@ export default $config({
       policyArn: apiPolicy.arn,
     });
 
-    // new sst.aws.Cron("InvoiceCron", {
-    //   job: {
-    //     handler: "packages/lambdas/src/handle-invoice-cron.handler",
-    //     link: [messageQueue],
-    //     timeout: "15 minutes",
-    //   },
-    //   schedule: "cron(0 12 1 * ? *)",
-    // });
+    new sst.aws.Cron("InvoiceCron", {
+      job: {
+        handler: "packages/lambdas/src/handle-invoice-cron.handler",
+        link: [messageQueue],
+        timeout: "15 minutes",
+      },
+      schedule: "cron(0 12 1 * ? *)",
+    });
 
     // TODO; add throttling to the api
     const api = new sst.aws.ApiGatewayV2("Api", {
       accessLog: {
         retention: "1 week",
+      },
+      transform: {
+        stage: {
+          defaultRouteSettings: {
+            throttlingBurstLimit: 100,
+            throttlingRateLimit: 50,
+          },
+        },
       },
     });
 
