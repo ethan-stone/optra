@@ -1,11 +1,22 @@
-import { EventSchemas } from "@optra/core/event-schemas";
+import { EventSchemas } from "@optra/events/event-schemas";
 import { SQSHandler } from "aws-lambda";
 import { expireApiSigningSecret } from "./expire-api-signing-secret";
 import { expireClientSecret } from "./expire-client-secret";
 import { invoiceWorkspace } from "./invoice-workspace";
 import { getIdempotencyKey, putIdempotencyKey } from "./dynamodb";
+import { getDrizzle } from "@optra/core/drizzle";
+import { DrizzleSigningSecretRepo } from "@optra/core/signing-secrets";
+import { Resource } from "sst";
+import { DrizzleClientSecretRepo } from "@optra/core/client-secrets";
+import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
 
 export const handler: SQSHandler = async (event) => {
+  const { db } = await getDrizzle(Resource.DbUrl.value);
+
+  const signingSecretRepo = new DrizzleSigningSecretRepo(db);
+  const clientSecretRepo = new DrizzleClientSecretRepo(db);
+  const workspaceRepo = new DrizzleWorkspaceRepo(db);
+
   const failedMessageIds: string[] = [];
 
   for (const record of event.Records) {
@@ -26,10 +37,15 @@ export const handler: SQSHandler = async (event) => {
 
         idempotencyKey = record.messageId;
 
-        await expireApiSigningSecret({
-          apiId: validatedResult.payload.apiId,
-          signingSecretId: validatedResult.payload.signingSecretId,
-        });
+        await expireApiSigningSecret(
+          {
+            apiId: validatedResult.payload.apiId,
+            signingSecretId: validatedResult.payload.signingSecretId,
+          },
+          {
+            signingSecretRepo,
+          }
+        );
       }
 
       if (validatedResult.eventType === "client.secret.expired") {
@@ -42,10 +58,15 @@ export const handler: SQSHandler = async (event) => {
 
         idempotencyKey = record.messageId;
 
-        await expireClientSecret({
-          clientId: validatedResult.payload.clientId,
-          clientSecretId: validatedResult.payload.clientSecretId,
-        });
+        await expireClientSecret(
+          {
+            clientId: validatedResult.payload.clientId,
+            clientSecretId: validatedResult.payload.clientSecretId,
+          },
+          {
+            clientSecretRepo,
+          }
+        );
       }
 
       if (validatedResult.eventType === "workspace.invoice") {
@@ -62,11 +83,16 @@ export const handler: SQSHandler = async (event) => {
 
         idempotencyKey = `${validatedResult.payload.workspaceId}-${validatedResult.payload.year}-${validatedResult.payload.month}`;
 
-        await invoiceWorkspace({
-          month: validatedResult.payload.month,
-          workspaceId: validatedResult.payload.workspaceId,
-          year: validatedResult.payload.year,
-        });
+        await invoiceWorkspace(
+          {
+            month: validatedResult.payload.month,
+            workspaceId: validatedResult.payload.workspaceId,
+            year: validatedResult.payload.year,
+          },
+          {
+            workspaceRepo,
+          }
+        );
       }
 
       if (idempotencyKey !== undefined) await putIdempotencyKey(idempotencyKey);

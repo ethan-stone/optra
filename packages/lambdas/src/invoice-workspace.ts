@@ -1,7 +1,7 @@
 import { getAnalytics } from "./analytics";
-import { db } from "./db";
 import { stripe } from "./stripe";
 import { calculateTieredPrices } from "./utils/calculate-tiered-pricing";
+import { WorkspaceRepo } from "@optra/core/workspaces";
 
 export type InvoiceWorkspaceArgs = {
   workspaceId: string;
@@ -10,19 +10,18 @@ export type InvoiceWorkspaceArgs = {
 };
 
 export async function invoiceWorkspace(
-  args: InvoiceWorkspaceArgs
+  args: InvoiceWorkspaceArgs,
+  ctx: {
+    workspaceRepo: WorkspaceRepo;
+  }
 ): Promise<void> {
   const { workspaceId, month, year } = args;
 
   console.log(`Invoicing workspace ${workspaceId} for ${month}/${year}`);
 
-  const billingInfo = await db.query.workspaceBillingInfo.findFirst({
-    where: (table, { eq }) => eq(table.workspaceId, workspaceId),
-  });
+  const workspace = await ctx.workspaceRepo.getById(workspaceId);
 
-  const workspace = await db.query.workspaces.findFirst({
-    where: (table, { eq }) => eq(table.id, workspaceId),
-  });
+  const billingInfo = workspace?.billingInfo;
 
   if (!billingInfo || !workspace) {
     throw new Error(`Could not find billing info for workspace ${workspaceId}`);

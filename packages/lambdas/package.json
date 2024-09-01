@@ -19,8 +19,6 @@
     "@aws-sdk/client-lambda": "^3.637.0",
     "@aws-sdk/client-sqs": "^3.637.0",
     "@aws-sdk/lib-dynamodb": "^3.637.0",
-    "drizzle-orm": "^0.33.0",
-    "postgres": "^3.4.4",
     "stripe": "^14.25.0",
     "zod": "^3.23.8"
   }

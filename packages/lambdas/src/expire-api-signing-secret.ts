@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
-import { db } from "./db";
-import * as schema from "@optra/db/schema";
+import { DrizzleSigningSecretRepo } from "@optra/core/signing-secrets";
 
 export type ExpireApiSigningSecretArgs = {
   apiId: string;
@@ -8,46 +6,14 @@ export type ExpireApiSigningSecretArgs = {
 };
 
 export async function expireApiSigningSecret(
-  args: ExpireApiSigningSecretArgs
+  args: ExpireApiSigningSecretArgs,
+  ctx: {
+    signingSecretRepo: DrizzleSigningSecretRepo;
+  }
 ): Promise<void> {
   const { apiId, signingSecretId } = args;
 
-  await db.transaction(async (tx) => {
-    const api = await tx.query.apis.findFirst({
-      where: (table, { and, eq, isNull }) =>
-        and(
-          eq(table.id, apiId),
-          eq(table.currentSigningSecretId, signingSecretId),
-          isNull(table.deletedAt)
-        ),
-    });
+  await ctx.signingSecretRepo.expire(apiId, signingSecretId);
 
-    if (!api) {
-      throw new Error(
-        `Could not find api ${apiId} with signing secret ${signingSecretId}`
-      );
-    }
-
-    if (!api.nextSigningSecretId) {
-      throw new Error(`Api ${api.id} does not have a nextSigningSecretId`);
-    }
-
-    await tx
-      .update(schema.apis)
-      .set({
-        currentSigningSecretId: api.nextSigningSecretId,
-        nextSigningSecretId: null,
-      })
-      .where(eq(schema.apis.id, api.id));
-
-    await tx
-      .update(schema.signingSecrets)
-      .set({
-        status: "revoked",
-        deletedAt: new Date(),
-      })
-      .where(eq(schema.signingSecrets.id, signingSecretId));
-
-    console.log(`Revoked api signing secret ${signingSecretId}`);
-  });
+  console.log(`Revoked api signing secret ${signingSecretId}`);
 }

@@ -88,4 +88,43 @@ export class DrizzleSigningSecretRepo implements SigningSecretRepo {
 
     return { id: signingSecretId };
   }
+
+  async expire(apiId: string, signingSecretId: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const api = await tx.query.apis.findFirst({
+        where: (table, { and, eq, isNull }) =>
+          and(
+            eq(table.id, apiId),
+            eq(table.currentSigningSecretId, signingSecretId),
+            isNull(table.deletedAt)
+          ),
+      });
+
+      if (!api) {
+        throw new Error(
+          `Could not find api ${apiId} with signing secret ${signingSecretId}`
+        );
+      }
+
+      if (!api.nextSigningSecretId) {
+        throw new Error(`Api ${api.id} does not have a nextSigningSecretId`);
+      }
+
+      await tx
+        .update(schema.apis)
+        .set({
+          currentSigningSecretId: api.nextSigningSecretId,
+          nextSigningSecretId: null,
+        })
+        .where(eq(schema.apis.id, api.id));
+
+      await tx
+        .update(schema.signingSecrets)
+        .set({
+          status: "revoked",
+          deletedAt: new Date(),
+        })
+        .where(eq(schema.signingSecrets.id, signingSecretId));
+    });
+  }
 }

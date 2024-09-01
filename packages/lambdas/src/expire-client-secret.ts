@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
-import { db } from "./db";
-import * as schema from "@optra/db/schema";
+import { ClientSecretRepo } from "@optra/core/client-secrets";
 
 export type ExpireClientSecretArgs = {
   clientId: string;
@@ -8,46 +6,14 @@ export type ExpireClientSecretArgs = {
 };
 
 export async function expireClientSecret(
-  args: ExpireClientSecretArgs
+  args: ExpireClientSecretArgs,
+  ctx: {
+    clientSecretRepo: ClientSecretRepo;
+  }
 ): Promise<void> {
   const { clientId, clientSecretId } = args;
 
-  await db.transaction(async (tx) => {
-    const client = await tx.query.clients.findFirst({
-      where: (table, { and, eq, isNull }) =>
-        and(
-          eq(table.currentClientSecretId, clientSecretId),
-          eq(table.id, clientId),
-          isNull(table.deletedAt)
-        ),
-    });
+  await ctx.clientSecretRepo.expire(clientId, clientSecretId);
 
-    if (!client) {
-      throw new Error(
-        `Could not find client ${clientId} with secret ${clientSecretId}`
-      );
-    }
-
-    if (!client.nextClientSecretId) {
-      throw new Error(`Client ${client.id} does not have a nextClientSecretId`);
-    }
-
-    await tx
-      .update(schema.clients)
-      .set({
-        currentClientSecretId: client.nextClientSecretId,
-        nextClientSecretId: null,
-      })
-      .where(eq(schema.clients.id, client.id));
-
-    await tx
-      .update(schema.clientSecrets)
-      .set({
-        status: "revoked",
-        deletedAt: new Date(),
-      })
-      .where(eq(schema.clientSecrets.id, clientSecretId));
-
-    console.log(`Revoked client secret ${clientSecretId}`);
-  });
+  console.log(`Expired client secret ${clientSecretId} for client ${clientId}`);
 }

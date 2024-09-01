@@ -140,6 +140,7 @@ export default $config({
     //   schedule: "cron(0 12 1 * ? *)",
     // });
 
+    // TODO; add throttling to the api
     const api = new sst.aws.ApiGatewayV2("Api", {
       accessLog: {
         retention: "1 week",

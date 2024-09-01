@@ -3,6 +3,7 @@ import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { uid } from "./uid";
 import { hashSHA256 } from "./crypto-utils";
+import { and, isNull } from "drizzle-orm";
 
 export type ClientSecret = Omit<
   typeof schema.clientSecrets.$inferSelect,
@@ -19,6 +20,7 @@ export interface ClientSecretRepo {
   rotate(
     params: RotateClientSecretParams
   ): Promise<typeof schema.clientSecrets.$inferSelect>;
+  expire(clientId: string, clientSecretId: string): Promise<void>;
 }
 
 export class DrizzleClientSecretRepo implements ClientSecretRepo {
@@ -97,5 +99,48 @@ export class DrizzleClientSecretRepo implements ClientSecretRepo {
       deletedAt: null,
       createdAt: now,
     };
+  }
+
+  async expire(clientId: string, clientSecretId: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const client = await tx.query.clients.findFirst({
+        where: (table) =>
+          and(
+            eq(table.currentClientSecretId, clientSecretId),
+            eq(table.id, clientId),
+            isNull(table.deletedAt)
+          ),
+      });
+
+      if (!client) {
+        throw new Error(
+          `Could not find client ${clientId} with secret ${clientSecretId}`
+        );
+      }
+
+      if (!client.nextClientSecretId) {
+        throw new Error(
+          `Client ${client.id} does not have a nextClientSecretId`
+        );
+      }
+
+      await tx
+        .update(schema.clients)
+        .set({
+          currentClientSecretId: client.nextClientSecretId,
+          nextClientSecretId: null,
+        })
+        .where(eq(schema.clients.id, client.id));
+
+      await tx
+        .update(schema.clientSecrets)
+        .set({
+          status: "revoked",
+          deletedAt: new Date(),
+        })
+        .where(eq(schema.clientSecrets.id, clientSecretId));
+
+      console.log(`Revoked client secret ${clientSecretId}`);
+    });
   }
 }
