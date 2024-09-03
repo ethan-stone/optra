@@ -13,7 +13,7 @@ export async function bootstrapTests() {
 
 	const dataStr = format({
 		...data,
-		TEST_BASE_URL: 'https://cxji4tkbg6.execute-api.us-east-1.amazonaws.com',
+		TEST_BASE_URL: 'https://d9dxu9cwrvmsh.cloudfront.net',
 		JWKS_BUCKET_URL: 'https://optra-ethanstone-jwksbucket-ectxfxuo.s3.amazonaws.com',
 	});
 

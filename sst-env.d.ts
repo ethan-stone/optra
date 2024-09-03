@@ -12,7 +12,8 @@ declare module "sst" {
       "value": string
     }
     "Api": {
-      "type": "sst.aws.ApiGatewayV2"
+      "name": string
+      "type": "sst.aws.Function"
       "url": string
     }
     "DbUrl": {
@@ -29,6 +30,10 @@ declare module "sst" {
     }
     "MessageQueue": {
       "type": "sst.aws.Queue"
+      "url": string
+    }
+    "Router": {
+      "type": "sst.aws.Router"
       "url": string
     }
     "SchedulerFailedDLQ": {

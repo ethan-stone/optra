@@ -180,21 +180,7 @@ export default $config({
     });
 
     // TODO; add throttling to the api
-    const api = new sst.aws.ApiGatewayV2("Api", {
-      accessLog: {
-        retention: "1 week",
-      },
-      transform: {
-        stage: {
-          defaultRouteSettings: {
-            throttlingBurstLimit: 100,
-            throttlingRateLimit: 50,
-          },
-        },
-      },
-    });
-
-    api.route("ANY /{proxy+}", {
+    const apiFn = new sst.aws.Function("Api", {
       handler: "packages/api/src/index.handler",
       environment: {
         AWS_S3_PUBLIC_URL: bucket.domain,
@@ -215,7 +201,7 @@ export default $config({
         awsAccessKeyId,
         awsSecretAccessKey,
       ],
-      // only transform if not dev because in dev a stub function is used which needs different permissions
+      url: true,
       transform: !$dev && {
         role: {
           inlinePolicies: [
@@ -252,6 +238,35 @@ export default $config({
               }),
             },
           ],
+        },
+      },
+    });
+
+    new sst.aws.Router("Router", {
+      routes: {
+        "/*": apiFn.url,
+      },
+      transform: {
+        cachePolicy: {
+          comment:
+            "Router caching policy. Caching is completely disabled for the router.",
+          name: "Router-Caching-Disabled",
+          maxTtl: 0,
+          minTtl: 0,
+          defaultTtl: 0,
+          parametersInCacheKeyAndForwardedToOrigin: {
+            cookiesConfig: {
+              cookieBehavior: "none",
+            },
+            headersConfig: {
+              headerBehavior: "none",
+            },
+            queryStringsConfig: {
+              queryStringBehavior: "none",
+            },
+            enableAcceptEncodingBrotli: false,
+            enableAcceptEncodingGzip: false,
+          },
         },
       },
     });

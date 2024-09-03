@@ -436,6 +436,7 @@ export async function bootstrap(
     );
   console.log(`Root client created with ID: ${rootClientId}`);
 
+  console.log("Creating other root client for other workspace...");
   const {
     clientId: otherRootClientId,
     clientSecretValue: otherRootClientSecretValue,
@@ -450,6 +451,7 @@ export async function bootstrap(
       forWorkspaceId: otherWorkspaceId,
     }
   );
+  console.log(`Other root client created with ID: ${otherRootClientId}`);
 
   console.log("Creating API for main workspace...");
   const { apiId } = await newApi(
@@ -481,6 +483,7 @@ export async function bootstrap(
     );
   console.log(`Basic client created with ID: ${basicClientId}`);
 
+  console.log("Creating basic client with low rate limit...");
   const {
     clientId: basicClientIdWithLowRateLimit,
     clientSecretValue: basicClientSecretValueWithLowRateLimit,
@@ -497,7 +500,11 @@ export async function bootstrap(
       rateLimitRefillInterval: 3000,
     }
   );
+  console.log(
+    `Basic client with low rate limit created with ID: ${basicClientIdWithLowRateLimit}`
+  );
 
+  console.log("Creating basic client with rotating secret...");
   const {
     clientId: basicClientIdForRotating,
     clientSecretValue: basicClientSecretValueForRotating,
@@ -510,6 +517,9 @@ export async function bootstrap(
       apiId,
       workspaceId,
     }
+  );
+  console.log(
+    `Basic client with rotating secret created with ID: ${basicClientIdForRotating}`
   );
 
   await client.end();

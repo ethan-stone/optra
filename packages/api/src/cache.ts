@@ -1,4 +1,7 @@
-import { Api, Client, Workspace } from '@/db';
+import { Api } from '@optra/core/apis';
+import { Client } from '@optra/core/clients';
+import { Workspace } from '@optra/core/workspaces';
+
 import { Logger } from '@/logger';
 
 type CacheRecord<Value> = {
