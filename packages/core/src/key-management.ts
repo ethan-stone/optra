@@ -24,11 +24,23 @@ export interface KeyManagementService {
 }
 
 export class AWSKeyManagementService implements KeyManagementService {
+  private client: KMSClient;
+
   constructor(
-    private client: KMSClient,
     private db: NodePgDatabase<typeof schema>,
-    private customerKeyId: string
-  ) {}
+    private customerKeyId: string,
+    private region: string,
+    private accessKeyId: string,
+    private secretAccessKey: string
+  ) {
+    this.client = new KMSClient({
+      region: this.region,
+      credentials: {
+        accessKeyId: this.accessKeyId,
+        secretAccessKey: this.secretAccessKey,
+      },
+    });
+  }
 
   public async encryptWithCustomerKey(
     plaintext: Uint8Array

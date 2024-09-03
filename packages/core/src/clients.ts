@@ -42,6 +42,7 @@ export interface ClientRepo {
   getScopesByClientId(clientId: string): Promise<ClientScope[]>;
   createScope(params: CreateClientScopeParams): Promise<{ id: string }>;
   deleteScopeByApiScopeId(apiScopeId: string): Promise<void>;
+  listByApiId(apiId: string): Promise<Client[]>;
 }
 
 export class DrizzleClientRepo implements ClientRepo {
@@ -83,9 +84,13 @@ export class DrizzleClientRepo implements ClientRepo {
   async createRoot(
     params: CreateRootClientParams
   ): Promise<{ id: string; secret: string }> {
-    const clientId = uid("client");
+    const clientId = params.clientIdPrefix
+      ? `${params.clientIdPrefix}_${uid()}`
+      : uid("client");
     const secretId = uid("csk");
-    const secretValue = uid();
+    const secretValue = params.clientSecretPrefix
+      ? `${params.clientSecretPrefix}_${uid()}`
+      : uid();
 
     await this.db.transaction(async (tx) => {
       await tx.insert(schema.clients).values({
@@ -116,8 +121,8 @@ export class DrizzleClientRepo implements ClientRepo {
       : uid("client");
     const secretId = uid("csk");
     const secretValue = params.clientSecretPrefix
-      ? params.clientSecretPrefix + "_" + uid(undefined, 48)
-      : uid(undefined, 48);
+      ? params.clientSecretPrefix + "_" + uid()
+      : uid();
 
     const now = new Date();
 
@@ -179,5 +184,26 @@ export class DrizzleClientRepo implements ClientRepo {
     await this.db
       .delete(schema.clientScopes)
       .where(eq(schema.clientScopes.apiScopeId, apiScopeId));
+  }
+
+  async listByApiId(apiId: string): Promise<Client[]> {
+    const clients = await this.db.query.clients.findMany({
+      where: and(
+        eq(schema.clients.apiId, apiId),
+        isNull(schema.clients.deletedAt)
+      ),
+      with: {
+        scopes: {
+          with: {
+            apiScope: true,
+          },
+        },
+      },
+    });
+
+    return clients.map((client) => ({
+      ...client,
+      scopes: client.scopes.map((s) => s.apiScope.name),
+    }));
   }
 }

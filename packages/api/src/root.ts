@@ -49,15 +49,11 @@ export async function initialize(env: {
 	};
 
 	const keyManagementService = new AWSKeyManagementService(
-		new KMSClient({
-			credentials: {
-				accessKeyId: env.awsAccessKeyId,
-				secretAccessKey: env.awsSecretAccessKey,
-			},
-			region: 'us-east-1',
-		}),
 		drizzleClient,
 		env.awsKMSKeyArn,
+		'us-east-1',
+		env.awsAccessKeyId,
+		env.awsSecretAccessKey,
 	);
 
 	const scheduler = new AWSEventScheduler(

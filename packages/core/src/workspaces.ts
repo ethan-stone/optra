@@ -19,6 +19,7 @@ export interface WorkspaceRepo {
   create(params: CreateWorkspaceParams): Promise<{ id: string }>;
   getById(id: string): Promise<Workspace | null>;
   getBillableWorkspaces(): Promise<WorkspaceBillingInfo[]>;
+  getByTenantId(tenantId: string): Promise<Workspace | null>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -57,5 +58,22 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       where: (table, { and, not, eq, isNotNull }) =>
         and(not(eq(table.plan, "free")), isNotNull(table.subscriptions)),
     });
+  }
+
+  async getByTenantId(tenantId: string): Promise<Workspace | null> {
+    const workspace = await this.db.query.workspaces.findFirst({
+      where: eq(schema.workspaces.tenantId, tenantId),
+      with: {
+        billingInfo: true,
+      },
+    });
+
+    if (!workspace) return null;
+
+    // validate the subscriptions field since it is just a JSON column
+    if (workspace.billingInfo?.subscriptions)
+      schema.Subscriptions.parse(workspace.billingInfo.subscriptions);
+
+    return workspace;
   }
 }

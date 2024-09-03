@@ -27,7 +27,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@optra/db/*": ["../db/src/*"]
+      "@optra/core/*": ["../core/src/*"]
     }
   },
   "include": [

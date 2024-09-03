@@ -10,7 +10,7 @@ export interface StorageBucket {
   upload(args: UploadArgs): Promise<void>;
 }
 
-export class R2StorageBucket implements StorageBucket {
+export class S3StorageBucket implements StorageBucket {
   constructor(
     private readonly s3Client: S3Client,
     private readonly bucket: string,

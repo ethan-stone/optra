@@ -6,6 +6,14 @@ import { uid } from "./uid";
 export type Api = typeof schema.apis.$inferSelect & {
   scopes: (typeof schema.apiScopes.$inferSelect)[];
 };
+
+export type ApiScope = typeof schema.apiScopes.$inferSelect;
+
+type UpdateApiParams = {
+  tokenExpirationInSeconds?: number;
+  name?: string;
+};
+
 export type CreateApiParams = Omit<
   typeof schema.apis.$inferInsert,
   "id" | "currentSigningSecretId" | "nextSigningSecretId"
@@ -25,9 +33,12 @@ export interface ApiRepo {
   create(
     params: CreateApiParams
   ): Promise<{ id: string; currentSigningSecretId: string }>;
+  update(id: string, params: UpdateApiParams): Promise<void>;
   getById(id: string): Promise<Api | null>;
   getByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null>;
   delete(id: string): Promise<void>;
+  getScopesByApiId(apiId: string): Promise<ApiScope[]>;
+  getScopeById(id: string): Promise<ApiScope | null>;
   createScope(params: CreateApiScopeParams): Promise<{ id: string }>;
   deleteScopeById(id: string): Promise<void>;
 }
@@ -91,6 +102,10 @@ export class DrizzleApiRepo implements ApiRepo {
     return api ?? null;
   }
 
+  async update(id: string, params: UpdateApiParams): Promise<void> {
+    await this.db.update(schema.apis).set(params).where(eq(schema.apis.id, id));
+  }
+
   async getByWorkspaceAndName(
     workspaceId: string,
     name: string
@@ -116,6 +131,12 @@ export class DrizzleApiRepo implements ApiRepo {
       .where(eq(schema.apis.id, id));
   }
 
+  async getScopesByApiId(apiId: string): Promise<ApiScope[]> {
+    return this.db.query.apiScopes.findMany({
+      where: eq(schema.apiScopes.apiId, apiId),
+    });
+  }
+
   async createScope(params: CreateApiScopeParams): Promise<{ id: string }> {
     const apiScopeId = uid("api_scope");
 
@@ -125,6 +146,14 @@ export class DrizzleApiRepo implements ApiRepo {
     });
 
     return { id: apiScopeId };
+  }
+
+  async getScopeById(id: string): Promise<ApiScope | null> {
+    const scope = await this.db.query.apiScopes.findFirst({
+      where: eq(schema.apiScopes.id, id),
+    });
+
+    return scope ?? null;
   }
 
   async deleteScopeById(id: string): Promise<void> {

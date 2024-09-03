@@ -367,17 +367,12 @@ export async function bootstrap(
     },
   });
 
-  const kmsClient = new KMSClient({
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
-
   const keyManager = new AWSKeyManagementService(
-    kmsClient,
     drizzleClient,
-    awsKMSKeyArn
+    awsKMSKeyArn,
+    "us-east-1",
+    accessKeyId,
+    secretAccessKey
   );
 
   console.log("Creating internal workspace...");
