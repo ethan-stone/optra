@@ -69,10 +69,7 @@
         "api_scopes_api_id_name_idx": {
           "name": "api_scopes_api_id_name_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "api_id",
-            "name"
-          ]
+          "columns": ["api_id", "name"]
         }
       }
     },
@@ -747,9 +744,7 @@
         "workspaces_tenant_id_idx": {
           "name": "workspaces_tenant_id_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "tenant_id"
-          ]
+          "columns": ["tenant_id"]
         }
       }
     }

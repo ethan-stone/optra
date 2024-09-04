@@ -69,10 +69,7 @@
         "api_id_name_idx": {
           "name": "api_id_name_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "api_id",
-            "name"
-          ]
+          "columns": ["api_id", "name"]
         }
       }
     },
@@ -686,9 +683,7 @@
         "tenant_id_idx": {
           "name": "tenant_id_idx",
           "nullsNotDistinct": false,
-          "columns": [
-            "tenant_id"
-          ]
+          "columns": ["tenant_id"]
         }
       }
     }

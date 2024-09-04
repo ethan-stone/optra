@@ -17,7 +17,7 @@ export const handler: ScheduledHandler = async (event) => {
 
   const idempotencyKey = await idempotencyKeyRepo.getByKey(event.id);
 
-  if (idempotencyKey !== null) {
+  if (idempotencyKey !== null || idempotencyKey !== undefined) {
     console.log(`Skipping event ${event.id} because it was already processed`);
     return;
   }

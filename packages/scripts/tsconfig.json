@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/node18/tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@optra/core/*": ["../core/src/*"],
+      "@optra/db/*": ["../db/src/*"]
+    } /* Specify a set of entries that re-map imports to additional lookup locations. */
+  }
+}

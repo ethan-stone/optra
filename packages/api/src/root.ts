@@ -30,6 +30,7 @@ export async function initialize(env: {
 	awsSecretAccessKey: string;
 	awsKMSKeyArn: string;
 	awsMessageQueueArn: string;
+	awsMessageQueueUrl: string;
 	awsSchedulerRoleArn: string;
 	awsSchedulerFailedDLQ: string;
 	awsS3BucketArn: string;

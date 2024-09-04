@@ -2,29 +2,28 @@ import { relations } from "drizzle-orm";
 import {
   pgTable,
   index,
-  varchar,
   integer,
   unique,
   json,
   timestamp,
+  text,
+  varchar,
 } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const clients = pgTable(
   "clients",
   {
-    id: varchar("id", { length: 100 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
     version: integer("version").notNull(),
-    clientIdPrefix: varchar("client_id_prefix", { length: 36 }), // will be applied to client id
-    clientSecretPrefix: varchar("client_secret_prefix", { length: 36 }), // will be applied to client id
-    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
-    forWorkspaceId: varchar("for_workspace_id", { length: 36 }),
-    apiId: varchar("api_id", { length: 36 }).notNull(),
-    currentClientSecretId: varchar("current_client_secret_id", {
-      length: 36,
-    }).notNull(),
-    nextClientSecretId: varchar("next_client_secret_id", { length: 36 }),
+    clientIdPrefix: text("client_id_prefix"), // will be applied to client id
+    clientSecretPrefix: text("client_secret_prefix"), // will be applied to client id
+    workspaceId: text("workspace_id").notNull(),
+    forWorkspaceId: text("for_workspace_id"),
+    apiId: text("api_id").notNull(),
+    currentClientSecretId: text("current_client_secret_id").notNull(),
+    nextClientSecretId: text("next_client_secret_id"),
     rateLimitBucketSize: integer("rate_limit_bucket_size"),
     rateLimitRefillAmount: integer("rate_limit_refill_amount"),
     rateLimitRefillInterval: integer("rate_limit_refill_interval"), // in milliseconds
@@ -44,9 +43,9 @@ export const clients = pgTable(
 );
 
 export const clientSecrets = pgTable("client_secrets", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  secret: varchar("secret", { length: 255 }).notNull(),
-  status: varchar("status", { enum: ["active", "revoked"] }).notNull(),
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  status: text("status", { enum: ["active", "revoked"] }).notNull(),
   expiresAt: timestamp("expires_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   deletedAt: timestamp("deleted_at", { mode: "date" }),
@@ -92,12 +91,10 @@ export type Subscriptions = z.infer<typeof Subscriptions>;
 export const workspaces = pgTable(
   "workspaces",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
-    tenantId: varchar("tenant_id", { length: 36 }).notNull(),
-    dataEncryptionKeyId: varchar("data_encryption_key_id", {
-      length: 36,
-    }).notNull(),
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    tenantId: text("tenant_id").notNull(),
+    dataEncryptionKeyId: text("data_encryption_key_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
@@ -114,10 +111,10 @@ export const workspaces = pgTable(
 // separate table for billing to decouple billing from the rest of the workspace
 // otherwise it would be very difficult to test and bootstrap
 export const workspaceBillingInfo = pgTable("workspace_billing_info", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
-  plan: varchar("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
-  customerId: varchar("customer_id", { length: 36 }).notNull(),
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
+  plan: text("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
+  customerId: text("customer_id").notNull(),
   subscriptions: json("subscription").$type<Subscriptions>(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
@@ -126,16 +123,12 @@ export const workspaceBillingInfo = pgTable("workspace_billing_info", {
 export const apis = pgTable(
   "apis",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
-    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    workspaceId: text("workspace_id").notNull(),
     tokenExpirationInSeconds: integer("token_expiration_in_seconds").notNull(), // in seconds
-    currentSigningSecretId: varchar("current_signing_secret_id", {
-      length: 36,
-    }).notNull(),
-    nextSigningSecretId: varchar("next_signing_secret_id", {
-      length: 36,
-    }),
+    currentSigningSecretId: text("current_signing_secret_id").notNull(),
+    nextSigningSecretId: text("next_signing_secret_id"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
     deletedAt: timestamp("deleted_at", { mode: "date" }),
@@ -148,11 +141,11 @@ export const apis = pgTable(
 );
 
 export const signingSecrets = pgTable("signing_secrets", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  secret: varchar("secret", { length: 8192 }).notNull(), // base64 encoded encrypted signing secret
-  iv: varchar("iv", { length: 1024 }).notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
-  algorithm: varchar("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
-  status: varchar("status", { enum: ["active", "revoked"] }).notNull(),
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(), // base64 encoded encrypted signing secret
+  iv: text("iv").notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
+  algorithm: text("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
+  status: text("status", { enum: ["active", "revoked"] }).notNull(),
   expiresAt: timestamp("expires_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
@@ -162,10 +155,10 @@ export const signingSecrets = pgTable("signing_secrets", {
 export const apiScopes = pgTable(
   "api_scopes",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    apiId: varchar("api_id", { length: 36 }).notNull(),
-    name: varchar("name", { length: 255 }).notNull(),
-    description: varchar("description", { length: 1024 }).default("").notNull(),
+    id: text("id").primaryKey(),
+    apiId: text("api_id").notNull(),
+    name: text("name").notNull(),
+    description: text("description").default("").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
@@ -183,9 +176,9 @@ export const apiScopes = pgTable(
 export const clientScopes = pgTable(
   "client_scopes",
   {
-    id: varchar("id", { length: 36 }).primaryKey(),
-    clientId: varchar("client_id", { length: 36 }).notNull(),
-    apiScopeId: varchar("api_scope_id", { length: 36 }).notNull(),
+    id: text("id").primaryKey(),
+    clientId: text("client_id").notNull(),
+    apiScopeId: text("api_scope_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
@@ -200,8 +193,8 @@ export const clientScopes = pgTable(
 );
 
 export const dataEncryptionKeys = pgTable("data_encryption_keys", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  key: varchar("key", { length: 1024 }).notNull(), // base64 encoded encrypted data key
+  id: text("id").primaryKey(),
+  key: text("key").notNull(), // base64 encoded encrypted data key
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
 });
 
