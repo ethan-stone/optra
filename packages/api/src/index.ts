@@ -60,6 +60,7 @@ app.use('*', async (c, next) => {
 			awsSchedulerFailedDLQ: parsedEnv.AWS_SCHEDULER_FAILED_DLQ,
 			awsS3BucketArn: Resource.JwksBucket.name,
 			awsS3PublicUrl: `https://` + parsedEnv.AWS_S3_PUBLIC_URL,
+			awsMessageQueueUrl: Resource.MessageQueue.url,
 			tinyBirdApiKey: Resource.TinyBirdApiKey.value,
 			tinyBirdBaseUrl: Resource.TinyBirdUrl.value,
 			tinyBirdMonthlyVerificationsEndpoint: Resource.TinyBirdVerificationsEndpoint.value,
