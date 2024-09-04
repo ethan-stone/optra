@@ -59,7 +59,7 @@ export default $config({
 
     messageQueue.subscribe(
       {
-        handler: "packages/lambdas/src/handle-message.handler",
+        handler: "packages/lambdas/src/sqs/handle-message.handler",
         link: [
           stripeApiKey,
           dbUrl,
@@ -172,7 +172,7 @@ export default $config({
 
     new sst.aws.Cron("InvoiceCron", {
       job: {
-        handler: "packages/lambdas/src/handle-invoice-cron.handler",
+        handler: "packages/lambdas/src/cron/handle-invoice-cron.handler",
         link: [messageQueue, dbUrl],
         timeout: "15 minutes",
       },
@@ -241,6 +241,30 @@ export default $config({
         },
       },
     });
+
+    const logHandler = new sst.aws.Function("LogHandler", {
+      handler: "packages/lambdas/src/cloudwatch/api-logs-handler.handler",
+      link: [dbUrl],
+    });
+
+    const permission = new aws.lambda.Permission("ApiPermission", {
+      action: "lambda:InvokeFunction",
+      function: logHandler.name,
+      principal: "logs.amazonaws.com",
+    });
+
+    new aws.cloudwatch.LogSubscriptionFilter(
+      "ApiLogSubscriptionFilter",
+      {
+        logGroup: apiFn.nodes.logGroup,
+        filterPattern: "",
+        destinationArn: logHandler.arn,
+        name: "ApiLogSubscriptionFilter",
+      },
+      {
+        dependsOn: [permission],
+      }
+    );
 
     new sst.aws.Router("Router", {
       routes: {

@@ -1,7 +1,8 @@
-import { getAnalytics } from "./analytics";
-import { stripe } from "./stripe";
-import { calculateTieredPrices } from "./utils/calculate-tiered-pricing";
+import { stripe } from "../utils/stripe";
+import { calculateTieredPrices } from "../utils/calculate-tiered-pricing";
 import { WorkspaceRepo } from "@optra/core/workspaces";
+import { TokenGenerationRepo } from "@optra/core/token-generations";
+import { TokenVerificationRepo } from "@optra/core/token-verifications";
 
 export type InvoiceWorkspaceArgs = {
   workspaceId: string;
@@ -13,6 +14,8 @@ export async function invoiceWorkspace(
   args: InvoiceWorkspaceArgs,
   ctx: {
     workspaceRepo: WorkspaceRepo;
+    tokenGenerationRepo: TokenGenerationRepo;
+    tokenVerificationsRepo: TokenVerificationRepo;
   }
 ): Promise<void> {
   const { workspaceId, month, year } = args;
@@ -88,10 +91,8 @@ export async function invoiceWorkspace(
 
   console.log(`Added invoice item for pro plan. Invoice: ${invoice.id}`);
 
-  const analytics = getAnalytics();
-
   // get token generations from the last month
-  const tokenGenerations = await analytics.getGenerationsForWorkspace({
+  const tokenGenerations = await ctx.tokenGenerationRepo.getForWorkspace({
     month,
     year,
     workspaceId,
@@ -132,7 +133,7 @@ export async function invoiceWorkspace(
   }
 
   // invoice items for token verifications
-  const tokenVerifications = await analytics.getVerificationsForWorkspace({
+  const tokenVerifications = await ctx.tokenVerificationsRepo.getForWorkspace({
     month,
     year,
     workspaceId,

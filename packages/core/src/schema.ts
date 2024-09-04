@@ -36,7 +36,9 @@ export const clients = pgTable(
   (table) => {
     return {
       workspaceIdIdx: index("clients_workspace_id_idx").on(table.workspaceId),
-      forWorkspaceIdIdx: index("for_workspace_id_idx").on(table.forWorkspaceId),
+      forWorkspaceIdIdx: index("clients_for_workspace_id_idx").on(
+        table.forWorkspaceId
+      ),
     };
   }
 );
@@ -101,8 +103,8 @@ export const workspaces = pgTable(
   },
   (table) => {
     return {
-      tenantIdIdx: unique("tenant_id_idx").on(table.tenantId),
-      dataEncryptionKeyIdIdx: index("data_encryption_key_id_idx").on(
+      tenantIdIdx: unique("workspaces_tenant_id_idx").on(table.tenantId),
+      dataEncryptionKeyIdIdx: index("workspaces_data_encryption_key_id_idx").on(
         table.dataEncryptionKeyId
       ),
     };
@@ -169,8 +171,11 @@ export const apiScopes = pgTable(
   },
   (table) => {
     return {
-      apiIdIdx: index("api_id_idx").on(table.apiId),
-      apiIdNameIdx: unique("api_id_name_idx").on(table.apiId, table.name),
+      apiIdIdx: index("api_scopes_api_id_idx").on(table.apiId),
+      apiIdNameIdx: unique("api_scopes_api_id_name_idx").on(
+        table.apiId,
+        table.name
+      ),
     };
   }
 );
@@ -186,8 +191,10 @@ export const clientScopes = pgTable(
   },
   (table) => {
     return {
-      clientIdIdx: index("client_id_idx").on(table.clientId),
-      apiScopeIdIdx: index("api_scope_id_idx").on(table.apiScopeId),
+      clientIdIdx: index("client_scopes_client_id_idx").on(table.clientId),
+      apiScopeIdIdx: index("client_scopes_api_scope_id_idx").on(
+        table.apiScopeId
+      ),
     };
   }
 );
@@ -203,6 +210,53 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   expiresAt: timestamp("expires_at", { mode: "date" }),
 });
+
+export const tokenGenerations = pgTable(
+  "token_generations",
+  {
+    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+    apiId: varchar("api_id", { length: 36 }).notNull(),
+    clientId: varchar("client_id", { length: 36 }).notNull(),
+    timestamp: timestamp("timestamp", { mode: "date" }).notNull(),
+  },
+  (table) => {
+    return {
+      workspaceIdIdx: index("token_generations_workspace_id_idx").on(
+        table.workspaceId
+      ),
+      apiIdIdx: index("token_generations_api_id_idx").on(table.apiId),
+      clientIdIdx: index("token_generations_client_id_idx").on(table.clientId),
+      timestampIdx: index("token_generations_timestamp_idx").on(
+        table.timestamp
+      ),
+    };
+  }
+);
+
+export const tokenVerifications = pgTable(
+  "token_verifications",
+  {
+    workspaceId: varchar("workspace_id", { length: 36 }).notNull(),
+    apiId: varchar("api_id", { length: 36 }).notNull(),
+    clientId: varchar("client_id", { length: 36 }).notNull(),
+    timestamp: timestamp("timestamp", { mode: "date" }).notNull(),
+    deniedReason: varchar("denied_reason", { length: 255 }),
+  },
+  (table) => {
+    return {
+      workspaceIdIdx: index("token_verifications_workspace_id_idx").on(
+        table.workspaceId
+      ),
+      apiIdIdx: index("token_verifications_api_id_idx").on(table.apiId),
+      clientIdIdx: index("token_verifications_client_id_idx").on(
+        table.clientId
+      ),
+      timestampIdx: index("token_verifications_timestamp_idx").on(
+        table.timestamp
+      ),
+    };
+  }
+);
 
 export const clientRelations = relations(clients, ({ one, many }) => {
   return {

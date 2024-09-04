@@ -68,7 +68,6 @@ app.use('*', async (c, next) => {
 
 		c.set('root', {
 			storage: root.storage,
-			analytics: root.analytics,
 			cache: root.cache,
 			db: root.db,
 			keyManagementService: root.keyManagementService,
@@ -110,9 +109,6 @@ app.use('*', async (c, next) => {
 		logger.info('Request finished', {
 			duration,
 		});
-
-		// c.executionCtx.waitUntil(logger.flush());
-		// c.executionCtx.waitUntil(root.sql.end());
 	}
 });
 

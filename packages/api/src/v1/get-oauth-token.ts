@@ -49,7 +49,7 @@ export function v1GetOAuthToken(app: App) {
 		const logger = c.get('logger');
 		const root = c.get('root');
 
-		const { db, analytics, keyManagementService, cache } = root;
+		const { db, keyManagementService, cache } = root;
 
 		const { clientId, clientSecret } = c.req.valid('json');
 
@@ -124,7 +124,7 @@ export function v1GetOAuthToken(app: App) {
 				const year = now.getUTCFullYear();
 				const month = now.getUTCMonth() + 1;
 
-				const res = await analytics.getGenerationsForWorkspace({
+				const res = await db.tokenGenerations.getForWorkspace({
 					workspaceId: key,
 					month,
 					year,
@@ -187,16 +187,13 @@ export function v1GetOAuthToken(app: App) {
 
 				logger.info(`Created JWT for client ${clientId}`);
 
-				// c.executionCtx.waitUntil(
-				// 	analytics.publish('token.generated', [
-				// 		{
-				// 			apiId: client.apiId,
-				// 			clientId: client.id,
-				// 			workspaceId: client.workspaceId,
-				// 			timestamp: Date.now(),
-				// 		},
-				// 	]),
-				// );
+				logger.metric(`Token generated for client ${client.id}`, {
+					name: 'token.generated',
+					workspaceId: workspace.id,
+					clientId: client.id,
+					apiId: api.id,
+					timestamp: Date.now(),
+				});
 
 				return c.json(
 					{
@@ -227,16 +224,13 @@ export function v1GetOAuthToken(app: App) {
 					{ algorithm: 'RS256', header: { typ: 'JWT', kid: signingSecretToUse.id } },
 				);
 
-				// c.executionCtx.waitUntil(
-				// 	analytics.publish('token.generated', [
-				// 		{
-				// 			apiId: client.apiId,
-				// 			clientId: client.id,
-				// 			workspaceId: client.workspaceId,
-				// 			timestamp: Date.now(),
-				// 		},
-				// 	]),
-				// );
+				logger.metric(`Token generated for client ${client.id}`, {
+					name: 'token.generated',
+					workspaceId: workspace.id,
+					clientId: client.id,
+					apiId: api.id,
+					timestamp: Date.now(),
+				});
 
 				return c.json(
 					{

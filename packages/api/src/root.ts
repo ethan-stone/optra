@@ -5,7 +5,6 @@ import { Cache, CacheNamespaces, InMemoryCache } from '@/cache';
 import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
-import { NoopAnalytics, TinyBirdAnalytics } from '@/analytics';
 import { AWSS3Storage } from './storage';
 import { S3Client } from '@aws-sdk/client-s3';
 import { DrizzleWorkspaceRepo } from '@optra/core/workspaces';
@@ -15,6 +14,8 @@ import { DrizzleClientSecretRepo } from '@optra/core/client-secrets';
 import { DrizzleSigningSecretRepo } from '@optra/core/signing-secrets';
 import { getDrizzle } from '@optra/core/drizzle';
 import { AWSKeyManagementService } from '@optra/core/key-management';
+import { DrizzleTokenGenerationRepo } from '@optra/core/token-generations';
+import { DrizzleTokenVerificationRepo } from '@optra/core/token-verifications';
 
 const cache = new InMemoryCache<CacheNamespaces>({
 	ttl: 60 * 1000, // 1 minute
@@ -46,6 +47,8 @@ export async function initialize(env: {
 		clients: new DrizzleClientRepo(drizzleClient),
 		clientSecrets: new DrizzleClientSecretRepo(drizzleClient),
 		signingSecrets: new DrizzleSigningSecretRepo(drizzleClient),
+		tokenGenerations: new DrizzleTokenGenerationRepo(drizzleClient),
+		tokenVerifications: new DrizzleTokenVerificationRepo(drizzleClient),
 	};
 
 	const keyManagementService = new AWSKeyManagementService(
@@ -74,24 +77,6 @@ export async function initialize(env: {
 		},
 	);
 
-	const analytics =
-		env.env === 'production' &&
-		env.tinyBirdApiKey &&
-		env.tinyBirdMonthlyVerificationsEndpoint &&
-		env.tinyBirdMonthlyGenerationsEndpoint &&
-		env.tinyBirdBaseUrl
-			? new TinyBirdAnalytics({
-					apiKey: env.tinyBirdApiKey,
-					baseUrl: 'https://api.us-east.aws.tinybird.co',
-					eventTypeDatasourceMap: {
-						'token.generated': 'token_generated__v0',
-						'token.verified': 'token_verified__v0',
-					},
-					verificationForWorkspaceEndpoint: env.tinyBirdMonthlyVerificationsEndpoint,
-					generationsForWorkspaceEndpoint: env.tinyBirdMonthlyGenerationsEndpoint,
-				})
-			: new NoopAnalytics();
-
 	const storage = new AWSS3Storage(
 		new S3Client({
 			credentials: {
@@ -104,14 +89,13 @@ export async function initialize(env: {
 		env.awsS3PublicUrl,
 	);
 
-	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics, storage);
+	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, storage);
 
 	return {
 		db,
 		storage,
 		conn: drizzleClient,
 		cache,
-		analytics,
 		scheduler,
 		tokenService,
 		keyManagementService,

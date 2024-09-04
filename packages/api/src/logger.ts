@@ -1,8 +1,29 @@
 import { BaselimeLogger } from '@baselime/edge-logger';
+import { z } from 'zod';
 
 export type Fields = {
 	[key: string]: unknown;
 };
+
+const MetricFields = z.discriminatedUnion('name', [
+	z.object({
+		name: z.literal('token.generated'),
+		workspaceId: z.string(),
+		clientId: z.string(),
+		apiId: z.string(),
+		timestamp: z.number(),
+	}),
+	z.object({
+		name: z.literal('token.verified'),
+		workspaceId: z.string(),
+		clientId: z.string(),
+		apiId: z.string(),
+		timestamp: z.number(),
+		deniedReason: z.string().nullable(),
+	}),
+]);
+
+type MetricFields = z.infer<typeof MetricFields>;
 
 export interface Logger {
 	info(message: string, fields?: Fields): void;
@@ -64,6 +85,7 @@ export class Logger implements Logger {
 	info(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'info',
+			type: 'log',
 			...fields,
 		});
 	}
@@ -71,6 +93,7 @@ export class Logger implements Logger {
 	warn(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'warn',
+			type: 'log',
 			...fields,
 		});
 	}
@@ -78,7 +101,17 @@ export class Logger implements Logger {
 	error(message: string, fields?: Fields): void {
 		this.log(message, {
 			level: 'error',
+			type: 'log',
 			...fields,
+		});
+	}
+
+	metric(message: string, metricFields: MetricFields, fields?: Fields): void {
+		this.log(message, {
+			level: 'info',
+			type: 'metric',
+			...fields,
+			metric: metricFields,
 		});
 	}
 

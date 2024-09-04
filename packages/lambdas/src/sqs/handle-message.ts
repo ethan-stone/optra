@@ -9,7 +9,8 @@ import { Resource } from "sst";
 import { DrizzleClientSecretRepo } from "@optra/core/client-secrets";
 import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
 import { DrizzleIdempotencyKeyRepo } from "@optra/core/idempotency-keys";
-
+import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
+import { DrizzleTokenVerificationRepo } from "@optra/core/token-verifications";
 export const handler: SQSHandler = async (event) => {
   const { db } = await getDrizzle(Resource.DbUrl.value);
 
@@ -17,6 +18,8 @@ export const handler: SQSHandler = async (event) => {
   const clientSecretRepo = new DrizzleClientSecretRepo(db);
   const workspaceRepo = new DrizzleWorkspaceRepo(db);
   const idempotencyKeyRepo = new DrizzleIdempotencyKeyRepo(db);
+  const tokenGenerationRepo = new DrizzleTokenGenerationRepo(db);
+  const tokenVerificationsRepo = new DrizzleTokenVerificationRepo(db);
 
   const failedMessageIds: string[] = [];
 
@@ -92,6 +95,8 @@ export const handler: SQSHandler = async (event) => {
           },
           {
             workspaceRepo,
+            tokenGenerationRepo,
+            tokenVerificationsRepo,
           }
         );
       }

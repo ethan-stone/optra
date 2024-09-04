@@ -1,5 +1,5 @@
 import { ScheduledHandler } from "aws-lambda";
-import { sqsClient } from "./sqs";
+import { sqsClient } from "../utils/sqs";
 import {
   SendMessageBatchCommand,
   SendMessageBatchRequestEntry,

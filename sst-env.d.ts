@@ -24,6 +24,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
+    "LogHandler": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
     "MessageDLQ": {
       "type": "sst.aws.Queue"
       "url": string
