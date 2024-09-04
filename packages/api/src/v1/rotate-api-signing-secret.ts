@@ -1,7 +1,7 @@
 import { App } from '@/app';
 import { HTTPException } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
-import { Buffer } from '@/buffer';
+import { webcrypto } from 'crypto';
 
 const route = createRoute({
 	method: 'post' as const,
@@ -36,7 +36,7 @@ const route = createRoute({
 export function v1RotateApiSigningSecret(app: App) {
 	app.openapi(route, async (c) => {
 		const logger = c.get('logger');
-		const { db, keyManagementService, scheduler, tokenService } = c.get('root');
+		const { db, keyManagementService, scheduler, tokenService, storage } = c.get('root');
 
 		const verifiedAuthHeader = await tokenService.verifyAuthHeader(c.req.header('Authorization'));
 
@@ -67,7 +67,7 @@ export function v1RotateApiSigningSecret(app: App) {
 
 		const { apiId, expiresIn: providedExpiresIn } = c.req.valid('json');
 
-		const api = await db.getApiById(apiId);
+		const api = await db.apis.getById(apiId);
 
 		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
 			logger.info(`Api ${apiId} does not exist or client ${verifiedToken.client.id} is not allowed to modify it.`);
@@ -81,7 +81,7 @@ export function v1RotateApiSigningSecret(app: App) {
 
 		const expiresAt = new Date(Date.now() + expiresIn);
 
-		const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
+		const currentSigningSecret = await db.signingSecrets.getById(api.currentSigningSecretId);
 
 		if (!currentSigningSecret) {
 			logger.error(`Somehow api ${apiId} current signing does not exist. This should never happen.`);
@@ -91,7 +91,7 @@ export function v1RotateApiSigningSecret(app: App) {
 			});
 		}
 
-		const workspace = await db.getWorkspaceById(api.workspaceId);
+		const workspace = await db.workspaces.getById(api.workspaceId);
 
 		if (!workspace) {
 			logger.error(`Somehow could not find workspace for api ${apiId}. This should never happen.`);
@@ -109,7 +109,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				},
 				true,
 				['sign', 'verify'],
-			)) as CryptoKey;
+			)) as webcrypto.CryptoKey;
 
 			const exportedSigningSecret = Buffer.from((await crypto.subtle.exportKey('raw', signingSecret)) as ArrayBuffer).toString('base64');
 
@@ -118,7 +118,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				Buffer.from(exportedSigningSecret, 'base64'),
 			);
 
-			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
+			const { id: nextSigningSecretId } = await db.signingSecrets.rotate({
 				apiId: api.id,
 				algorithm: 'hsa256',
 				encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -142,9 +142,9 @@ export function v1RotateApiSigningSecret(app: App) {
 				},
 				true,
 				['sign', 'verify'],
-			)) as CryptoKeyPair;
+			)) as webcrypto.CryptoKeyPair;
 
-			const publicKey = (await crypto.subtle.exportKey('jwk', keyPair.publicKey)) as JsonWebKey;
+			const publicKey = (await crypto.subtle.exportKey('jwk', keyPair.publicKey)) as webcrypto.JsonWebKey;
 			const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
 
 			const encryptResult = await keyManagementService.encryptWithDataKey(
@@ -152,7 +152,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				Buffer.from(privateKey as ArrayBuffer),
 			);
 
-			const { id: nextSigningSecretId } = await db.rotateApiSigningSecret({
+			const { id: nextSigningSecretId } = await db.signingSecrets.rotate({
 				apiId: api.id,
 				algorithm: 'rsa256',
 				encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
@@ -160,7 +160,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				expiresAt: expiresAt,
 			});
 
-			const url = `${c.env.JWKS_BUCKET_URL}/${workspace.id}/${api.id}/.well-known/jwks.json`;
+			const url = `${storage.publicUrl}/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
 			const req = new Request(url, {
 				method: 'GET',
@@ -177,17 +177,16 @@ export function v1RotateApiSigningSecret(app: App) {
 				});
 			}
 
-			const jwks = JSON.parse(await res.text()) as { keys: (JsonWebKey & { kid: string })[] };
+			const jwks = JSON.parse(await res.text()) as { keys: (webcrypto.JsonWebKey & { kid: string })[] };
 
 			jwks.keys.push({
 				...publicKey,
 				kid: nextSigningSecretId,
 			});
 
-			await c.env.JWKS_BUCKET.put(`${workspace.id}/${api.id}/.well-known/jwks.json`, JSON.stringify(jwks), {
-				httpMetadata: {
-					contentType: 'application/json',
-				},
+			await storage.put({
+				content: JSON.stringify(jwks),
+				key: `${workspace.id}/${api.id}/.well-known/jwks.json`,
 			});
 
 			await scheduler.createOneTimeSchedule({

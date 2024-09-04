@@ -1,29 +1,28 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { prettyJSON } from 'hono/pretty-json';
-import { Env } from './env';
+import { LambdaEvent } from 'hono/aws-lambda';
 import { handleError, handleZodError } from './errors';
 import { Logger } from './logger';
 import { Db } from './db';
-import { TokenBucket } from './ratelimit';
-import { KeyManagementService } from './key-management';
+import { KeyManagementService } from '@optra/core/key-management';
 import { Cache, CacheNamespaces } from './cache';
 import { Scheduler } from './scheduler';
 import { TokenService } from './token-service';
-import { Analytics } from './analytics';
-import { Client } from 'pg';
+import { Storage } from './storage';
 
 type Root = {
-	sql: Client;
 	db: Db;
 	keyManagementService: KeyManagementService;
+	storage: Storage;
 	cache: Cache<CacheNamespaces>;
 	scheduler: Scheduler;
 	tokenService: TokenService;
-	analytics: Analytics;
 };
 
 export type HonoEnv = {
-	Bindings: Env;
+	Bindings: {
+		event: LambdaEvent;
+	};
 	Variables: {
 		reqId: string;
 		logger: Logger;

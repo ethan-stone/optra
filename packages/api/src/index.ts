@@ -1,6 +1,6 @@
 import { createApp } from '@/app';
 import { initialize } from '@/root';
-import { Env, envSchema } from '@/env';
+import { envSchema } from '@/env';
 import { v1GetOAuthToken } from '@/v1/get-oauth-token';
 import { v1CreateApi } from '@/v1/create-api';
 import { uid } from '@/uid';
@@ -18,9 +18,8 @@ import { v1DeleteApi } from '@/v1/delete-api';
 import { v1GetApi } from '@/v1/get-api';
 import { v1RotateApiSigningSecret } from '@/v1/rotate-api-signing-secret';
 import { v1UpdateClient } from '@/v1/update-client';
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { PostgresDb, schema } from './db';
+import { handle } from 'hono/aws-lambda';
+import { Resource } from 'sst';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -37,29 +36,39 @@ export const app = createApp();
 app.use('*', async (c, next) => {
 	const start = Date.now();
 
+	const result = envSchema.safeParse(process.env);
+
+	if (!result.success) {
+		console.log(result.error);
+		throw result.error;
+	}
+
+	const parsedEnv = result.data;
+
 	try {
 		const reqId = uid('req', 14);
 		c.set('reqId', reqId);
 
 		const root = await initialize({
-			env: c.env.ENVIRONMENT,
-			dbUrl: c.env.DRIZZLE_DATABASE_URL,
-			awsAccessKeyId: c.env.AWS_ACCESS_KEY_ID,
-			awsSecretAccessKey: c.env.AWS_SECRET_ACCESS_KEY,
-			awsKMSKeyArn: c.env.AWS_KMS_KEY_ARN,
-			awsMessageQueueArn: c.env.AWS_MESSAGE_QUEUE_ARN,
-			awsMessageQueueUrl: c.env.AWS_MESSAGE_QUEUE_URL,
-			awsSchedulerRoleArn: c.env.AWS_SCHEDULER_ROLE_ARN,
-			awsSchedulerFailedDLQArn: c.env.AWS_SCHEDULER_FAILED_DLQ_ARN,
-			tinyBirdApiKey: c.env.TINY_BIRD_API_KEY,
-			tinyBirdBaseUrl: c.env.TINY_BIRD_BASE_URL,
-			tinyBirdMonthlyVerificationsEndpoint: c.env.TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT,
-			tinyBirdMonthlyGenerationsEndpoint: c.env.TINY_BIRD_MONTHLY_GENERATIONS_ENDPOINT,
+			env: parsedEnv.ENVIRONMENT,
+			dbUrl: Resource.DbUrl.value,
+			awsAccessKeyId: Resource.AWSAccessKeyId.value,
+			awsSecretAccessKey: Resource.AWSSecretAccessKey.value,
+			awsKMSKeyArn: parsedEnv.AWS_KMS_KEY_ARN,
+			awsMessageQueueArn: parsedEnv.AWS_MESSAGE_QUEUE_ARN,
+			awsSchedulerRoleArn: parsedEnv.AWS_SCHEDULER_ROLE_ARN,
+			awsSchedulerFailedDLQ: parsedEnv.AWS_SCHEDULER_FAILED_DLQ,
+			awsS3BucketArn: Resource.JwksBucket.name,
+			awsS3PublicUrl: `https://` + parsedEnv.AWS_S3_PUBLIC_URL,
+			awsMessageQueueUrl: Resource.MessageQueue.url,
+			tinyBirdApiKey: Resource.TinyBirdApiKey.value,
+			tinyBirdBaseUrl: Resource.TinyBirdUrl.value,
+			tinyBirdMonthlyVerificationsEndpoint: Resource.TinyBirdVerificationsEndpoint.value,
+			tinyBirdMonthlyGenerationsEndpoint: Resource.TinyBirdGenerationsEndpoint.value,
 		});
 
 		c.set('root', {
-			sql: root.sql,
-			analytics: root.analytics,
+			storage: root.storage,
 			cache: root.cache,
 			db: root.db,
 			keyManagementService: root.keyManagementService,
@@ -69,29 +78,13 @@ app.use('*', async (c, next) => {
 
 		let logger: Logger;
 
-		// if (c.env.ENVIRONMENT === 'production' && !c.env.BASELIME_API_KEY) {
-		// 	throw new Error('Missing Axiom environment variables for production');
-		// }
-
-		if (c.env.BASELIME_API_KEY) {
-			logger = new Logger({
-				env: 'production',
-				baseLimeApiKey: c.env.BASELIME_API_KEY,
-				executionCtx: c.executionCtx,
-				dataset: 'api-logs',
-				namespace: c.req.method + ' ' + c.req.path,
-				service: 'api',
-				requestId: reqId,
-			});
-		} else {
-			logger = new Logger({
-				env: 'development',
-				dataset: 'api-logs',
-				namespace: c.req.method + ' ' + c.req.path,
-				service: 'api',
-				requestId: reqId,
-			});
-		}
+		logger = new Logger({
+			env: parsedEnv.ENVIRONMENT,
+			dataset: 'api-logs',
+			namespace: c.req.method + ' ' + c.req.path,
+			service: 'api',
+			requestId: reqId,
+		});
 
 		c.set('logger', logger);
 
@@ -117,9 +110,6 @@ app.use('*', async (c, next) => {
 		logger.info('Request finished', {
 			duration,
 		});
-
-		c.executionCtx.waitUntil(logger.flush());
-		c.executionCtx.waitUntil(root.sql.end());
 	}
 });
 
@@ -139,22 +129,4 @@ v1RemoveClientScope(app);
 v1RotateClientSecret(app);
 v1VerifyToken(app);
 
-export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const parsedEnv = envSchema.safeParse(env);
-
-		if (!parsedEnv.success) {
-			console.log(parsedEnv.error);
-			return Response.json(
-				{
-					errors: parsedEnv.error,
-					message: "Environment variables didn't match the expected schema",
-					code: 'INVALID_ENVIRONMENT',
-				},
-				{ status: 500 },
-			);
-		}
-
-		return app.fetch(request, parsedEnv.data, ctx);
-	},
-};
+export const handler = handle(app);

@@ -11,7 +11,7 @@ const accessToken = JSON.parse(open('./access-token.json'));
 
 export default function main() {
 	const res = http.post(
-		'https://optra-api-dev.ethan-stone9352.workers.dev/v1/tokens.verifyToken',
+		'https://imvoqg7k6b.execute-api.us-east-1.amazonaws.com/v1/tokens.verifyToken',
 		JSON.stringify({
 			token: accessToken.accessToken,
 		}),

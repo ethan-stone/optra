@@ -2,17 +2,18 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { env } from "@/env";
 import { TRPCError } from "@trpc/server";
-import { uid } from "@/utils/uid";
-import { schema } from "@optra/db";
-import { createHash } from "crypto";
-import { eq } from "drizzle-orm";
+
 import {
   getApiByWorkspaceIdAndApiId,
   getScopesForApi,
 } from "@/server/data/apis";
-import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import {
-  createClient,
+  getWorkspaceByTenantId,
+  getWorkspaceById,
+} from "@/server/data/workspaces";
+import {
+  createBasicClient,
+  createRootClient,
   deleteClientById,
   getClientByWorkspaceIdAndClientId,
 } from "@/server/data/clients";
@@ -44,12 +45,21 @@ export const clientsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const optraApi = await ctx.db.query.apis.findFirst({
-        where: (table, { eq }) => eq(table.id, env.OPTRA_API_ID),
-        with: {
-          workspace: true,
-        },
-      });
+      const optraWorkspace = await getWorkspaceById(env.OPTRA_WORKSPACE_ID);
+
+      if (!optraWorkspace) {
+        console.error(`Optra workspace not found for tenant ${ctx.tenant.id}`);
+        // throw internal server error because this means something
+        // is very wrong with the configuration
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+
+      const optraApi = await getApiByWorkspaceIdAndApiId(
+        optraWorkspace.id,
+        env.OPTRA_API_ID,
+      );
 
       if (!optraApi) {
         console.error(`Optra API not found`);
@@ -60,9 +70,7 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      const workspace = await ctx.db.query.workspaces.findFirst({
-        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
-      });
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
@@ -72,43 +80,22 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      const clientId = "optra_" + uid();
-      const clientSecretId = uid("csk");
-      const clientSecretValue = "optra_sk_" + uid();
-      const clientSecretHash = createHash("sha256")
-        .update(clientSecretValue)
-        .digest("hex");
-
-      await ctx.db.transaction(async (tx) => {
-        const now = new Date();
-
-        await tx.insert(schema.clientSecrets).values({
-          id: clientSecretId,
-          secret: clientSecretHash,
-          status: "active",
-          createdAt: now,
-        });
-
-        await tx.insert(schema.clients).values({
-          id: clientId,
-          name: input.name,
-          apiId: optraApi.id,
-          version: 1,
-          workspaceId: env.OPTRA_WORKSPACE_ID,
-          forWorkspaceId: workspace.id,
-          currentClientSecretId: clientSecretId,
-          // rate limit for root clients is ~10 requests per second
-          rateLimitBucketSize: 10,
-          rateLimitRefillAmount: 10,
-          rateLimitRefillInterval: 1000,
-          createdAt: now,
-          updatedAt: now,
-        });
+      const client = await createRootClient({
+        workspaceId: optraWorkspace.id,
+        apiId: optraApi.id,
+        forWorkspaceId: workspace.id,
+        name: input.name,
+        clientIdPrefix: "optra_",
+        clientSecretPrefix: "optra_sk_",
+        // rate limit for root clients is ~10 requests per second
+        rateLimitBucketSize: 10,
+        rateLimitRefillAmount: 10,
+        rateLimitRefillInterval: 1000,
       });
 
       return {
-        clientId: clientId,
-        clientSecret: clientSecretValue,
+        clientId: client.clientId,
+        clientSecret: client.clientSecret,
       };
     }),
   deleteRootClient: protectedProcedure
@@ -118,12 +105,20 @@ export const clientsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const optraApi = await ctx.db.query.apis.findFirst({
-        where: (table, { eq }) => eq(table.id, env.OPTRA_API_ID),
-        with: {
-          workspace: true,
-        },
-      });
+      const optraWorkspace = await getWorkspaceById(env.OPTRA_WORKSPACE_ID);
+
+      if (!optraWorkspace) {
+        console.error(`Optra workspace not found for tenant ${ctx.tenant.id}`);
+        // throw internal server error because this means something
+        // is very wrong with the configuration
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+      const optraApi = await getApiByWorkspaceIdAndApiId(
+        optraWorkspace.id,
+        env.OPTRA_API_ID,
+      );
 
       if (!optraApi) {
         console.error(`Optra API not found`);
@@ -134,9 +129,7 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      const workspace = await ctx.db.query.workspaces.findFirst({
-        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
-      });
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
@@ -146,10 +139,10 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      const client = await ctx.db.query.clients.findFirst({
-        where: (table, { eq, and }) =>
-          and(eq(table.id, input.id), eq(table.forWorkspaceId, workspace.id)),
-      });
+      const client = await getClientByWorkspaceIdAndClientId(
+        optraWorkspace.id,
+        input.id,
+      );
 
       if (!client) {
         console.warn(
@@ -161,12 +154,17 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db
-        .update(schema.clients)
-        .set({
-          deletedAt: new Date(),
-        })
-        .where(eq(schema.clients.id, input.id));
+      if (client.forWorkspaceId !== workspace.id) {
+        console.warn(
+          `Client with id ${input.id} does not exist or is not a part of workspace ${workspace.id}`,
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not found the client.",
+        });
+      }
+
+      await deleteClientById(input.id);
     }),
   createClient: protectedProcedure
     .input(
@@ -219,7 +217,7 @@ export const clientsRouter = createTRPCRouter({
         input.scopes ? input.scopes.includes(s.name) : false,
       );
 
-      const res = await createClient({
+      const res = await createBasicClient({
         apiId: api.id,
         workspaceId: workspace.id,
         name: input.name,

@@ -183,7 +183,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 		expect((resJson as any).reason).toBe('INVALID_CLIENT');
 	});
 
-	it('should respond with 200 OK with invalid if ratelimit exceeded', async () => {
+	it('should respond with 200 OK with invalid if ratelimit exceeded', { timeout: 30000 }, async () => {
 		const token = await getOAuthToken(
 			env.TEST_BASE_URL,
 			env.BASIC_CLIENT_ID_WITH_LOW_RATELIMIT,

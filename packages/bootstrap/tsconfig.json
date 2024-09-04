@@ -15,7 +15,10 @@
     "preserveWatchOutput": true,
     "skipLibCheck": true,
     "strict": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "paths": {
+      "@optra/core/*": ["../core/src/*"]
+    }
   },
   "exclude": ["node_modules"]
 }

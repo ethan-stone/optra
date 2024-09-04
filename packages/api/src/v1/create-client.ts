@@ -125,7 +125,7 @@ export function v1CreateClient(app: App) {
 			});
 		}
 
-		const api = await db.getApiById(apiId);
+		const api = await db.apis.getById(apiId);
 
 		if (!api || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace.`);
@@ -139,7 +139,7 @@ export function v1CreateClient(app: App) {
 
 		const now = new Date();
 
-		const { id, secret } = await db.createBasicClient({
+		const { id, secret } = await db.clients.createBasic({
 			apiId,
 			name,
 			version: 1,

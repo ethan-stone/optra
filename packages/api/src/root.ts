@@ -1,15 +1,21 @@
-import { Db, PostgresDb, schema } from '@/db';
+import { Db } from '@/db';
 import { TokenBucket } from '@/ratelimit';
-import { KeyManagementService, AWSKeyManagementService } from '@/key-management';
 import { KMSClient } from '@aws-sdk/client-kms';
 import { Cache, CacheNamespaces, InMemoryCache } from '@/cache';
 import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
-import { Analytics, NoopAnalytics, SQSAndPgAnalytics, TinyBirdAnalytics } from '@/analytics';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { SQSClient } from '@aws-sdk/client-sqs';
+import { AWSS3Storage } from './storage';
+import { S3Client } from '@aws-sdk/client-s3';
+import { DrizzleWorkspaceRepo } from '@optra/core/workspaces';
+import { DrizzleApiRepo } from '@optra/core/apis';
+import { DrizzleClientRepo } from '@optra/core/clients';
+import { DrizzleClientSecretRepo } from '@optra/core/client-secrets';
+import { DrizzleSigningSecretRepo } from '@optra/core/signing-secrets';
+import { getDrizzle } from '@optra/core/drizzle';
+import { AWSKeyManagementService } from '@optra/core/key-management';
+import { DrizzleTokenGenerationRepo } from '@optra/core/token-generations';
+import { DrizzleTokenVerificationRepo } from '@optra/core/token-verifications';
 
 const cache = new InMemoryCache<CacheNamespaces>({
 	ttl: 60 * 1000, // 1 minute
@@ -26,31 +32,32 @@ export async function initialize(env: {
 	awsMessageQueueArn: string;
 	awsMessageQueueUrl: string;
 	awsSchedulerRoleArn: string;
-	awsSchedulerFailedDLQArn: string;
+	awsSchedulerFailedDLQ: string;
+	awsS3BucketArn: string;
+	awsS3PublicUrl: string;
 	tinyBirdApiKey?: string;
 	tinyBirdBaseUrl?: string;
 	tinyBirdMonthlyVerificationsEndpoint?: string;
 	tinyBirdMonthlyGenerationsEndpoint?: string;
 }) {
-	const sql = new Client({
-		connectionString: env.dbUrl,
-	});
-	await sql.connect();
+	const { db: drizzleClient } = await getDrizzle(env.dbUrl);
 
-	const conn = drizzle(sql, { schema });
-
-	const db = new PostgresDb(conn);
+	const db = {
+		workspaces: new DrizzleWorkspaceRepo(drizzleClient),
+		apis: new DrizzleApiRepo(drizzleClient),
+		clients: new DrizzleClientRepo(drizzleClient),
+		clientSecrets: new DrizzleClientSecretRepo(drizzleClient),
+		signingSecrets: new DrizzleSigningSecretRepo(drizzleClient),
+		tokenGenerations: new DrizzleTokenGenerationRepo(drizzleClient),
+		tokenVerifications: new DrizzleTokenVerificationRepo(drizzleClient),
+	};
 
 	const keyManagementService = new AWSKeyManagementService(
-		new KMSClient({
-			credentials: {
-				accessKeyId: env.awsAccessKeyId,
-				secretAccessKey: env.awsSecretAccessKey,
-			},
-			region: 'us-east-1',
-		}),
-		conn,
+		drizzleClient,
 		env.awsKMSKeyArn,
+		'us-east-1',
+		env.awsAccessKeyId,
+		env.awsSecretAccessKey,
 	);
 
 	const scheduler = new AWSEventScheduler(
@@ -67,28 +74,29 @@ export async function initialize(env: {
 				'api.signing_secret.expired': { arn: env.awsMessageQueueArn },
 				'client.secret.expired': { arn: env.awsMessageQueueArn },
 			},
-			dlqArn: env.awsSchedulerFailedDLQArn,
+			dlqArn: env.awsSchedulerFailedDLQ,
 		},
 	);
 
-	const sqsClient = new SQSClient({
-		region: 'us-east-1',
-		credentials: {
-			accessKeyId: env.awsAccessKeyId,
-			secretAccessKey: env.awsSecretAccessKey,
-		},
-	});
+	const storage = new AWSS3Storage(
+		new S3Client({
+			credentials: {
+				accessKeyId: env.awsAccessKeyId,
+				secretAccessKey: env.awsSecretAccessKey,
+			},
+			region: 'us-east-1',
+		}),
+		env.awsS3BucketArn,
+		env.awsS3PublicUrl,
+	);
 
-	const analytics = env.env === 'development' ? new SQSAndPgAnalytics(sqsClient, env.awsMessageQueueUrl) : new NoopAnalytics();
-
-	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, analytics);
+	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, storage);
 
 	return {
-		sql,
 		db,
-		conn,
+		storage,
+		conn: drizzleClient,
 		cache,
-		analytics,
 		scheduler,
 		tokenService,
 		keyManagementService,

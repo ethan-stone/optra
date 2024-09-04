@@ -63,7 +63,7 @@ export function v1GetApi(app: App) {
 			});
 		}
 
-		const api = await db.getApiById(apiId);
+		const api = await db.apis.getById(apiId);
 
 		if (api === null || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace.`);

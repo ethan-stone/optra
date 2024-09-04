@@ -1,19 +1,18 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { keyManagementService } from "@/server/key-management";
-import { uid } from "@/utils/uid";
-import { schema } from "@optra/db";
 import { storageBucket } from "@/server/storage-bucket";
-import { eq } from "drizzle-orm";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import {
   addScopeToApi,
+  createApi,
+  deleteApi,
   deleteApiScopeById,
   getApiByWorkspaceIdAndApiId,
   getApiScopeById,
   updateApiById,
 } from "@/server/data/apis";
+import { getKeyManagementService } from "@/server/key-management";
 
 export const apisRouter = createTRPCRouter({
   createApi: protectedProcedure
@@ -24,9 +23,9 @@ export const apisRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const workspace = await ctx.db.query.workspaces.findFirst({
-        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
-      });
+      const keyManagementService = await getKeyManagementService();
+
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
@@ -57,32 +56,21 @@ export const apisRouter = createTRPCRouter({
 
         const now = new Date();
 
-        const apiId = uid("api");
-        const signingSecretId = uid("ssk");
-
-        await ctx.db.transaction(async (tx) => {
-          await tx.insert(schema.signingSecrets).values({
-            id: signingSecretId,
-            secret: Buffer.from(encryptResult.encryptedData).toString("base64"),
-            iv: Buffer.from(encryptResult.iv).toString("base64"),
-            algorithm: "hsa256",
-            status: "active",
-            createdAt: now,
-            updatedAt: now,
-          });
-
-          await tx.insert(schema.apis).values({
-            id: apiId,
-            currentSigningSecretId: signingSecretId,
-            tokenExpirationInSeconds: 86400,
-            name: input.name,
-            createdAt: now,
-            updatedAt: now,
-            workspaceId: workspace.id,
-          });
+        const { id } = await createApi({
+          workspaceId: workspace.id,
+          name: input.name,
+          scopes: [],
+          algorithm: "hsa256",
+          encryptedSigningSecret: Buffer.from(
+            encryptResult.encryptedData,
+          ).toString("base64"),
+          iv: Buffer.from(encryptResult.iv).toString("base64"),
+          tokenExpirationInSeconds: 86400,
+          createdAt: now,
+          updatedAt: now,
         });
 
-        return { id: apiId };
+        return { id };
       } else if (input.algorithm === "rsa256") {
         const keyPair = await crypto.subtle.generateKey(
           {
@@ -111,46 +99,35 @@ export const apisRouter = createTRPCRouter({
 
         const now = new Date();
 
-        const apiId = uid("api");
-        const signingSecretId = uid("ssk");
-
-        await ctx.db.transaction(async (tx) => {
-          await tx.insert(schema.signingSecrets).values({
-            id: signingSecretId,
-            secret: Buffer.from(encryptResult.encryptedData).toString("base64"),
-            iv: Buffer.from(encryptResult.iv).toString("base64"),
-            algorithm: "rsa256",
-            status: "active",
-            createdAt: now,
-            updatedAt: now,
-          });
-
-          await tx.insert(schema.apis).values({
-            id: apiId,
-            currentSigningSecretId: signingSecretId,
-            tokenExpirationInSeconds: 86400,
-            name: input.name,
-            createdAt: now,
-            updatedAt: now,
-            workspaceId: workspace.id,
-          });
+        const { id, currentSigningSecretId } = await createApi({
+          workspaceId: workspace.id,
+          name: input.name,
+          scopes: [],
+          algorithm: "hsa256",
+          encryptedSigningSecret: Buffer.from(
+            encryptResult.encryptedData,
+          ).toString("base64"),
+          iv: Buffer.from(encryptResult.iv).toString("base64"),
+          tokenExpirationInSeconds: 86400,
+          createdAt: now,
+          updatedAt: now,
         });
 
         await storageBucket.upload({
           contentType: "application/json",
-          key: `${workspace.id}/${apiId}/.well-known/jwks.json`,
+          key: `${workspace.id}/${id}/.well-known/jwks.json`,
           body: JSON.stringify({
             keys: [
               {
                 ...publicKey,
-                kid: signingSecretId,
+                kid: currentSigningSecretId,
               },
             ],
           }),
         });
 
         return {
-          id: apiId,
+          id,
         };
       } else {
         throw new TRPCError({
@@ -200,9 +177,7 @@ export const apisRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const workspace = await ctx.db.query.workspaces.findFirst({
-        where: (table, { eq }) => eq(table.tenantId, ctx.tenant.id),
-      });
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
 
       if (!workspace) {
         console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
@@ -212,10 +187,7 @@ export const apisRouter = createTRPCRouter({
         });
       }
 
-      const api = await ctx.db.query.apis.findFirst({
-        where: (table, { eq, and }) =>
-          and(eq(table.id, input.id), eq(table.workspaceId, workspace.id)),
-      });
+      const api = await getApiByWorkspaceIdAndApiId(workspace.id, input.id);
 
       if (!api) {
         console.error(`API not found for workspace ${workspace.id}`);
@@ -225,12 +197,7 @@ export const apisRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db
-        .update(schema.apis)
-        .set({
-          deletedAt: new Date(),
-        })
-        .where(eq(schema.apis.id, input.id));
+      await deleteApi(input.id);
     }),
   addScope: protectedProcedure
     .input(

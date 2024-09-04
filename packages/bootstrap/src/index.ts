@@ -1,8 +1,15 @@
-import { schema } from "@optra/db";
+import { schema } from "../../core/src";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { randomBytes, createHash, webcrypto } from "crypto";
 import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getDrizzle } from "@optra/core/drizzle";
+import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
+import { DrizzleApiRepo } from "@optra/core/apis";
+import { DrizzleClientRepo } from "@optra/core/clients";
+import { DrizzleClientSecretRepo } from "@optra/core/client-secrets";
+import { DrizzleSigningSecretRepo } from "@optra/core/signing-secrets";
+import { AWSKeyManagementService } from "@optra/core/key-management";
 
 function uid() {
   return randomBytes(10).toString("hex");
@@ -93,57 +100,44 @@ const defaultInternalWorkspaceScopes = [
 ];
 
 async function newWorkspace(
-  db: PostgresJsDatabase<typeof schema>,
-  kmsClient: KMSClient,
-  awsKMSKeyArn: string,
-  internal = false
+  db: {
+    workspaces: DrizzleWorkspaceRepo;
+  },
+  keyManager: AWSKeyManagementService
 ) {
-  const workspaceId = `ws_` + uid();
+  const { keyId: dataEncryptionKeyId, plaintextKey } =
+    await keyManager.createDataKey();
 
-  const { CiphertextBlob, Plaintext } = await kmsClient.send(
-    new GenerateDataKeyCommand({
-      KeyId: awsKMSKeyArn,
-      KeySpec: "AES_256",
-    })
-  );
-
-  const dataEncryptionKeyId = `dek_` + uid();
-
-  await db.insert(schema.dataEncryptionKeys).values({
-    id: dataEncryptionKeyId,
-    key: Buffer.from(CiphertextBlob!).toString("base64"),
-    createdAt: new Date(),
-  });
-
-  await db.insert(schema.workspaces).values({
-    id: workspaceId,
-    tenantId: uid(),
-    dataEncryptionKeyId: dataEncryptionKeyId,
+  const { id } = await db.workspaces.create({
     name: generateRandomName(),
+    tenantId: uid(),
     createdAt: new Date(),
     updatedAt: new Date(),
+    dataEncryptionKeyId: dataEncryptionKeyId,
   });
 
   return {
-    workspaceId,
-    dataEncryptionKey: Buffer.from(Plaintext!).toString("base64"),
+    workspaceId: id,
+    dataEncryptionKey: Buffer.from(plaintextKey).toString("base64"),
   };
 }
 
 async function newApi(
-  db: PostgresJsDatabase<typeof schema>,
+  db: {
+    apis: DrizzleApiRepo;
+    signingSecrets: DrizzleSigningSecretRepo;
+  },
   s3Client: S3Client,
   args: {
     workspaceId: string;
     dataEncryptionKey: string;
     algorithm: "hsa256" | "rsa256";
+    bucketName: string;
   }
 ) {
-  const apiId = `api_` + uid();
-
   const apiName = generateRandomName();
 
-  const signingSecretId = `ssk_` + uid();
+  let apiId: string;
 
   switch (args.algorithm) {
     case "hsa256": {
@@ -165,15 +159,34 @@ async function newApi(
         Buffer.from(args.dataEncryptionKey, "base64")
       );
 
-      await db.insert(schema.signingSecrets).values({
-        id: signingSecretId,
-        secret: Buffer.from(encryptedData).toString("base64"),
+      const { id } = await db.apis.create({
+        name: apiName,
+        workspaceId: args.workspaceId,
+        algorithm: "rsa256",
+        encryptedSigningSecret: Buffer.from(encryptedData).toString("base64"),
         iv: Buffer.from(iv).toString("base64"),
-        algorithm: "hsa256",
-        status: "active",
+        tokenExpirationInSeconds: 84600,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      });
+
+      await db.apis.createScope({
+        apiId: id,
+        name: "example-scope",
+        description: "Just an example scope",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+
+      await db.apis.createScope({
+        apiId: id,
+        name: "another-example-scope",
+        description: "Just another example scope",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      apiId = id;
 
       break;
     }
@@ -205,22 +218,41 @@ async function newApi(
         Buffer.from(args.dataEncryptionKey, "base64")
       );
 
-      await db.insert(schema.signingSecrets).values({
-        id: signingSecretId,
-        secret: Buffer.from(encryptedData).toString("base64"),
-        iv: Buffer.from(iv).toString("base64"),
+      const { id, currentSigningSecretId } = await db.apis.create({
+        name: apiName,
+        workspaceId: args.workspaceId,
         algorithm: "rsa256",
-        status: "active",
+        encryptedSigningSecret: Buffer.from(encryptedData).toString("base64"),
+        iv: Buffer.from(iv).toString("base64"),
+        tokenExpirationInSeconds: 84600,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      });
+
+      apiId = id;
+
+      await db.apis.createScope({
+        apiId: id,
+        name: "example-scope",
+        description: "Just an example scope",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await db.apis.createScope({
+        apiId: id,
+        name: "another-example-scope",
+        description: "Just another example scope",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
       await s3Client.send(
         new PutObjectCommand({
-          Bucket: "jwks-dev",
+          Bucket: args.bucketName,
           Key: `${args.workspaceId}/${apiId}/.well-known/jwks.json`,
           Body: JSON.stringify({
-            keys: [{ ...publicKey, kid: signingSecretId }],
+            keys: [{ ...publicKey, kid: currentSigningSecretId }],
           }),
           ContentType: "application/json",
         })
@@ -229,34 +261,6 @@ async function newApi(
       break;
     }
   }
-
-  await db.insert(schema.apis).values({
-    id: apiId,
-    name: apiName,
-    currentSigningSecretId: signingSecretId,
-    workspaceId: args.workspaceId,
-    tokenExpirationInSeconds: 84600,
-    updatedAt: new Date(),
-    createdAt: new Date(),
-  });
-
-  await db.insert(schema.apiScopes).values({
-    id: `api_scope_` + uid(),
-    apiId: apiId,
-    name: "example-scope",
-    description: "Just an example scope",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
-  await db.insert(schema.apiScopes).values({
-    id: `api_scope_` + uid(),
-    apiId: apiId,
-    name: "another-example-scope",
-    description: "Just another example scope",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
 
   return { apiId };
 }
@@ -283,7 +287,10 @@ async function newApiScope(
 }
 
 async function newClient(
-  db: PostgresJsDatabase<typeof schema>,
+  db: {
+    clients: DrizzleClientRepo;
+    clientSecrets: DrizzleClientSecretRepo;
+  },
   args: {
     workspaceId: string;
     forWorkspaceId?: string;
@@ -293,117 +300,230 @@ async function newClient(
     rateLimitRefillInterval?: number;
   }
 ) {
-  const clientId = `client_` + uid();
-  const clientSecretId = `csk_` + uid();
-  const clientSecretValue = uid();
-  const clientSecretHash = createHash("sha256")
-    .update(clientSecretValue)
-    .digest("hex");
+  let clientId: string;
+  let clientSecretValue: string;
 
-  await db.insert(schema.clients).values({
-    id: clientId,
-    name: generateRandomName(),
-    apiId: args.apiId,
-    version: 1,
-    workspaceId: args.workspaceId,
-    forWorkspaceId: args.forWorkspaceId,
-    currentClientSecretId: clientSecretId,
-    rateLimitBucketSize: args.rateLimitBucketSize ?? 1000,
-    rateLimitRefillAmount: args.rateLimitRefillAmount ?? 10,
-    rateLimitRefillInterval: args.rateLimitRefillInterval ?? 10,
-    metadata: generateJsonObject(10),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  if (args.forWorkspaceId) {
+    const { id, secret } = await db.clients.createRoot({
+      name: generateRandomName(),
+      apiId: args.apiId,
+      version: 1,
+      workspaceId: args.workspaceId,
+      forWorkspaceId: args.forWorkspaceId,
+      rateLimitBucketSize: args.rateLimitBucketSize ?? 1000,
+      rateLimitRefillAmount: args.rateLimitRefillAmount ?? 10,
+      rateLimitRefillInterval: args.rateLimitRefillInterval ?? 10,
+      metadata: generateJsonObject(10),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-  await db.insert(schema.clientSecrets).values({
-    id: clientSecretId,
-    secret: clientSecretHash,
-    status: "active",
-    createdAt: new Date(),
-  });
+    clientId = id;
+    clientSecretValue = secret;
+  } else {
+    const { id, secret } = await db.clients.createBasic({
+      name: generateRandomName(),
+      apiId: args.apiId,
+      version: 1,
+      workspaceId: args.workspaceId,
+      rateLimitBucketSize: args.rateLimitBucketSize ?? 1000,
+      rateLimitRefillAmount: args.rateLimitRefillAmount ?? 10,
+      rateLimitRefillInterval: args.rateLimitRefillInterval ?? 10,
+      metadata: generateJsonObject(10),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-  return { clientId, clientSecretId, clientSecretValue };
+    clientId = id;
+    clientSecretValue = secret;
+  }
+
+  return { clientId, clientSecretValue };
 }
 
 /**
  * This generates an internal workspace and api that represents optra itself
  */
 export async function bootstrap(
-  db: PostgresJsDatabase<typeof schema>,
-  kmsClient: KMSClient,
-  s3Client: S3Client,
-  awsKMSKeyArn: string
+  dbUrl: string,
+  accessKeyId: string,
+  secretAccessKey: string,
+  awsKMSKeyArn: string,
+  bucketName: string
 ) {
+  console.log("Starting bootstrap process...");
+
+  const { db: drizzleClient, client } = await getDrizzle(dbUrl);
+  const workspaces = new DrizzleWorkspaceRepo(drizzleClient);
+  const apis = new DrizzleApiRepo(drizzleClient);
+  const clients = new DrizzleClientRepo(drizzleClient);
+  const clientSecrets = new DrizzleClientSecretRepo(drizzleClient);
+  const signingSecrets = new DrizzleSigningSecretRepo(drizzleClient);
+
+  const s3Client = new S3Client({
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+
+  const keyManager = new AWSKeyManagementService(
+    drizzleClient,
+    awsKMSKeyArn,
+    "us-east-1",
+    accessKeyId,
+    secretAccessKey
+  );
+
+  console.log("Creating internal workspace...");
   const {
     workspaceId: internalWorkspaceId,
     dataEncryptionKey: internalDataEncryptionKey,
-  } = await newWorkspace(db, kmsClient, awsKMSKeyArn);
-
-  const { apiId: internalApiId } = await newApi(db, s3Client, {
-    workspaceId: internalWorkspaceId,
-    dataEncryptionKey: internalDataEncryptionKey,
-    algorithm: "rsa256",
-  });
-
-  const { workspaceId, dataEncryptionKey } = await newWorkspace(
-    db,
-    kmsClient,
-    awsKMSKeyArn
+  } = await newWorkspace(
+    {
+      workspaces: workspaces,
+    },
+    keyManager
   );
+  console.log(`Internal workspace created with ID: ${internalWorkspaceId}`);
 
-  const { workspaceId: otherWorkspaceId } = await newWorkspace(
-    db,
-    kmsClient,
-    awsKMSKeyArn
-  );
-
-  const { clientId: rootClientId, clientSecretValue: rootClientSecretValue } =
-    await newClient(db, {
-      apiId: internalApiId,
+  console.log("Creating internal API...");
+  const { apiId: internalApiId } = await newApi(
+    {
+      apis: apis,
+      signingSecrets: signingSecrets,
+    },
+    s3Client,
+    {
       workspaceId: internalWorkspaceId,
-      forWorkspaceId: workspaceId,
-    });
+      dataEncryptionKey: internalDataEncryptionKey,
+      algorithm: "rsa256",
+      bucketName,
+    }
+  );
+  console.log(`Internal API created with ID: ${internalApiId}`);
 
+  console.log("Creating main workspace...");
+  const { workspaceId, dataEncryptionKey } = await newWorkspace(
+    {
+      workspaces: workspaces,
+    },
+    keyManager
+  );
+  console.log(`Main workspace created with ID: ${workspaceId}`);
+
+  console.log("Creating other workspace...");
+  const { workspaceId: otherWorkspaceId } = await newWorkspace(
+    {
+      workspaces: workspaces,
+    },
+    keyManager
+  );
+  console.log(`Other workspace created with ID: ${otherWorkspaceId}`);
+
+  console.log("Creating root client for main workspace...");
+  const { clientId: rootClientId, clientSecretValue: rootClientSecretValue } =
+    await newClient(
+      {
+        clients: clients,
+        clientSecrets: clientSecrets,
+      },
+      {
+        apiId: internalApiId,
+        workspaceId: internalWorkspaceId,
+        forWorkspaceId: workspaceId,
+      }
+    );
+  console.log(`Root client created with ID: ${rootClientId}`);
+
+  console.log("Creating other root client for other workspace...");
   const {
     clientId: otherRootClientId,
     clientSecretValue: otherRootClientSecretValue,
-  } = await newClient(db, {
-    apiId: internalApiId,
-    workspaceId: internalWorkspaceId,
-    forWorkspaceId: otherWorkspaceId,
-  });
+  } = await newClient(
+    {
+      clients: clients,
+      clientSecrets: clientSecrets,
+    },
+    {
+      apiId: internalApiId,
+      workspaceId: internalWorkspaceId,
+      forWorkspaceId: otherWorkspaceId,
+    }
+  );
+  console.log(`Other root client created with ID: ${otherRootClientId}`);
 
-  const { apiId } = await newApi(db, s3Client, {
-    workspaceId,
-    dataEncryptionKey: dataEncryptionKey,
-    algorithm: "rsa256",
-  });
-
-  const { clientId: basicClientId, clientSecretValue: basicClientSecretValue } =
-    await newClient(db, {
-      apiId,
+  console.log("Creating API for main workspace...");
+  const { apiId } = await newApi(
+    {
+      apis: apis,
+      signingSecrets: signingSecrets,
+    },
+    s3Client,
+    {
       workspaceId,
-    });
+      dataEncryptionKey: dataEncryptionKey,
+      algorithm: "rsa256",
+      bucketName,
+    }
+  );
+  console.log(`API created with ID: ${apiId}`);
 
+  console.log("Creating basic client...");
+  const { clientId: basicClientId, clientSecretValue: basicClientSecretValue } =
+    await newClient(
+      {
+        clients: clients,
+        clientSecrets: clientSecrets,
+      },
+      {
+        apiId,
+        workspaceId,
+      }
+    );
+  console.log(`Basic client created with ID: ${basicClientId}`);
+
+  console.log("Creating basic client with low rate limit...");
   const {
     clientId: basicClientIdWithLowRateLimit,
     clientSecretValue: basicClientSecretValueWithLowRateLimit,
-  } = await newClient(db, {
-    apiId,
-    workspaceId,
-    rateLimitBucketSize: 3,
-    rateLimitRefillAmount: 1,
-    rateLimitRefillInterval: 333,
-  });
+  } = await newClient(
+    {
+      clients: clients,
+      clientSecrets: clientSecrets,
+    },
+    {
+      apiId,
+      workspaceId,
+      rateLimitBucketSize: 3,
+      rateLimitRefillAmount: 1,
+      rateLimitRefillInterval: 3000,
+    }
+  );
+  console.log(
+    `Basic client with low rate limit created with ID: ${basicClientIdWithLowRateLimit}`
+  );
 
+  console.log("Creating basic client with rotating secret...");
   const {
     clientId: basicClientIdForRotating,
     clientSecretValue: basicClientSecretValueForRotating,
-  } = await newClient(db, {
-    apiId,
-    workspaceId,
-  });
+  } = await newClient(
+    {
+      clients: clients,
+      clientSecrets: clientSecrets,
+    },
+    {
+      apiId,
+      workspaceId,
+    }
+  );
+  console.log(
+    `Basic client with rotating secret created with ID: ${basicClientIdForRotating}`
+  );
+
+  await client.end();
+  console.log("Bootstrap process completed successfully.");
 
   return {
     OPTRA_WORKSPACE_ID: internalWorkspaceId,

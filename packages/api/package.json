@@ -11,9 +11,8 @@
 		"gen:supabase:types": "supabase gen types --lang=typescript --project-id zkfacwibmxqkhnmgkviy > src/database.types.ts"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240821.1",
 		"@optra/bootstrap": "workspace:^",
-		"@types/pg": "^8.11.6",
+		"@types/aws-lambda": "^8.10.143",
 		"tsx": "^4.18.0",
 		"typescript": "^5.5.4",
 		"vite": "^5.4.2",
@@ -28,17 +27,12 @@
 		"@axiomhq/js": "1.0.0-rc.1",
 		"@baselime/edge-logger": "^0.2.2",
 		"@hono/zod-openapi": "^0.9.10",
-		"@libsql/client": "^0.5.6",
 		"@opentelemetry/api": "^1.9.0",
-		"@planetscale/database": "^1.19.0",
 		"@vitest/runner": "~1.5.3",
 		"@vitest/snapshot": "~1.5.3",
 		"dotenv-cli": "^7.4.2",
-		"drizzle-orm": "^0.32.2",
 		"hono": "^4.5.9",
 		"nanoid": "^5.0.7",
-		"pg": "^8.12.0",
-		"postgres": "^3.4.4",
 		"stripe": "^14.25.0",
 		"zod": "^3.23.8",
 		"zod-error": "^1.5.0"

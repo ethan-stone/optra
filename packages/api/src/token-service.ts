@@ -1,13 +1,14 @@
-import { Client, Db, SigningSecret } from '@/db';
 import { InvalidReason, decode, verify } from '@/crypto-utils';
 import { Context } from 'hono';
 import { HonoEnv } from '@/app';
-import { KeyManagementService } from '@/key-management';
 import { Cache, CacheNamespaces } from '@/cache';
 import { TokenBucket } from '@/ratelimit';
-import { Buffer } from '@/buffer';
-import { Analytics } from '@/analytics';
-
+import { Storage } from './storage';
+import { webcrypto } from 'crypto';
+import { Db } from './db';
+import { Client } from '@optra/core/clients';
+import { SigningSecret } from '@optra/core/signing-secrets';
+import { KeyManagementService } from '@optra/core/key-management';
 export type VerifyAuthHeaderResult =
 	| {
 			valid: true;
@@ -49,7 +50,7 @@ export class TokenService implements TokenService {
 		private readonly keyManagementService: KeyManagementService,
 		private readonly cache: Cache<CacheNamespaces>,
 		private readonly tokenBuckets: Map<string, TokenBucket>,
-		private readonly analytics: Analytics,
+		private readonly storage: Storage,
 	) {}
 
 	async verifyAuthHeader(header: string | null | undefined): Promise<VerifyAuthHeaderResult> {
@@ -75,7 +76,7 @@ export class TokenService implements TokenService {
 		const cache = this.cache;
 		const keyManagementService = this.keyManagementService;
 		const tokenBuckets = this.tokenBuckets;
-		const analytics = this.analytics;
+		const storage = this.storage;
 
 		let decoded: ReturnType<typeof decode>;
 
@@ -108,7 +109,7 @@ export class TokenService implements TokenService {
 		const tokensScopes = payload.scope ? payload.scope.split(' ') : [];
 
 		const data = await cache.fetchOrPopulate({ logger }, 'clientById', payload.sub, async (key) => {
-			const client = await db.getClientById(key);
+			const client = await db.clients.getById(key);
 
 			if (!client) {
 				logger.info(`Client with id ${key} not found.`);
@@ -118,7 +119,7 @@ export class TokenService implements TokenService {
 
 			logger.info(`Fetched client ${client.id} from token.`);
 
-			const [workspace, api] = await Promise.all([db.getWorkspaceById(client.workspaceId), db.getApiById(client.apiId)]);
+			const [workspace, api] = await Promise.all([db.workspaces.getById(client.workspaceId), db.apis.getById(client.apiId)]);
 
 			if (!workspace) {
 				logger.info(`Workspace with id ${client.workspaceId} not found.`);
@@ -145,7 +146,7 @@ export class TokenService implements TokenService {
 					const year = now.getUTCFullYear();
 					const month = now.getUTCMonth() + 1;
 
-					const res = await analytics.getVerificationsForWorkspace({
+					const res = await db.tokenVerifications.getForWorkspace({
 						workspaceId: key,
 						month,
 						year,
@@ -167,8 +168,8 @@ export class TokenService implements TokenService {
 
 			let nextSigningSecret: SigningSecret | null = null;
 
-			const currentSigningSecret = await db.getSigningSecretById(api.currentSigningSecretId);
-			if (api.nextSigningSecretId) nextSigningSecret = await db.getSigningSecretById(api.nextSigningSecretId);
+			const currentSigningSecret = await db.signingSecrets.getById(api.currentSigningSecretId);
+			if (api.nextSigningSecretId) nextSigningSecret = await db.signingSecrets.getById(api.nextSigningSecretId);
 
 			if (!currentSigningSecret) {
 				logger.info(`Somehow current signing secret ${api.currentSigningSecretId} for api ${api.id} does not exist. This is fatal`);
@@ -216,7 +217,7 @@ export class TokenService implements TokenService {
 				case 'rsa256': {
 					logger.info(`Fetching public key for api ${api.id}`);
 
-					const url = `${ctx.env.JWKS_BUCKET_URL}/${workspace.id}/${api.id}/.well-known/jwks.json`;
+					const url = `${storage.publicUrl}/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
 					const req = new Request(url, {
 						method: 'GET',
@@ -230,7 +231,7 @@ export class TokenService implements TokenService {
 						return null;
 					}
 
-					const jwks = JSON.parse(await res.text()) as { keys: (JsonWebKey & { kid: string })[] };
+					const jwks = JSON.parse(await res.text()) as { keys: (webcrypto.JsonWebKey & { kid: string })[] };
 
 					const publicKeys: Uint8Array[] = [];
 
@@ -287,17 +288,14 @@ export class TokenService implements TokenService {
 				});
 
 				if (!hasAtLeastOneScope) {
-					ctx.executionCtx.waitUntil(
-						analytics.publish('token.verified', [
-							{
-								apiId: client.apiId,
-								clientId: client.id,
-								workspaceId: client.workspaceId,
-								timestamp: Date.now(),
-								deniedReason: 'MISSING_SCOPES',
-							},
-						]),
-					);
+					logger.metric(`Token verified for client ${client.id}`, {
+						name: 'token.verified',
+						workspaceId: client.workspaceId,
+						clientId: client.id,
+						apiId: client.apiId,
+						timestamp: Date.now(),
+						deniedReason: 'MISSING_SCOPES',
+					});
 
 					return {
 						valid: false,
@@ -315,17 +313,14 @@ export class TokenService implements TokenService {
 				});
 
 				if (!hasAllScopes) {
-					ctx.executionCtx.waitUntil(
-						analytics.publish('token.verified', [
-							{
-								apiId: client.apiId,
-								clientId: client.id,
-								workspaceId: client.workspaceId,
-								timestamp: Date.now(),
-								deniedReason: 'MISSING_SCOPES',
-							},
-						]),
-					);
+					logger.metric(`Token verified for client ${client.id}`, {
+						name: 'token.verified',
+						workspaceId: client.workspaceId,
+						clientId: client.id,
+						apiId: client.apiId,
+						timestamp: Date.now(),
+						deniedReason: 'MISSING_SCOPES',
+					});
 
 					return {
 						valid: false,
@@ -387,17 +382,14 @@ export class TokenService implements TokenService {
 
 		if (!verifyResult.valid) {
 			if (verifyResult.reason === 'EXPIRED' || verifyResult.reason === 'MISSING_SCOPES') {
-				ctx.executionCtx.waitUntil(
-					analytics.publish('token.verified', [
-						{
-							apiId: client.apiId,
-							clientId: client.id,
-							workspaceId: client.workspaceId,
-							timestamp: Date.now(),
-							deniedReason: verifyResult.reason,
-						},
-					]),
-				);
+				logger.metric(`Token verified for client ${client.id}`, {
+					name: 'token.verified',
+					workspaceId: client.workspaceId,
+					clientId: client.id,
+					apiId: client.apiId,
+					timestamp: Date.now(),
+					deniedReason: verifyResult.reason,
+				});
 			}
 
 			return {
@@ -408,17 +400,14 @@ export class TokenService implements TokenService {
 		}
 
 		if (payload.secret_expires_at && payload.secret_expires_at < Date.now() / 1000) {
-			ctx.executionCtx.waitUntil(
-				analytics.publish('token.verified', [
-					{
-						apiId: client.apiId,
-						clientId: client.id,
-						workspaceId: client.workspaceId,
-						timestamp: Date.now(),
-						deniedReason: 'SECRET_EXPIRED',
-					},
-				]),
-			);
+			logger.metric(`Token verified for client ${client.id}`, {
+				name: 'token.verified',
+				workspaceId: client.workspaceId,
+				clientId: client.id,
+				apiId: client.apiId,
+				timestamp: Date.now(),
+				deniedReason: 'SECRET_EXPIRED',
+			});
 
 			return {
 				valid: false,
@@ -428,17 +417,14 @@ export class TokenService implements TokenService {
 		}
 
 		if (payload.version !== client.version) {
-			ctx.executionCtx.waitUntil(
-				analytics.publish('token.verified', [
-					{
-						apiId: client.apiId,
-						clientId: client.id,
-						workspaceId: client.workspaceId,
-						timestamp: Date.now(),
-						deniedReason: 'VERSION_MISMATCH',
-					},
-				]),
-			);
+			logger.metric(`Token verified for client ${client.id}`, {
+				name: 'token.verified',
+				workspaceId: client.workspaceId,
+				clientId: client.id,
+				apiId: client.apiId,
+				timestamp: Date.now(),
+				deniedReason: 'VERSION_MISMATCH',
+			});
 
 			return {
 				valid: false,
@@ -452,17 +438,14 @@ export class TokenService implements TokenService {
 		if (!client.rateLimitBucketSize || !client.rateLimitRefillAmount || !client.rateLimitRefillInterval) {
 			logger.info(`Client ${client.id} has no rate limit. Token is valid.`);
 
-			ctx.executionCtx.waitUntil(
-				analytics.publish('token.verified', [
-					{
-						apiId: client.apiId,
-						clientId: client.id,
-						workspaceId: client.workspaceId,
-						timestamp: Date.now(),
-						deniedReason: null,
-					},
-				]),
-			);
+			logger.metric(`Token verified for client ${client.id}`, {
+				name: 'token.verified',
+				workspaceId: client.workspaceId,
+				clientId: client.id,
+				apiId: client.apiId,
+				timestamp: Date.now(),
+				deniedReason: null,
+			});
 
 			return {
 				valid: true,
@@ -488,17 +471,14 @@ export class TokenService implements TokenService {
 		if (!tokenBucket.getTokens(1)) {
 			logger.info(`Client ${client.id} has exceeded their rate limit`);
 
-			ctx.executionCtx.waitUntil(
-				analytics.publish('token.verified', [
-					{
-						apiId: client.apiId,
-						clientId: client.id,
-						workspaceId: client.workspaceId,
-						timestamp: Date.now(),
-						deniedReason: 'RATELIMIT_EXCEEDED',
-					},
-				]),
-			);
+			logger.metric(`Token verified for client ${client.id}`, {
+				name: 'token.verified',
+				workspaceId: client.workspaceId,
+				clientId: client.id,
+				apiId: client.apiId,
+				timestamp: Date.now(),
+				deniedReason: 'RATELIMIT_EXCEEDED',
+			});
 
 			return {
 				valid: false,
@@ -509,17 +489,14 @@ export class TokenService implements TokenService {
 
 		logger.info(`Client ${client.id} has not exceeded their rate limit. Token is valid.`);
 
-		ctx.executionCtx.waitUntil(
-			analytics.publish('token.verified', [
-				{
-					apiId: client.apiId,
-					clientId: client.id,
-					workspaceId: client.workspaceId,
-					timestamp: Date.now(),
-					deniedReason: null,
-				},
-			]),
-		);
+		logger.metric(`Token verified for client ${client.id}`, {
+			name: 'token.verified',
+			workspaceId: client.workspaceId,
+			clientId: client.id,
+			apiId: client.apiId,
+			timestamp: Date.now(),
+			deniedReason: null,
+		});
 
 		return { valid: true, client };
 	}

@@ -63,7 +63,7 @@ export function v1AddApiScope(app: App) {
 
 		const { apiId, scope } = c.req.valid('json');
 
-		const api = await db.getApiById(apiId);
+		const api = await db.apis.getById(apiId);
 
 		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
 			logger.info(`Could not find api ${apiId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
@@ -85,7 +85,7 @@ export function v1AddApiScope(app: App) {
 
 		const now = new Date();
 
-		const { id } = await db.createApiScope({
+		const { id } = await db.apis.createScope({
 			apiId: apiId,
 			name: scope.name,
 			description: scope.description,
