@@ -12,6 +12,7 @@ export interface TokenGenerationRepo {
     workspaceId: string;
     month: number;
     year: number;
+    apiId?: string;
   }): Promise<{ total: number }>;
 }
 
@@ -31,6 +32,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
     workspaceId: string;
     month: number;
     year: number;
+    apiId?: string;
   }): Promise<{ total: number }> {
     const result = await this.db
       .select({ count: sql<number>`count(*)` })
@@ -39,7 +41,8 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
         and(
           eq(tokenGenerations.workspaceId, params.workspaceId),
           sql`EXTRACT(MONTH FROM ${tokenGenerations.timestamp}) = ${params.month}`,
-          sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp}) = ${params.year}`
+          sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp}) = ${params.year}`,
+          params.apiId ? eq(tokenGenerations.apiId, params.apiId) : undefined
         )
       );
 

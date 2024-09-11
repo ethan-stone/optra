@@ -1,25 +1,22 @@
-import { db } from "@/server/db";
 import { getTenantId } from "@/utils/auth";
 import { redirect } from "next/navigation";
 import { Apis } from "./apis";
 import { CreateApi } from "./create-api";
+import { getWorkspaceByTenantId } from "@/server/data/workspaces";
+import { getApisForWorkspace } from "@/server/data/apis";
 
 export default async function ApisPage() {
   const tenantId = getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
-  const workspace = await db.query.workspaces.findFirst({
-    where: (table, { eq }) => eq(table.tenantId, tenantId),
-    with: {
-      apis: {
-        where: (table, { isNull }) => isNull(table.deletedAt),
-      },
-    },
-  });
+
+  const workspace = await getWorkspaceByTenantId(tenantId);
 
   if (!workspace) {
     return redirect("/onboarding");
   }
+
+  const apis = await getApisForWorkspace(workspace.id);
 
   return (
     <main className="flex min-h-screen flex-col items-center">
@@ -33,7 +30,7 @@ export default async function ApisPage() {
           </div>
           <CreateApi />
         </div>
-        <Apis data={workspace.apis.map((a) => ({ id: a.id, name: a.name }))} />
+        <Apis data={apis.map((a) => ({ id: a.id, name: a.name }))} />
       </div>
     </main>
   );

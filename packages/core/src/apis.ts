@@ -36,6 +36,7 @@ export interface ApiRepo {
   update(id: string, params: UpdateApiParams): Promise<void>;
   getById(id: string): Promise<Api | null>;
   getByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null>;
+  listByWorkspaceId(workspaceId: string): Promise<Api[]>;
   delete(id: string): Promise<void>;
   getScopesByApiId(apiId: string): Promise<ApiScope[]>;
   getScopeById(id: string): Promise<ApiScope | null>;
@@ -122,6 +123,18 @@ export class DrizzleApiRepo implements ApiRepo {
     });
 
     return api ?? null;
+  }
+
+  async listByWorkspaceId(workspaceId: string): Promise<Api[]> {
+    return this.db.query.apis.findMany({
+      where: and(
+        eq(schema.apis.workspaceId, workspaceId),
+        isNull(schema.apis.deletedAt)
+      ),
+      with: {
+        scopes: true,
+      },
+    });
   }
 
   async delete(id: string): Promise<void> {

@@ -93,3 +93,9 @@ export async function deleteApi(id: string) {
 
   await apis.delete(id);
 }
+
+export async function getApisForWorkspace(workspaceId: string) {
+  const apis = await getApiRepo();
+
+  return apis.listByWorkspaceId(workspaceId);
+}

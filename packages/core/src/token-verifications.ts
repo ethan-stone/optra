@@ -34,6 +34,7 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
     workspaceId: string;
     month: number;
     year: number;
+    apiId?: string;
   }): Promise<{ successful: number; failed: number }> {
     const result = await this.db
       .select({
@@ -45,7 +46,8 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
         and(
           eq(tokenVerifications.workspaceId, params.workspaceId),
           sql`EXTRACT(MONTH FROM ${tokenVerifications.timestamp}) = ${params.month}`,
-          sql`EXTRACT(YEAR FROM ${tokenVerifications.timestamp}) = ${params.year}`
+          sql`EXTRACT(YEAR FROM ${tokenVerifications.timestamp}) = ${params.year}`,
+          params.apiId ? eq(tokenVerifications.apiId, params.apiId) : undefined
         )
       );
 

@@ -1,6 +1,9 @@
 import { env } from "@/env";
 import { getDrizzle } from "@optra/core/drizzle";
-import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
+import {
+  type CreateWorkspaceParams,
+  DrizzleWorkspaceRepo,
+} from "@optra/core/workspaces";
 
 async function getWorkspaceRepo() {
   const { db } = await getDrizzle(env.DATABASE_URL);
@@ -16,4 +19,9 @@ export async function getWorkspaceByTenantId(tenantId: string) {
 export async function getWorkspaceById(workspaceId: string) {
   const workspaces = await getWorkspaceRepo();
   return workspaces.getById(workspaceId);
+}
+
+export async function createWorkspace(workspace: CreateWorkspaceParams) {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.create(workspace);
 }

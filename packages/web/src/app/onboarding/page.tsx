@@ -1,10 +1,11 @@
-import { db } from "@/server/db";
-import { keyManagementService } from "@/server/key-management";
-import { uid } from "@/utils/uid";
 import { auth } from "@clerk/nextjs";
-import { schema } from "@optra/db";
 import { redirect } from "next/navigation";
 import { CreateWorkspace } from "./create-workspace";
+import {
+  createWorkspace,
+  getWorkspaceByTenantId,
+} from "@/server/data/workspaces";
+import { getKeyManagementService } from "@/server/key-management";
 
 export default async function Onboarding() {
   const { userId } = auth();
@@ -12,34 +13,24 @@ export default async function Onboarding() {
   if (userId) {
     // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
     // find the free workspace for the user
-    const freeWorkspace = await db.query.workspaces.findFirst({
-      where: (table, { eq, and }) => and(eq(table.tenantId, userId)),
-    });
+
+    const keyManagementService = await getKeyManagementService();
+
+    const freeWorkspace = await getWorkspaceByTenantId(userId);
 
     if (!freeWorkspace) {
       // create the free workspace for the user
-      const wsId = uid("ws");
-      const dekId = uid("dek");
 
       const now = new Date();
 
-      const dek = await keyManagementService.generateDataKey();
+      const dek = await keyManagementService.createDataKey();
 
-      await db.transaction(async (tx) => {
-        await tx.insert(schema.dataEncryptionKeys).values({
-          id: dekId,
-          key: Buffer.from(dek.encryptedDataKey).toString("base64"),
-          createdAt: now,
-        });
-
-        await tx.insert(schema.workspaces).values({
-          id: wsId,
-          dataEncryptionKeyId: dekId,
-          name: "Personal",
-          tenantId: userId,
-          createdAt: now,
-          updatedAt: now,
-        });
+      await createWorkspace({
+        dataEncryptionKeyId: dek.keyId,
+        name: "Personal",
+        tenantId: userId,
+        createdAt: now,
+        updatedAt: now,
       });
 
       return redirect("/dashboard");

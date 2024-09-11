@@ -24,7 +24,6 @@ export const env = createEnv({
         (str) => !str.includes("YOUR_URL_HERE"),
         "You forgot to change the default URL",
       ),
-    DATABASE_TOKEN: z.string(),
     TINY_BIRD_BASE_URL: z.string().url(),
     TINY_BIRD_API_KEY: z.string(),
     TINY_BIRD_MONTHLY_VERIFICATIONS_ENDPOINT: z.string().url(),
@@ -50,7 +49,6 @@ export const env = createEnv({
    */
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_TOKEN: process.env.DATABASE_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
