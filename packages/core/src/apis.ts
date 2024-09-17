@@ -147,6 +147,7 @@ export class DrizzleApiRepo implements ApiRepo {
   async getScopesByApiId(apiId: string): Promise<ApiScope[]> {
     return this.db.query.apiScopes.findMany({
       where: eq(schema.apiScopes.apiId, apiId),
+      orderBy: (table, { desc }) => desc(table.createdAt),
     });
   }
 

@@ -117,7 +117,7 @@ export function NewClientForm(props: Props) {
           <Input
             {...register("clientIdPrefix", {
               maxLength: 12,
-              pattern: RegExp(/^[A-Za-z]+$/),
+              pattern: RegExp(/^[a-zA-Z_]+$/),
             })}
             placeholder="Client ID Prefix"
           />
@@ -135,7 +135,7 @@ export function NewClientForm(props: Props) {
           <Input
             {...register("clientSecretPrefix", {
               maxLength: 12,
-              pattern: RegExp(/^[A-Za-z]+$/),
+              pattern: RegExp(/^[a-zA-Z_]+$/),
             })}
             placeholder="Client Secret Prefix"
           />

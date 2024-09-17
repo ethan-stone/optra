@@ -1,5 +1,5 @@
 import { Tabs } from "@/components/ui/navbar";
-import { db } from "@/server/db";
+import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getTenantId } from "@/utils/auth";
 import { redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
@@ -10,14 +10,7 @@ export default async function SettingsPageLayout(props: SettingsPageProps) {
   const tenantId = getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
-  const workspace = await db.query.workspaces.findFirst({
-    where: (table, { eq }) => eq(table.tenantId, tenantId),
-    with: {
-      apis: {
-        where: (table, { isNull }) => isNull(table.deletedAt),
-      },
-    },
-  });
+  const workspace = await getWorkspaceByTenantId(tenantId);
 
   if (!workspace) {
     return redirect("/onboarding");

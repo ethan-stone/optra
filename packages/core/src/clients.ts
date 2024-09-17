@@ -43,6 +43,7 @@ export interface ClientRepo {
   createScope(params: CreateClientScopeParams): Promise<{ id: string }>;
   deleteScopeByApiScopeId(apiScopeId: string): Promise<void>;
   listByApiId(apiId: string): Promise<Client[]>;
+  listRootForWorkspace(workspaceId: string): Promise<Client[]>;
 }
 
 export class DrizzleClientRepo implements ClientRepo {
@@ -205,5 +206,14 @@ export class DrizzleClientRepo implements ClientRepo {
       ...client,
       scopes: client.scopes.map((s) => s.apiScope.name),
     }));
+  }
+  async listRootForWorkspace(workspaceId: string): Promise<Client[]> {
+    const clients = await this.db.query.clients.findMany({
+      where: and(
+        eq(schema.clients.forWorkspaceId, workspaceId),
+        isNull(schema.clients.deletedAt)
+      ),
+    });
+    return clients;
   }
 }

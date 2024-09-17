@@ -187,6 +187,7 @@ export default $config({
         ENVIRONMENT: "development",
         AWS_KMS_KEY_ARN: kmsKey.arn,
         AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,
+        AWS_MESSAGE_QUEUE_URL: messageQueue.url,
         AWS_SCHEDULER_ROLE_ARN: schedulerRole.arn,
         AWS_SCHEDULER_FAILED_DLQ: schedulerDLQ.arn,
       },

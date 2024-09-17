@@ -103,7 +103,7 @@ export const apisRouter = createTRPCRouter({
           workspaceId: workspace.id,
           name: input.name,
           scopes: [],
-          algorithm: "hsa256",
+          algorithm: "rsa256",
           encryptedSigningSecret: Buffer.from(
             encryptResult.encryptedData,
           ).toString("base64"),

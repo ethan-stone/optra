@@ -118,3 +118,9 @@ export async function deleteClientById(id: string) {
 
   await clients.delete(id);
 }
+
+export async function getRootClientsForWorkspace(workspaceId: string) {
+  const clients = await getClientRepo();
+
+  return clients.listRootForWorkspace(workspaceId);
+}

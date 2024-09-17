@@ -99,3 +99,9 @@ export async function getApisForWorkspace(workspaceId: string) {
 
   return apis.listByWorkspaceId(workspaceId);
 }
+
+export async function getApiScopes(apiId: string) {
+  const apis = await getApiRepo();
+
+  return apis.getScopesByApiId(apiId);
+}

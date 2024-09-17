@@ -85,8 +85,8 @@ export const clientsRouter = createTRPCRouter({
         apiId: optraApi.id,
         forWorkspaceId: workspace.id,
         name: input.name,
-        clientIdPrefix: "optra_",
-        clientSecretPrefix: "optra_sk_",
+        clientIdPrefix: "optra",
+        clientSecretPrefix: "optra_sk",
         // rate limit for root clients is ~10 requests per second
         rateLimitBucketSize: 10,
         rateLimitRefillAmount: 10,

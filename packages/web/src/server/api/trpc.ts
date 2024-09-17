@@ -10,7 +10,6 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { db } from "@/server/db";
 import { getAuth } from "@clerk/nextjs/server";
 import { type NextRequest } from "next/server";
 
@@ -31,7 +30,6 @@ export const createTRPCContext = async (req: NextRequest) => {
 
   return {
     req,
-    db,
     user: userId ? { id: userId } : null,
     tenant: userId ? { id: userId } : null,
   };

@@ -1,5 +1,6 @@
 import { Tabs } from "@/components/ui/navbar";
-import { db } from "@/server/db";
+import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
+import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getTenantId } from "@/utils/auth";
 import { notFound, redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
@@ -12,26 +13,17 @@ export default async function ApiPageLayout(props: ApiPageProps) {
   const tenantId = getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
-  const workspace = await db.query.workspaces.findFirst({
-    where: (table, { eq }) => eq(table.tenantId, tenantId),
-    with: {
-      apis: {
-        where: (table, { isNull }) => isNull(table.deletedAt),
-      },
-    },
-  });
+
+  const workspace = await getWorkspaceByTenantId(tenantId);
 
   if (!workspace) {
     return redirect("/onboarding");
   }
 
-  const api = await db.query.apis.findFirst({
-    where: (table, { eq, and }) =>
-      and(
-        eq(table.workspaceId, workspace.id),
-        eq(table.id, props.params.apiId),
-      ),
-  });
+  const api = await getApiByWorkspaceIdAndApiId(
+    workspace.id,
+    props.params.apiId,
+  );
 
   if (!api) {
     return notFound();
