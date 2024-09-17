@@ -48,22 +48,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "TinyBirdApiKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "TinyBirdGenerationsEndpoint": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "TinyBirdUrl": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "TinyBirdVerificationsEndpoint": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
   }
 }
 export {}

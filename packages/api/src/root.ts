@@ -1,7 +1,5 @@
-import { Db } from '@/db';
 import { TokenBucket } from '@/ratelimit';
-import { KMSClient } from '@aws-sdk/client-kms';
-import { Cache, CacheNamespaces, InMemoryCache } from '@/cache';
+import { CacheNamespaces, InMemoryCache } from '@/cache';
 import { AWSEventScheduler, Scheduler } from '@/scheduler';
 import { SchedulerClient } from '@aws-sdk/client-scheduler';
 import { TokenService } from '@/token-service';
@@ -35,10 +33,6 @@ export async function initialize(env: {
 	awsSchedulerFailedDLQ: string;
 	awsS3BucketArn: string;
 	awsS3PublicUrl: string;
-	tinyBirdApiKey?: string;
-	tinyBirdBaseUrl?: string;
-	tinyBirdMonthlyVerificationsEndpoint?: string;
-	tinyBirdMonthlyGenerationsEndpoint?: string;
 }) {
 	const { db: drizzleClient } = await getDrizzle(env.dbUrl);
 

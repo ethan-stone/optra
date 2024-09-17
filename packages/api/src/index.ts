@@ -61,10 +61,6 @@ app.use('*', async (c, next) => {
 			awsS3BucketArn: Resource.JwksBucket.name,
 			awsS3PublicUrl: `https://` + parsedEnv.AWS_S3_PUBLIC_URL,
 			awsMessageQueueUrl: Resource.MessageQueue.url,
-			tinyBirdApiKey: Resource.TinyBirdApiKey.value,
-			tinyBirdBaseUrl: Resource.TinyBirdUrl.value,
-			tinyBirdMonthlyVerificationsEndpoint: Resource.TinyBirdVerificationsEndpoint.value,
-			tinyBirdMonthlyGenerationsEndpoint: Resource.TinyBirdGenerationsEndpoint.value,
 		});
 
 		c.set('root', {
