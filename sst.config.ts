@@ -16,7 +16,6 @@ export default $config({
     };
   },
   async run() {
-    // TODO; add throttling to the api
     const outputs = {};
 
     for (const value of readdirSync("./infra/")) {

@@ -20,6 +20,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "DefaultSite": {
+      "type": "sst.aws.StaticSite"
+      "url": string
+    }
     "JwksBucket": {
       "name": string
       "type": "sst.aws.Bucket"

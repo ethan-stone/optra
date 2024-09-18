@@ -1,8 +1,13 @@
 import { apiFn } from "./api";
 
+const defaultSite = new sst.aws.StaticSite("DefaultSite", {
+  path: "packages/default-route",
+});
+
 export const router = new sst.aws.Router("Router", {
   routes: {
-    "/*": apiFn.url,
+    "/*": defaultSite.url,
+    "/api/*": apiFn.url,
   },
   transform: {
     cachePolicy: {

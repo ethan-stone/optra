@@ -99,7 +99,6 @@ app.use('*', async (c, next) => {
 		throw error;
 	} finally {
 		const logger = c.get('logger');
-		const root = c.get('root');
 
 		const duration = Date.now() - start;
 

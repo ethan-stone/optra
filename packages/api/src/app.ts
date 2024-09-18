@@ -33,7 +33,7 @@ export type HonoEnv = {
 export function createApp() {
 	const app = new OpenAPIHono<HonoEnv>({
 		defaultHook: handleZodError,
-	});
+	}).basePath('/api');
 
 	app.onError(handleError);
 	app.use(prettyJSON());
