@@ -17,6 +17,7 @@ export type CreateBasicClientParams = Omit<
   apiScopes?: string[];
 };
 export type UpdateClientParams = {
+  name?: string;
   rateLimitBucketSize?: number;
   rateLimitRefillAmount?: number;
   rateLimitRefillInterval?: number;
