@@ -20,11 +20,11 @@ export default async function ApisPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center">
-      <div className="flex w-1/2 flex-col py-10">
+      <div className="flex w-2/3 flex-col px-10 py-10">
         <div className="flex flex-row justify-between">
           <div>
-            <h1 className="flex text-4xl">APIs</h1>
-            <p className="py-2 text-stone-500">
+            <h1 className="flex text-2xl font-semibold">APIs</h1>
+            <p className="py-2 text-sm font-light text-stone-500">
               Make APIs that can be consumed from authorized clients
             </p>
           </div>

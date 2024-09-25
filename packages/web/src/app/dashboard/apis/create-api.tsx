@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/trpc/react";
+import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { type SubmitHandler, useForm, Controller } from "react-hook-form";
@@ -63,11 +64,12 @@ export function CreateApi() {
         }}
       >
         <Button
-          className="mb-6 mt-2"
+          className="py-0 pl-2 text-xs"
           onClick={() => {
             setIsOpen(true);
           }}
         >
+          <PlusIcon className="mr-1 h-4 w-4" />
           Create API
         </Button>
         <DialogContent>
