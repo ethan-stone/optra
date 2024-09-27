@@ -29,7 +29,7 @@ function ApiItem(props: { id: string; name: string }) {
   });
 
   return (
-    <div className="hover:bg-stone-50">
+    <div className="m-1 rounded-sm hover:bg-stone-50">
       <div className="flex flex-row justify-between space-y-1 px-4 py-3">
         <Link
           className="flex w-full flex-col justify-center gap-2 text-sm"
@@ -59,14 +59,6 @@ function ApiItem(props: { id: string; name: string }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <button
-                  className="w-full text-left font-light text-red-700 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
-                  onClick={() => deleteApi.mutate({ id: props.id })}
-                >
-                  Delete
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
                   className="flex w-full flex-row items-center gap-2 text-left font-light text-stone-900 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -81,11 +73,18 @@ function ApiItem(props: { id: string; name: string }) {
                   <Copy className="h-3 w-3 text-stone-900" />
                 </button>
               </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  className="w-full text-left font-light text-red-700 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
+                  onClick={() => deleteApi.mutate({ id: props.id })}
+                >
+                  Delete
+                </button>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-      <Separator />
     </div>
   );
 }
@@ -97,9 +96,14 @@ type Props = {
 export function Apis(props: Props) {
   return (
     <div className="flex flex-col pt-4">
-      {props.data.map((api, idx) => (
-        <ApiItem key={idx} id={api.id} name={api.name} />
-      ))}
+      <div className="flex flex-col rounded-md border border-stone-300 shadow">
+        {props.data.map((api, idx) => (
+          <>
+            <ApiItem key={idx} id={api.id} name={api.name} />
+            {idx < props.data.length - 1 && <Separator />}
+          </>
+        ))}
+      </div>
     </div>
   );
 }
