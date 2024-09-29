@@ -36,7 +36,7 @@ export default async function OverviewPage(props: ApiPageProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row items-center rounded border p-4">
+      <div className="flex flex-row items-center rounded border border-stone-300 p-4 shadow">
         <div className="flex flex-col">
           <h4 className="font-thin">Number of Clients</h4>
           <p className="text-xl font-bold">{numClients}</p>

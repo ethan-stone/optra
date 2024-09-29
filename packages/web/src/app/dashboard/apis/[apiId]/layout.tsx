@@ -4,6 +4,7 @@ import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getTenantId } from "@/utils/auth";
 import { notFound, redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
+import { CopyApiId } from "./copy-api-id";
 
 type ApiPageProps = PropsWithChildren<{
   params: { apiId: string };
@@ -56,9 +57,7 @@ export default async function ApiPageLayout(props: ApiPageProps) {
     <main className="flex min-h-screen flex-col items-center">
       <div className="flex w-1/2 flex-col py-10">
         <h1 className="flex text-4xl">{api.name}</h1>
-        <p className="w-min rounded bg-stone-200 px-2 py-1 font-mono font-thin">
-          {api.id}
-        </p>
+        <CopyApiId id={api.id} />
         <Tabs tabs={tabs} />
         <main className="relative mb-20 mt-8 ">{props.children}</main>
       </div>
