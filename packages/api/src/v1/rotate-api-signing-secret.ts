@@ -160,7 +160,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				expiresAt: expiresAt,
 			});
 
-			const url = `${storage.publicUrl}/${workspace.id}/${api.id}/.well-known/jwks.json`;
+			const url = `${storage.publicUrl}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
 			const req = new Request(url, {
 				method: 'GET',
@@ -186,7 +186,7 @@ export function v1RotateApiSigningSecret(app: App) {
 
 			await storage.put({
 				content: JSON.stringify(jwks),
-				key: `${workspace.id}/${api.id}/.well-known/jwks.json`,
+				key: `jwks/${workspace.id}/${api.id}/.well-known/jwks.json`,
 			});
 
 			await scheduler.createOneTimeSchedule({

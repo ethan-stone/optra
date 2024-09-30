@@ -1,4 +1,5 @@
 import { apiFn } from "./api";
+import { bucket } from "./bucket";
 
 const defaultSite = new sst.aws.StaticSite("DefaultSite", {
   path: "packages/default-route",
@@ -8,6 +9,7 @@ export const router = new sst.aws.Router("Router", {
   routes: {
     "/*": defaultSite.url,
     "/api/*": apiFn.url,
+    "/jwks/*": bucket.domain.apply((domain) => `https://${domain}`),
   },
   transform: {
     cachePolicy: {

@@ -125,20 +125,32 @@ type Props = {
 export function Apis(props: Props) {
   return (
     <div className="flex flex-col pt-4">
-      <div className="flex flex-col rounded-md border border-stone-300 shadow">
-        {props.data.map((api, idx) => (
-          <div key={idx}>
-            <ApiItem
-              key={idx}
-              id={api.id}
-              name={api.name}
-              numClients={api.numClients}
-              numTokens={api.numTokens}
-            />
-            {idx < props.data.length - 1 && <Separator />}
+      {props.data.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-md">
+          <div className="flex flex-col items-center justify-between gap-4 p-4">
+            <h1 className="text-2xl font-semibold">No APIs found</h1>
+            <p className="text text-stone-500">
+              Looks like there are no APIs for this workspace. Create one to get
+              started.
+            </p>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="flex flex-col rounded-md border border-stone-300 shadow">
+          {props.data.map((api, idx) => (
+            <div key={idx}>
+              <ApiItem
+                key={idx}
+                id={api.id}
+                name={api.name}
+                numClients={api.numClients}
+                numTokens={api.numTokens}
+              />
+              {idx < props.data.length - 1 && <Separator />}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

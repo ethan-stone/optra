@@ -249,7 +249,7 @@ async function newApi(
       await s3Client.send(
         new PutObjectCommand({
           Bucket: args.bucketName,
-          Key: `${args.workspaceId}/${apiId}/.well-known/jwks.json`,
+          Key: `jwks/${args.workspaceId}/${apiId}/.well-known/jwks.json`,
           Body: JSON.stringify({
             keys: [{ ...publicKey, kid: currentSigningSecretId }],
           }),

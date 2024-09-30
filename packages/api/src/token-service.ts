@@ -217,7 +217,7 @@ export class TokenService implements TokenService {
 				case 'rsa256': {
 					logger.info(`Fetching public key for api ${api.id}`);
 
-					const url = `${storage.publicUrl}/${workspace.id}/${api.id}/.well-known/jwks.json`;
+					const url = `${storage.publicUrl}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
 					const req = new Request(url, {
 						method: 'GET',

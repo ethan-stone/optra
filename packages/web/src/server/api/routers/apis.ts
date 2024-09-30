@@ -115,7 +115,7 @@ export const apisRouter = createTRPCRouter({
 
         await storageBucket.upload({
           contentType: "application/json",
-          key: `${workspace.id}/${id}/.well-known/jwks.json`,
+          key: `jwks/${workspace.id}/${id}/.well-known/jwks.json`,
           body: JSON.stringify({
             keys: [
               {

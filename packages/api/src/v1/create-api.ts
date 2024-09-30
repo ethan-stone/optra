@@ -191,7 +191,7 @@ export function v1CreateApi(app: App) {
 				});
 
 				await storage.put({
-					key: `${workspace.id}/${id}/.well-known/jwks.json`,
+					key: `jwks/${workspace.id}/${id}/.well-known/jwks.json`,
 					content: JSON.stringify({
 						keys: [
 							{

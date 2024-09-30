@@ -14,7 +14,7 @@ export async function bootstrapTests() {
 	const dataStr = format({
 		...data,
 		TEST_BASE_URL: 'https://demc8isvv0psp.cloudfront.net/api',
-		JWKS_BUCKET_URL: 'https://optra-ethanstone-jwksbucket-ectxfxuo.s3.amazonaws.com',
+		JWKS_BUCKET_URL: 'https://demc8isvv0psp.cloudfront.net', // TODO: Change this to have jwks at the end instead of appending jwks everywhere it's used.
 	});
 
 	writeFileSync('./.env.test', dataStr);
