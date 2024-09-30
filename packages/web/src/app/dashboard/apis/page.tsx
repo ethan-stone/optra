@@ -8,8 +8,6 @@ import { getApisForWorkspace } from "@/server/data/apis";
 export default async function ApisPage() {
   const tenantId = getTenantId();
 
-  // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
-
   const workspace = await getWorkspaceByTenantId(tenantId);
 
   if (!workspace) {
@@ -30,7 +28,14 @@ export default async function ApisPage() {
           </div>
           <CreateApi />
         </div>
-        <Apis data={apis.map((a) => ({ id: a.id, name: a.name }))} />
+        <Apis
+          data={apis.map((a) => ({
+            id: a.id,
+            name: a.name,
+            numClients: a.numClients ?? 0,
+            numTokens: a.numTokens ?? 0,
+          }))}
+        />
       </div>
     </main>
   );

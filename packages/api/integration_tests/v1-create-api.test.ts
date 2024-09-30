@@ -78,6 +78,7 @@ describe('POST /v1/apis.createApi', () => {
 
 		const name = generateRandomName();
 
+
 		const req1 = new Request(`${env.TEST_BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -99,6 +100,8 @@ describe('POST /v1/apis.createApi', () => {
 		// first request should succeed
 		const res1 = await fetch(req1);
 		const res1Json = await res1.json();
+
+		console.log(res1Json);
 
 		expect(res1.status).toBe(200);
 		expect(res1Json).toHaveProperty('id');
@@ -124,6 +127,8 @@ describe('POST /v1/apis.createApi', () => {
 		// second request should fail
 		const res2 = await fetch(req2);
 		const res2Json = await res2.json();
+
+		console.log(res2Json);
 
 		expect(res2.status).toBe(409);
 		expect(res2Json).toHaveProperty('reason');

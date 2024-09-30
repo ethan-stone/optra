@@ -4,7 +4,7 @@ import {
   DecryptCommand,
   GenerateDataKeyCommand,
 } from "@aws-sdk/client-kms";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from ".";
 import { eq } from "drizzle-orm";
 import { uid } from "./uid";
@@ -27,7 +27,7 @@ export class AWSKeyManagementService implements KeyManagementService {
   private client: KMSClient;
 
   constructor(
-    private db: NodePgDatabase<typeof schema>,
+    private db: PostgresJsDatabase<typeof schema>,
     private customerKeyId: string,
     private region: string,
     private accessKeyId: string,

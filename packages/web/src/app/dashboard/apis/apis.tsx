@@ -15,7 +15,12 @@ import { Copy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-function ApiItem(props: { id: string; name: string }) {
+function ApiItem(props: {
+  id: string;
+  name: string;
+  numClients: number;
+  numTokens: number;
+}) {
   const router = useRouter();
 
   const deleteApi = api.apis.deleteApi.useMutation({
@@ -40,10 +45,10 @@ function ApiItem(props: { id: string; name: string }) {
         <div className="flex w-2/3 flex-row items-center justify-start">
           <div className="flex w-fit items-center gap-2">
             <p className="rounded-md border border-gray-300 bg-stone-200 px-1 py-0.5 text-xs">
-              0 Clients
+              {props.numClients} Clients
             </p>
             <p className="rounded-md border border-gray-300 bg-stone-200 px-1 py-0.5 text-xs">
-              0 Tokens This Month
+              {props.numTokens} Tokens This Month
             </p>
           </div>
         </div>
@@ -90,7 +95,12 @@ function ApiItem(props: { id: string; name: string }) {
 }
 
 type Props = {
-  data: { id: string; name: string }[];
+  data: {
+    id: string;
+    name: string;
+    numClients: number;
+    numTokens: number;
+  }[];
 };
 
 export function Apis(props: Props) {
@@ -98,10 +108,16 @@ export function Apis(props: Props) {
     <div className="flex flex-col pt-4">
       <div className="flex flex-col rounded-md border border-stone-300 shadow">
         {props.data.map((api, idx) => (
-          <>
-            <ApiItem key={idx} id={api.id} name={api.name} />
+          <div key={idx}>
+            <ApiItem
+              key={idx}
+              id={api.id}
+              name={api.name}
+              numClients={api.numClients}
+              numTokens={api.numTokens}
+            />
             {idx < props.data.length - 1 && <Separator />}
-          </>
+          </div>
         ))}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { eq, and, sql } from "drizzle-orm";
 import { tokenVerifications } from "./schema";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from ".";
 
 export type CreateTokenVerificationParams =
@@ -16,7 +16,7 @@ export interface TokenVerificationRepo {
 }
 
 export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async create(
     tokenVerification: CreateTokenVerificationParams

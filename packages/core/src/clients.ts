@@ -1,6 +1,6 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, inArray, sql } from "drizzle-orm";
 import { uid } from "./uid";
 import { hashSHA256 } from "./crypto-utils";
 
@@ -45,10 +45,15 @@ export interface ClientRepo {
   deleteScopeByApiScopeId(apiScopeId: string): Promise<void>;
   listByApiId(apiId: string): Promise<Client[]>;
   listRootForWorkspace(workspaceId: string): Promise<Client[]>;
+  countForApis(params: {
+    apiIds: string[];
+    month: number;
+    year: number;
+  }): Promise<{ total: number; apiId: string }[]>;
 }
 
 export class DrizzleClientRepo implements ClientRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async getById(id: string): Promise<Client | null> {
     const client = await this.db.query.clients.findFirst({
@@ -94,7 +99,7 @@ export class DrizzleClientRepo implements ClientRepo {
       ? `${params.clientSecretPrefix}_${uid()}`
       : uid();
 
-    await this.db.transaction(async (tx) => {
+     await this.db.transaction(async (tx) => {
       await tx.insert(schema.clients).values({
         id: clientId,
         currentClientSecretId: secretId,
@@ -208,6 +213,7 @@ export class DrizzleClientRepo implements ClientRepo {
       scopes: client.scopes.map((s) => s.apiScope.name),
     }));
   }
+
   async listRootForWorkspace(workspaceId: string): Promise<Client[]> {
     const clients = await this.db.query.clients.findMany({
       where: and(
@@ -216,5 +222,25 @@ export class DrizzleClientRepo implements ClientRepo {
       ),
     });
     return clients;
+  }
+
+  async countForApis(params: {
+    apiIds: string[];
+  }): Promise<{ total: number; apiId: string }[]> {
+    const results = await this.db
+      .select({
+        total: sql<number>`count(*)`,
+        apiId: schema.clients.apiId,
+      })
+      .from(schema.clients)
+      .groupBy(schema.clients.apiId)
+      .where(
+        and(
+          inArray(schema.clients.apiId, params.apiIds),
+          isNull(schema.clients.deletedAt)
+        )
+      );
+
+    return results;
   }
 }

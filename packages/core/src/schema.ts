@@ -317,6 +317,7 @@ export const apisRelations = relations(apis, ({ one, many }) => {
       fields: [apis.nextSigningSecretId],
       references: [signingSecrets.id],
     }),
+    tokenGenerations: many(tokenGenerations),
   };
 });
 

@@ -1,10 +1,12 @@
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { tokenGenerations } from "./schema";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from ".";
 
 export type CreateTokenGenerationParams =
   typeof schema.tokenGenerations.$inferInsert;
+
+export type TokenGeneration = typeof schema.tokenGenerations.$inferSelect;
 
 export interface TokenGenerationRepo {
   create(tokenGeneration: CreateTokenGenerationParams): Promise<void>;
@@ -14,10 +16,15 @@ export interface TokenGenerationRepo {
     year: number;
     apiId?: string;
   }): Promise<{ total: number }>;
+  getForApis(params: {
+    apiIds: string[];
+    month: number;
+    year: number;
+  }): Promise<{ total: number; apiId: string }[]>;
 }
 
 export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async create(tokenGeneration: CreateTokenGenerationParams): Promise<void> {
     await this.db.insert(tokenGenerations).values({
@@ -49,5 +56,28 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
     return {
       total: result[0]?.count ?? 0,
     };
+  }
+
+  async getForApis(params: {
+    apiIds: string[];
+    month: number;
+    year: number;
+  }): Promise<{ total: number; apiId: string }[]> {
+    const results = await this.db
+      .select({
+        total: sql<number>`count(*)`,
+        apiId: tokenGenerations.apiId,
+      })
+      .from(tokenGenerations)
+      .groupBy(tokenGenerations.apiId)
+      .where(
+        and(
+          inArray(tokenGenerations.apiId, params.apiIds),
+          sql`EXTRACT(MONTH FROM ${tokenGenerations.timestamp}) = ${params.month}`,
+          sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp}) = ${params.year}`
+        )
+      );
+
+    return results;
   }
 }

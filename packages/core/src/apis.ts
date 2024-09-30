@@ -1,4 +1,4 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { uid } from "./uid";
@@ -45,7 +45,7 @@ export interface ApiRepo {
 }
 
 export class DrizzleApiRepo implements ApiRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async create(
     params: CreateApiParams

@@ -1,4 +1,4 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { uid } from "./uid";
@@ -24,7 +24,7 @@ export interface SigningSecretRepo {
 }
 
 export class DrizzleSigningSecretRepo implements SigningSecretRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async getById(id: string): Promise<SigningSecret | null> {
     const secret = await this.db.query.signingSecrets.findFirst({

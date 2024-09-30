@@ -1,4 +1,4 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { uid } from "./uid";
@@ -24,7 +24,7 @@ export interface ClientSecretRepo {
 }
 
 export class DrizzleClientSecretRepo implements ClientSecretRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async getValueById(id: string): Promise<string | null> {
     const secret = await this.db.query.clientSecrets.findFirst({

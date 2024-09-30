@@ -1,7 +1,6 @@
 import { schema } from "../../core/src";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { randomBytes, createHash, webcrypto } from "crypto";
-import { GenerateDataKeyCommand, KMSClient } from "@aws-sdk/client-kms";
+import { randomBytes, webcrypto } from "crypto";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getDrizzle } from "@optra/core/drizzle";
 import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";

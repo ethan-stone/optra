@@ -8,7 +8,7 @@ config({
 });
 
 async function main() {
-  const sql = postgres(process.env.DATABASE_URL as string, { max: 1 });
+  const sql = postgres(process.env.DATABASE_URL as string, { prepare: false });
   const db = drizzle(sql);
 
   // This will run migrations on the database, skipping the ones already applied

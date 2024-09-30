@@ -1,6 +1,6 @@
 import { and, eq, lt, isNotNull } from "drizzle-orm";
 import { idempotencyKeys } from "./schema";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from ".";
 
 export type CreateIdempotencyKeyParams =
@@ -15,7 +15,7 @@ export interface IdempotencyKeyRepo {
 }
 
 export class DrizzleIdempotencyKeyRepo implements IdempotencyKeyRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async getByKey(key: string): Promise<IdempotencyKey | null> {
     const result = await this.db.query.idempotencyKeys.findFirst({

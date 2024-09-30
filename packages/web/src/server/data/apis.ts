@@ -1,10 +1,26 @@
 import { getDrizzle } from "@optra/core/drizzle";
-import { DrizzleApiRepo, type CreateApiParams } from "@optra/core/apis";
+import {
+  type Api,
+  DrizzleApiRepo,
+  type CreateApiParams,
+} from "@optra/core/apis";
+import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
+import { DrizzleClientRepo } from "@optra/core/clients";
 import { env } from "@/env";
 
 async function getApiRepo() {
   const { db } = await getDrizzle(env.DATABASE_URL);
   return new DrizzleApiRepo(db);
+}
+
+async function getTokenRepo() {
+  const { db } = await getDrizzle(env.DATABASE_URL);
+  return new DrizzleTokenGenerationRepo(db);
+}
+
+async function getClientRepo() {
+  const { db } = await getDrizzle(env.DATABASE_URL);
+  return new DrizzleClientRepo(db);
 }
 
 export async function getApiByWorkspaceIdAndApiId(
@@ -96,8 +112,42 @@ export async function deleteApi(id: string) {
 
 export async function getApisForWorkspace(workspaceId: string) {
   const apis = await getApiRepo();
+  const tokenGenerations = await getTokenRepo();
+  const clients = await getClientRepo();
 
-  return apis.listByWorkspaceId(workspaceId);
+  const apiList = await apis.listByWorkspaceId(workspaceId);
+
+  const apiIds = apiList.map((api) => api.id);
+
+  const now = new Date();
+
+  const tokenGenerationList = await tokenGenerations.getForApis({
+    apiIds,
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+  });
+
+  console.log("tokenGenerationList", tokenGenerationList);
+
+  const clientList = await clients.countForApis({
+    apiIds,
+  });
+
+  return apiList.map((api) => {
+    const tokenGeneration = tokenGenerationList.find(
+      (tokenGeneration) => tokenGeneration.apiId === api.id,
+    );
+    const client = clientList.find((client) => client.apiId === api.id);
+
+    return {
+      ...api,
+      numClients: client?.total ?? 0,
+      numTokens: tokenGeneration?.total ?? 0,
+    };
+  }) as (Api & {
+    numClients: number | undefined;
+    numTokens: number | undefined;
+  })[];
 }
 
 export async function getApiScopes(apiId: string) {

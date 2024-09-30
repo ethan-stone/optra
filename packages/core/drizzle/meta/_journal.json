@@ -36,6 +36,13 @@
       "when": 1725411463701,
       "tag": "0004_neat_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1727642697460,
+      "tag": "0005_panoramic_wasp",
+      "breakpoints": true
     }
   ]
 }

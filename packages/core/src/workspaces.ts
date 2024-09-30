@@ -1,4 +1,4 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { uid } from "./uid";
@@ -23,7 +23,7 @@ export interface WorkspaceRepo {
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
-  constructor(private readonly db: NodePgDatabase<typeof schema>) {}
+  constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
   async create(params: CreateWorkspaceParams): Promise<{ id: string }> {
     const workspaceId = uid("ws");

@@ -1,17 +1,13 @@
-import { Client } from "pg";
+import postgres from "postgres";
 import { schema } from ".";
-import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-let client: Client | undefined = undefined;
-let db: NodePgDatabase<typeof schema> | undefined = undefined;
+let client: postgres.Sql | undefined = undefined;
+let db: PostgresJsDatabase<typeof schema> | undefined = undefined;
 
 export async function getDrizzle(dbUrl: string) {
   if (!client) {
-    client = new Client({
-      connectionString: dbUrl,
-    });
-
-    await client.connect();
+    client = postgres(dbUrl, { max: 1, prepare: false });
   }
 
   if (!db) {
