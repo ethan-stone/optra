@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
@@ -31,13 +32,23 @@ export function SettingsForm(props: SettingsFormProps) {
     },
   });
 
+  const { toast } = useToast();
+
   const updateApi = api.apis.updateApi.useMutation({
     onSuccess() {
       router.refresh();
+      toast({
+        title: "API Updated",
+        description: "API updated successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 

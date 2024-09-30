@@ -134,6 +134,7 @@ export class DrizzleApiRepo implements ApiRepo {
       with: {
         scopes: true,
       },
+      orderBy: (table, { desc }) => desc(table.createdAt),
     });
   }
 

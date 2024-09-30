@@ -10,6 +10,7 @@ import { type SubmitHandler, useForm } from "react-hook-form";
 import { columns } from "./columns";
 import { useState } from "react";
 import { type RowSelectionState } from "@tanstack/react-table";
+import { useToast } from "@/components/hooks/use-toast";
 
 type EditClientFormProps = {
   clientId: string;
@@ -35,13 +36,23 @@ export function EditClientForm(props: {
     },
   });
 
+  const { toast } = useToast();
+
   const updateClient = api.clients.updateClient.useMutation({
     onSuccess() {
       router.refresh();
+      toast({
+        title: "Client Updated",
+        description: "Client updated successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -62,10 +73,18 @@ export function EditClientForm(props: {
   const setScopes = api.clients.setScopes.useMutation({
     onSuccess() {
       router.refresh();
+      toast({
+        title: "Client Scopes Saved",
+        description: "Client scopes saved successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 

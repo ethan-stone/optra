@@ -1,5 +1,5 @@
 "use client";
-
+import { useToast } from "@/components/hooks/use-toast";
 import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -15,14 +15,23 @@ type PermissionItemProps = {
 
 export function PermissionItem(props: PermissionItemProps) {
   const router = useRouter();
+  const { toast } = useToast();
 
   const deleteScope = api.apis.deleteScope.useMutation({
     onSuccess() {
       router.refresh();
+      toast({
+        title: "Permission Deleted",
+        description: "Permission deleted successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 

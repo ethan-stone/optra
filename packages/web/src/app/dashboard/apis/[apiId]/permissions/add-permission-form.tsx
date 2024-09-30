@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/hooks/use-toast";
 import { Spinner } from "@/components/icons/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ type FormInput = {
 export function AddPermissionForm() {
   const router = useRouter();
   const params = useParams<{ apiId: string }>();
+  const { toast } = useToast();
 
   const {
     register,
@@ -35,10 +37,17 @@ export function AddPermissionForm() {
         description: "",
       });
       router.refresh();
+      toast({
+        title: "Permission Added",
+        description: "Permission added successfully",
+      });
     },
     onError(err) {
-      console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 

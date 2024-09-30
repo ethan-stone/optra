@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/hooks/use-toast";
 import { Ellipses } from "@/components/icons/ellipses";
 import {
   DropdownMenu,
@@ -23,13 +24,23 @@ function ApiItem(props: {
 }) {
   const router = useRouter();
 
+  const { toast } = useToast();
+
   const deleteApi = api.apis.deleteApi.useMutation({
     onSuccess() {
       router.refresh();
+      toast({
+        title: "API Deleted",
+        description: "API deleted successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 

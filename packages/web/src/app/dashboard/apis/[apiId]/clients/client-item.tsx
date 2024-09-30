@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Ellipses } from "@/components/icons/ellipses";
+import { useToast } from "@/components/hooks/use-toast";
 
 type Props = {
   id: string;
@@ -23,13 +24,23 @@ type Props = {
 export function ClientItem(props: Props) {
   const router = useRouter();
 
+  const { toast } = useToast();
+
   const deleteClient = api.clients.deleteClient.useMutation({
     onSuccess() {
       router.refresh();
+      toast({
+        title: "Client Deleted",
+        description: "Client deleted successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 

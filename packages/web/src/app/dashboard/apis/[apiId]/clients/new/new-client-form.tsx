@@ -58,7 +58,6 @@ export function NewClientForm(props: Props) {
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
     },
   });
 

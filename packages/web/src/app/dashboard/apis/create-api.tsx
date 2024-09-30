@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,8 @@ type FormInput = {
 export function CreateApi() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const { toast } = useToast();
+
   const {
     register,
     handleSubmit,
@@ -39,10 +42,18 @@ export function CreateApi() {
       setIsOpen(false);
       router.refresh();
       reset({});
+      toast({
+        title: "API Created",
+        description: "API created successfully",
+      });
     },
     onError(err) {
       console.error(err);
-      alert(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 
