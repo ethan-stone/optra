@@ -5,27 +5,40 @@ import { gunzipSync } from "zlib";
 import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
 import { DrizzleTokenVerificationRepo } from "@optra/core/token-verifications";
 import { z } from "zod";
+import { BaselimeEvent, sendEvents } from "../utils/baselime";
 
-const LogSchema = z.object({
-  type: z.literal("metric"),
-  metric: z.discriminatedUnion("name", [
-    z.object({
-      name: z.literal("token.generated"),
-      workspaceId: z.string(),
-      clientId: z.string(),
-      apiId: z.string(),
-      timestamp: z.number(),
-    }),
-    z.object({
-      name: z.literal("token.verified"),
-      workspaceId: z.string(),
-      clientId: z.string(),
-      apiId: z.string(),
-      timestamp: z.number(),
-      deniedReason: z.string().nullish(),
-    }),
-  ]),
-});
+const LogSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("metric"),
+    metric: z.discriminatedUnion("name", [
+      z.object({
+        name: z.literal("token.generated"),
+        workspaceId: z.string(),
+        clientId: z.string(),
+        apiId: z.string(),
+        timestamp: z.number(),
+      }),
+      z.object({
+        name: z.literal("token.verified"),
+        workspaceId: z.string(),
+        clientId: z.string(),
+        apiId: z.string(),
+        timestamp: z.number(),
+        deniedReason: z.string().nullish(),
+      }),
+    ]),
+  }),
+  z.object({
+    type: z.literal("log"),
+    requestId: z.string(),
+    level: z.string(),
+    namespace: z.string(),
+    service: z.string(),
+    dataset: z.string(),
+    duration: z.number().nullish(),
+    timestamp: z.number(),
+  }),
+]);
 
 const decodeCloudWatchLogsEventData = (
   data: string
@@ -42,6 +55,8 @@ export const handler: CloudWatchLogsHandler = async (event) => {
 
   const decoded = decodeCloudWatchLogsEventData(event.awslogs.data);
 
+  const eventsGroupedByDataset: Record<string, BaselimeEvent[]> = {};
+
   for (const logEvent of decoded.logEvents) {
     const trimmedMsg = logEvent.message.trim();
     const splitMsg = trimmedMsg.split("\t");
@@ -52,6 +67,7 @@ export const handler: CloudWatchLogsHandler = async (event) => {
 
       if (jsonStartIndex !== -1) {
         const jsonString = fourthItem.slice(jsonStartIndex);
+        const msg = fourthItem.slice(0, jsonStartIndex);
 
         let parsedJson: string;
 
@@ -67,27 +83,40 @@ export const handler: CloudWatchLogsHandler = async (event) => {
         const parsed = LogSchema.safeParse(parsedJson);
 
         if (parsed.success) {
-          if (parsed.data.metric.name === "token.generated") {
-            await tokenGenerationRepo.create({
-              workspaceId: parsed.data.metric.workspaceId,
-              apiId: parsed.data.metric.apiId,
-              clientId: parsed.data.metric.clientId,
-              timestamp: new Date(parsed.data.metric.timestamp),
-            });
+          if (parsed.data.type === "metric") {
+            if (parsed.data.metric.name === "token.generated") {
+              await tokenGenerationRepo.create({
+                workspaceId: parsed.data.metric.workspaceId,
+                apiId: parsed.data.metric.apiId,
+                clientId: parsed.data.metric.clientId,
+                timestamp: new Date(parsed.data.metric.timestamp),
+              });
 
-            console.log("Created token generation record.");
-          } else if (parsed.data.metric.name === "token.verified") {
-            await tokenVerificationRepo.create({
-              workspaceId: parsed.data.metric.workspaceId,
-              apiId: parsed.data.metric.apiId,
-              clientId: parsed.data.metric.clientId,
-              timestamp: new Date(parsed.data.metric.timestamp),
-              deniedReason: parsed.data.metric.deniedReason,
+              console.log("Created token generation record.");
+            } else if (parsed.data.metric.name === "token.verified") {
+              await tokenVerificationRepo.create({
+                workspaceId: parsed.data.metric.workspaceId,
+                apiId: parsed.data.metric.apiId,
+                clientId: parsed.data.metric.clientId,
+                timestamp: new Date(parsed.data.metric.timestamp),
+                deniedReason: parsed.data.metric.deniedReason,
+              });
+
+              console.log("Created token verification record.");
+            }
+          } else if (parsed.data.type === "log") {
+            if (!eventsGroupedByDataset[parsed.data.dataset]) {
+              eventsGroupedByDataset[parsed.data.dataset] = [];
+            }
+
+            eventsGroupedByDataset[parsed.data.dataset].push({
+              message: msg,
+              ...parsed.data,
             });
-            console.log("Created token verification record.");
           }
         } else {
-          console.log("Log event is not a metric.");
+          console.log("Log event is not a metric or a log.");
+          console.log(parsed.error);
         }
       }
     } else {
@@ -96,5 +125,13 @@ export const handler: CloudWatchLogsHandler = async (event) => {
         splitMsg.length
       );
     }
+  }
+
+  try {
+    for (const dataset of Object.keys(eventsGroupedByDataset)) {
+      await sendEvents(dataset, eventsGroupedByDataset[dataset]);
+    }
+  } catch (error) {
+    console.error("Error sending events to Baselime:", error);
   }
 };

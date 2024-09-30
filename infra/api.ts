@@ -103,29 +103,34 @@ export const apiFn = new sst.aws.Function("Api", {
   },
 });
 
-const logHandler = new sst.aws.Function("LogHandler", {
-  handler: "packages/lambdas/src/cloudwatch/api-logs-handler.handler",
-  link: [secrets.DbUrl],
-});
+// only deploy the subscription filter in non-dev environments since
+// in dev mode it is the stub lambda that is deployed
+if (!$dev) {
+  const logHandler = new sst.aws.Function("LogHandler", {
+    handler: "packages/lambdas/src/cloudwatch/api-logs-handler.handler",
+    link: [secrets.DbUrl, secrets.BaselimeApiKey],
+    timeout: "10 minutes",
+  });
 
-const permission = new aws.lambda.Permission("ApiPermission", {
-  action: "lambda:InvokeFunction",
-  function: logHandler.name,
-  principal: "logs.amazonaws.com",
-});
+  const permission = new aws.lambda.Permission("ApiPermission", {
+    action: "lambda:InvokeFunction",
+    function: logHandler.name,
+    principal: "logs.amazonaws.com",
+  });
 
-new aws.cloudwatch.LogSubscriptionFilter(
-  "ApiLogSubscriptionFilter",
-  {
-    logGroup: apiFn.nodes.logGroup,
-    filterPattern: "",
-    destinationArn: logHandler.arn,
-    name: "ApiLogSubscriptionFilter",
-  },
-  {
-    dependsOn: [permission],
-  }
-);
+  new aws.cloudwatch.LogSubscriptionFilter(
+    "ApiLogSubscriptionFilter",
+    {
+      logGroup: apiFn.nodes.logGroup,
+      filterPattern: "",
+      destinationArn: logHandler.arn,
+      name: "ApiLogSubscriptionFilter",
+    },
+    {
+      dependsOn: [permission],
+    }
+  );
+}
 
 new sst.aws.Cron("InvoiceCron", {
   job: {

@@ -86,7 +86,7 @@ export class Logger implements Logger {
 		this.log(message, {
 			level: 'info',
 			type: 'log',
-			time: Date.now(),
+			timestamp: Date.now(),
 			...fields,
 		});
 	}
@@ -95,7 +95,7 @@ export class Logger implements Logger {
 		this.log(message, {
 			level: 'warn',
 			type: 'log',
-			time: Date.now(),
+			timestamp: Date.now(),
 			...fields,
 		});
 	}
@@ -104,7 +104,7 @@ export class Logger implements Logger {
 		this.log(message, {
 			level: 'error',
 			type: 'log',
-			time: Date.now(),
+			timestamp: Date.now(),
 			...fields,
 		});
 	}
@@ -113,7 +113,7 @@ export class Logger implements Logger {
 		this.log(message, {
 			level: 'info',
 			type: 'metric',
-			time: Date.now(),
+			timestamp: Date.now(),
 			...fields,
 			metric: metricFields,
 		});

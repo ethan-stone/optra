@@ -46,7 +46,7 @@ export function ClientItem(props: Props) {
   });
 
   return (
-    <div className="m-1 rounded-sm hover:bg-stone-50">
+    <div className="m-1 rounded-sm hover:bg-stone-200">
       <div className="flex flex-row justify-between space-y-1 px-4 py-3">
         <Link
           href={`/dashboard/apis/${props.apiId}/clients/${props.id}`}

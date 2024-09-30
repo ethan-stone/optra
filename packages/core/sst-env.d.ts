@@ -18,6 +18,10 @@ declare module "sst" {
       "type": "sst.aws.Function"
       "url": string
     }
+    "BaselimeApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "DbUrl": {
       "type": "sst.sst.Secret"
       "value": string
