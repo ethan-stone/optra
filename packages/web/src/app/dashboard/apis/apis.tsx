@@ -79,10 +79,18 @@ function ApiItem(props: {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    navigator.clipboard.writeText(props.id).catch((err) => {
-                      console.error(err);
-                      alert(err);
-                    });
+                    navigator.clipboard
+                      .writeText(props.id)
+                      .then(() => {
+                        toast({
+                          title: "API ID Copied",
+                          description: "API ID copied to clipboard",
+                        });
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                        alert(err);
+                      });
                   }}
                 >
                   Copy ID

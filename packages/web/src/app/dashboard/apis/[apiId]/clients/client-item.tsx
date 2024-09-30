@@ -79,10 +79,18 @@ export function ClientItem(props: Props) {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    navigator.clipboard.writeText(props.id).catch((err) => {
-                      console.error(err);
-                      alert(err);
-                    });
+                    navigator.clipboard
+                      .writeText(props.id)
+                      .then(() => {
+                        toast({
+                          title: "Client ID Copied",
+                          description: "Client ID copied to clipboard",
+                        });
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                        alert(err);
+                      });
                   }}
                 >
                   Copy ID
