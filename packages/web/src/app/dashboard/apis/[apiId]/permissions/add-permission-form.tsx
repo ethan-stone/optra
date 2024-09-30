@@ -61,7 +61,7 @@ export function AddPermissionForm() {
 
   return (
     <form
-      className="mb-2 flex flex-row gap-4"
+      className="mb-2 flex flex-row gap-4 px-4 py-3"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="flex flex-grow flex-col gap-1">

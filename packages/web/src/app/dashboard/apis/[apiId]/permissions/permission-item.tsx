@@ -1,8 +1,14 @@
 "use client";
 import { useToast } from "@/components/hooks/use-toast";
-import { Spinner } from "@/components/icons/spinner";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Ellipses } from "@/components/icons/ellipses";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -36,33 +42,58 @@ export function PermissionItem(props: PermissionItemProps) {
   });
 
   return (
-    <div className="hover:bg-stone-100">
-      <div className="flex flex-row items-center justify-between space-y-1 px-4 py-5">
+    <div className="m-1 rounded-sm hover:bg-stone-50">
+      <div className="flex flex-row justify-between space-y-1 px-4 py-3">
         <div className="flex flex-col gap-2">
-          <div className="flex flex-row items-center gap-1">
-            <h4 className="rounded font-mono font-medium leading-none">
+          <div className="flex w-fit flex-row items-center gap-1">
+            <div className="flex flex-row items-center gap-1 rounded border border-gray-300 bg-stone-200 px-1 py-0.5 text-sm leading-none">
               {props.name}
-            </h4>
-            <button onClick={() => navigator.clipboard.writeText(props.name)}>
-              <Copy className="h-4 w-4 text-stone-900" />
-            </button>
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  await navigator.clipboard.writeText(props.name);
+                  toast({
+                    title: "Permission Name Copied",
+                    description: "Permission Name copied to clipboard",
+                  });
+                }}
+              >
+                <Copy className="h-3 w-3 text-stone-900" />
+              </button>
+            </div>
           </div>
           <h4 className="text-sm font-light leading-none">
             {props.description}
           </h4>
         </div>
-        <Button
-          className="bg-red-500 hover:bg-red-700"
-          onClick={() =>
-            deleteScope.mutate({
-              id: props.id,
-            })
-          }
-        >
-          {deleteScope.isLoading ? <Spinner /> : "Remove"}
-        </Button>
+
+        <div className="flex flex-row items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex flex-row gap-2 rounded border border-stone-300 bg-white p-1 shadow-sm focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0">
+                <Ellipses />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <button
+                  className="w-full text-left font-light text-red-700 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteScope.mutate({
+                      id: props.id,
+                    });
+                  }}
+                >
+                  Delete
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <Separator />
     </div>
   );
 }
