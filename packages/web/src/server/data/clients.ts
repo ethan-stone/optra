@@ -1,10 +1,16 @@
 import { getDrizzle } from "@optra/core/drizzle";
-import { DrizzleClientRepo } from "@optra/core/clients";
+import { type Client, DrizzleClientRepo } from "@optra/core/clients";
+import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
 import { env } from "@/env";
 
 async function getClientRepo() {
   const { db } = await getDrizzle(env.DATABASE_URL);
   return new DrizzleClientRepo(db);
+}
+
+async function getTokenRepo() {
+  const { db } = await getDrizzle(env.DATABASE_URL);
+  return new DrizzleTokenGenerationRepo(db);
 }
 
 export async function getTotalClientsForApi(apiId: string) {
@@ -16,9 +22,31 @@ export async function getTotalClientsForApi(apiId: string) {
 }
 
 export async function getClientsByApi(apiId: string) {
-  const clients = await getClientRepo();
+  const [clients, tokenGenerations] = await Promise.all([
+    getClientRepo(),
+    getTokenRepo(),
+  ]);
 
-  return clients.listByApiId(apiId);
+  const clientsList = await clients.listByApiId(apiId);
+
+  const now = new Date();
+
+  const tokenGenerationList = await tokenGenerations.getForClients({
+    clientIds: clientsList.map((c) => c.id),
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+  });
+
+  return clientsList.map((client) => {
+    const tokenGeneration = tokenGenerationList.find(
+      (tokenGeneration) => tokenGeneration.clientId === client.id,
+    );
+
+    return {
+      ...client,
+      numTokens: tokenGeneration?.total ?? 0,
+    };
+  }) as (Client & { numTokens: number })[];
 }
 
 type CreateBasicClientArgs = {

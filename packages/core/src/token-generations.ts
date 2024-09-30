@@ -21,6 +21,11 @@ export interface TokenGenerationRepo {
     month: number;
     year: number;
   }): Promise<{ total: number; apiId: string }[]>;
+  getForClients(params: {
+    clientIds: string[];
+    month: number;
+    year: number;
+  }): Promise<{ total: number; clientId: string }[]>;
 }
 
 export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
@@ -73,6 +78,29 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
       .where(
         and(
           inArray(tokenGenerations.apiId, params.apiIds),
+          sql`EXTRACT(MONTH FROM ${tokenGenerations.timestamp}) = ${params.month}`,
+          sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp}) = ${params.year}`
+        )
+      );
+
+    return results;
+  }
+
+  async getForClients(params: {
+    clientIds: string[];
+    month: number;
+    year: number;
+  }): Promise<{ total: number; clientId: string }[]> {
+    const results = await this.db
+      .select({
+        total: sql<number>`count(*)`,
+        clientId: tokenGenerations.clientId,
+      })
+      .from(tokenGenerations)
+      .groupBy(tokenGenerations.clientId)
+      .where(
+        and(
+          inArray(tokenGenerations.clientId, params.clientIds),
           sql`EXTRACT(MONTH FROM ${tokenGenerations.timestamp}) = ${params.month}`,
           sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp}) = ${params.year}`
         )

@@ -35,6 +35,7 @@ export default async function Clients(props: PageProps) {
                 name={c.name}
                 id={c.id}
                 apiId={props.params.apiId}
+                numTokens={c.numTokens}
               />
               {idx < clients.length - 1 && <Separator />}
             </>

@@ -19,6 +19,7 @@ type Props = {
   id: string;
   name: string;
   apiId: string; // Add this prop
+  numTokens: number;
 };
 
 export function ClientItem(props: Props) {
@@ -56,10 +57,7 @@ export function ClientItem(props: Props) {
         <div className="flex w-2/3 flex-row items-center justify-start">
           <div className="flex w-fit items-center gap-2">
             <p className="rounded-md border border-gray-300 bg-stone-200 px-1 py-0.5 text-xs">
-              0 Clients
-            </p>
-            <p className="rounded-md border border-gray-300 bg-stone-200 px-1 py-0.5 text-xs">
-              0 Tokens This Month
+              {props.numTokens} Tokens This Month
             </p>
           </div>
         </div>
