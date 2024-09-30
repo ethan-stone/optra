@@ -1,14 +1,10 @@
-import { useState } from "react";
-import { notFound, redirect, useRouter } from "next/navigation";
-import { api } from "@/trpc/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Spinner } from "@/components/icons/spinner";
+import { notFound, redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getClientByWorkspaceIdAndClientId } from "@/server/data/clients";
 import { getTenantId } from "@/utils/auth";
+import { EditClientForm } from "./edit-client-form";
+import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
 
 type ClientPageProps = PropsWithChildren<{
   params: { apiId: string; clientId: string };
@@ -32,42 +28,24 @@ export default async function EditClientPage({ params }: ClientPageProps) {
     return notFound();
   }
 
+  const api = await getApiByWorkspaceIdAndApiId(workspace.id, params.apiId);
+
+  if (!api) {
+    return notFound();
+  }
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="mb-6 text-2xl font-bold">Edit Client: {client.name}</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="name" className="mb-2 block font-medium">
-            Client Name
-          </label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        <div>
-          <h2 className="mb-2 font-medium">Permissions</h2>
-          <div className="space-y-2">
-            {["read", "write", "delete"].map((permission) => (
-              <div key={permission} className="flex items-center">
-                <Checkbox
-                  id={permission}
-                  checked={permissions.includes(permission)}
-                  onCheckedChange={() => handlePermissionChange(permission)}
-                />
-                <label htmlFor={permission} className="ml-2">
-                  {permission.charAt(0).toUpperCase() + permission.slice(1)}
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-        <Button type="submit" disabled={updateClient.isLoading}>
-          {updateClient.isLoading ? <Spinner /> : "Update Client"}
-        </Button>
-      </form>
+    <div>
+      <div className="mb-6 flex flex-row items-center justify-between">
+        <h2 className="text-2xl font-semibold">{client.name}</h2>
+      </div>
+      <EditClientForm
+        clientId={client.id}
+        clientName={client.name}
+        apiId={api.id}
+        apiScopes={api.scopes}
+        clientScopes={client.scopes}
+      />
     </div>
   );
 }

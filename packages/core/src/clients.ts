@@ -30,6 +30,11 @@ export type CreateClientScopeParams = Omit<
 >;
 export type ClientScope = typeof schema.clientScopes.$inferSelect;
 
+export type SetClientScopesParams = {
+  clientId: string;
+  apiScopeIds: string[];
+};
+
 export interface ClientRepo {
   getById(id: string): Promise<Client | null>;
   update(id: string, params: UpdateClientParams): Promise<void>;
@@ -99,7 +104,7 @@ export class DrizzleClientRepo implements ClientRepo {
       ? `${params.clientSecretPrefix}_${uid()}`
       : uid();
 
-     await this.db.transaction(async (tx) => {
+    await this.db.transaction(async (tx) => {
       await tx.insert(schema.clients).values({
         id: clientId,
         currentClientSecretId: secretId,
@@ -172,6 +177,26 @@ export class DrizzleClientRepo implements ClientRepo {
     });
 
     return scopes;
+  }
+
+  async setScopes(params: SetClientScopesParams): Promise<void> {
+    const now = new Date();
+
+    await this.db.transaction(async (tx) => {
+      await tx
+        .delete(schema.clientScopes)
+        .where(eq(schema.clientScopes.clientId, params.clientId));
+
+      for (const apiScopeId of params.apiScopeIds) {
+        await tx.insert(schema.clientScopes).values({
+          id: uid("client_scope"),
+          apiScopeId,
+          clientId: params.clientId,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    });
   }
 
   async createScope(params: CreateClientScopeParams): Promise<{ id: string }> {

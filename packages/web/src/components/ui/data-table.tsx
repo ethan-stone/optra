@@ -4,6 +4,8 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
+  type OnChangeFn,
+  type RowSelectionState,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -16,22 +18,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// NOTE: we should be able to make state and onRowSelectionChange optional
+// but for some reason if they are then the table row selection doesn't work
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   getRowId?: (row: TData) => string;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+  state: {
+    rowSelection: RowSelectionState;
+  };
 }
 
 export function useDataTable<TData, TValue>({
   data,
   columns,
   getRowId,
+  onRowSelectionChange,
+  state,
 }: DataTableProps<TData, TValue>) {
+  console.log("state", state);
+  console.log("onRowSelectionChange", onRowSelectionChange);
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getRowId,
+    onRowSelectionChange: onRowSelectionChange,
+    state: state,
   });
 
   function DataTable() {

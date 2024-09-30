@@ -13,6 +13,7 @@ import { useDataTable } from "@/components/ui/data-table";
 import { columns } from "./columns";
 import { Textarea } from "@/components/ui/textarea";
 import { type SubmitHandler, useForm } from "react-hook-form";
+import { type RowSelectionState } from "@tanstack/react-table";
 
 type Props = {
   scopes: { id: string; name: string; description: string }[];
@@ -78,10 +79,16 @@ export function NewClientForm(props: Props) {
     });
   };
 
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
   const { table, DataTable } = useDataTable({
     columns,
     data: props.scopes,
     getRowId: (row) => row.id,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      rowSelection,
+    },
   });
 
   return (

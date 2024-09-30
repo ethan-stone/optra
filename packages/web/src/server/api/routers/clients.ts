@@ -16,6 +16,8 @@ import {
   createRootClient,
   deleteClientById,
   getClientByWorkspaceIdAndClientId,
+  setClientScopes,
+  updateClientById,
 } from "@/server/data/clients";
 
 function getStringSizeInBytes(str: string): number {
@@ -291,5 +293,41 @@ export const clientsRouter = createTRPCRouter({
           message: "Could not found the client.",
         });
       }
+
+      await updateClientById(input.id, input.name);
+
+      return null;
+    }),
+  setScopes: protectedProcedure
+    .input(z.object({ id: z.string(), scopes: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const client = await getClientByWorkspaceIdAndClientId(
+        workspace.id,
+        input.id,
+      );
+
+      if (!client) {
+        console.warn(
+          `Client with id ${input.id} does not exist or is not a part of workspace ${workspace.id}`,
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not found the client.",
+        });
+      }
+
+      await setClientScopes(input.id, input.scopes);
+
+      return null;
     }),
 });

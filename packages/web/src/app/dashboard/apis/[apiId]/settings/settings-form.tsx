@@ -50,34 +50,38 @@ export function SettingsForm(props: SettingsFormProps) {
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-      <div>
-        <h2>Name</h2>
-        <Input
-          {...register("apiName", {
-            required: true,
-            minLength: 1,
-            maxLength: 100,
-          })}
-          type="string"
-        />
-        {errors.apiName !== undefined && (
-          <p className="text-sm text-red-500">Name is required</p>
-        )}
-      </div>
-      <div>
-        <h2>Token Expiration</h2>
-        <Input
-          {...register("tokenExpirationInSeconds", { required: true })}
-          type="number"
-        />
-        {errors.tokenExpirationInSeconds !== undefined && (
-          <p className="text-sm text-red-500">Token expiration is required</p>
-        )}
-      </div>
-      <Button type="submit" className="mt-4">
-        {updateApi.isLoading ? "Updating..." : "Update"}
-      </Button>
-    </form>
+    <div className="flex flex-col gap-4 rounded border border-stone-300 p-8 shadow">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div>
+          <h2 className="text pb-2">Name</h2>
+          <Input
+            {...register("apiName", {
+              required: true,
+              minLength: 1,
+              maxLength: 100,
+            })}
+            type="string"
+          />
+          {errors.apiName !== undefined && (
+            <p className="text-sm text-red-500">Name is required</p>
+          )}
+        </div>
+        <div>
+          <h2 className="text pb-2">Token Expiration In Seconds</h2>
+          <Input
+            {...register("tokenExpirationInSeconds", { required: true })}
+            type="number"
+          />
+          {errors.tokenExpirationInSeconds !== undefined && (
+            <p className="text-sm text-red-500">Token expiration is required</p>
+          )}
+        </div>
+        <div className="flex justify-end">
+          <Button type="submit" className="mt-4">
+            {updateApi.isLoading ? "Updating..." : "Update"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

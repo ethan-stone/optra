@@ -111,9 +111,11 @@ export async function deleteApi(id: string) {
 }
 
 export async function getApisForWorkspace(workspaceId: string) {
-  const apis = await getApiRepo();
-  const tokenGenerations = await getTokenRepo();
-  const clients = await getClientRepo();
+  const [apis, tokenGenerations, clients] = await Promise.all([
+    getApiRepo(),
+    getTokenRepo(),
+    getClientRepo(),
+  ]);
 
   const apiList = await apis.listByWorkspaceId(workspaceId);
 
@@ -121,17 +123,16 @@ export async function getApisForWorkspace(workspaceId: string) {
 
   const now = new Date();
 
-  const tokenGenerationList = await tokenGenerations.getForApis({
-    apiIds,
-    month: now.getMonth() + 1,
-    year: now.getFullYear(),
-  });
-
-  console.log("tokenGenerationList", tokenGenerationList);
-
-  const clientList = await clients.countForApis({
-    apiIds,
-  });
+  const [tokenGenerationList, clientList] = await Promise.all([
+    tokenGenerations.getForApis({
+      apiIds,
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+    }),
+    clients.countForApis({
+      apiIds,
+    }),
+  ]);
 
   return apiList.map((api) => {
     const tokenGeneration = tokenGenerationList.find(

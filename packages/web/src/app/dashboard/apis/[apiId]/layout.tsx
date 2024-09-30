@@ -55,8 +55,8 @@ export default async function ApiPageLayout(props: ApiPageProps) {
 
   return (
     <main className="flex min-h-screen flex-col items-center">
-      <div className="flex w-1/2 flex-col py-10">
-        <h1 className="flex text-4xl">{api.name}</h1>
+      <div className="flex w-2/3 flex-col px-10 py-10">
+        <h1 className="flex text-2xl font-semibold">{api.name}</h1>
         <CopyApiId id={api.id} />
         <Tabs tabs={tabs} />
         <main className="relative mb-20 mt-8 ">{props.children}</main>

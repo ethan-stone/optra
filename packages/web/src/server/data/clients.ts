@@ -110,7 +110,12 @@ export async function getClientByWorkspaceIdAndClientId(
     return null;
   }
 
-  return client;
+  const clientScopes = await clients.getScopesByClientId(client.id);
+
+  return {
+    ...client,
+    scopes: clientScopes,
+  };
 }
 
 export async function deleteClientById(id: string) {
@@ -129,4 +134,10 @@ export async function updateClientById(id: string, name: string) {
   const clients = await getClientRepo();
 
   await clients.update(id, { name });
+}
+
+export async function setClientScopes(id: string, scopes: string[]) {
+  const clients = await getClientRepo();
+
+  await clients.setScopes({ clientId: id, apiScopeIds: scopes });
 }

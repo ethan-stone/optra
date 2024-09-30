@@ -39,8 +39,9 @@ const Tab: React.FC<Tab> = ({ name, href, segment }) => {
   const active = segment === selectedSegment;
   return (
     <li
-      className={cn("flex list-none rounded-t border-b-2 border-transparent", {
-        "bg-stone-700": active,
+      className={cn("flex list-none rounded-t border-transparent", {
+        "border-l border-r border-t border-stone-300 bg-stone-50 shadow":
+          active,
       })}
     >
       <Link
@@ -49,9 +50,6 @@ const Tab: React.FC<Tab> = ({ name, href, segment }) => {
         onClick={() => router.push(href)}
         className={cn(
           "flex items-center rounded-md px-3 py-2 text-sm font-medium",
-          {
-            "text-white": active,
-          },
         )}
       >
         {name}
