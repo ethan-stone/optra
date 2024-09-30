@@ -19,6 +19,7 @@
     "@aws-sdk/client-lambda": "^3.637.0",
     "@aws-sdk/client-sqs": "^3.637.0",
     "@aws-sdk/lib-dynamodb": "^3.637.0",
+    "@axiomhq/js": "1.0.0-rc.1",
     "stripe": "^14.25.0",
     "zod": "^3.23.8"
   }

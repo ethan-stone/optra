@@ -190,6 +190,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.637.0
         version: 3.658.1(@aws-sdk/client-dynamodb@3.658.1)
+      '@axiomhq/js':
+        specifier: 1.0.0-rc.1
+        version: 1.0.0-rc.1
       stripe:
         specifier: ^14.25.0
         version: 14.25.0

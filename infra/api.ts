@@ -46,6 +46,7 @@ new aws.iam.UserPolicyAttachment("ApiUserPolicyAttachment", {
 
 export const apiFn = new sst.aws.Function("Api", {
   handler: "packages/api/src/index.handler",
+  logging: { retention: "1 week" },
   environment: {
     AWS_S3_PUBLIC_URL: bucket.domain,
     ENVIRONMENT: "development",
@@ -108,8 +109,9 @@ export const apiFn = new sst.aws.Function("Api", {
 if (!$dev) {
   const logHandler = new sst.aws.Function("LogHandler", {
     handler: "packages/lambdas/src/cloudwatch/api-logs-handler.handler",
-    link: [secrets.DbUrl, secrets.BaselimeApiKey],
+    link: [secrets.DbUrl, secrets.AxiomApiKey],
     timeout: "10 minutes",
+    logging: { retention: "1 month" }, // keep these a big logger since these are the only logs we don't send to axiom
   });
 
   const permission = new aws.lambda.Permission("ApiPermission", {

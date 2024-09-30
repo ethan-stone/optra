@@ -3,5 +3,5 @@ export const secrets = {
   AWSSecretAccessKey: new sst.Secret("AWSSecretAccessKey"),
   StripeApiKey: new sst.Secret("StripeApiKey"),
   DbUrl: new sst.Secret("DbUrl"),
-  BaselimeApiKey: new sst.Secret("BaselimeApiKey"),
+  AxiomApiKey: new sst.Secret("AxiomApiKey"),
 };

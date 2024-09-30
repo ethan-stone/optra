@@ -18,7 +18,7 @@ declare module "sst" {
       "type": "sst.aws.Function"
       "url": string
     }
-    "BaselimeApiKey": {
+    "AxiomApiKey": {
       "type": "sst.sst.Secret"
       "value": string
     }

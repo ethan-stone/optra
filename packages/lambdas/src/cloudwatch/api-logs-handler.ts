@@ -5,7 +5,7 @@ import { gunzipSync } from "zlib";
 import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
 import { DrizzleTokenVerificationRepo } from "@optra/core/token-verifications";
 import { z } from "zod";
-import { BaselimeEvent, sendEvents } from "../utils/baselime";
+import { AxiomEvent, sendEvents } from "../utils/axiom";
 
 const LogSchema = z.discriminatedUnion("type", [
   z.object({
@@ -35,6 +35,7 @@ const LogSchema = z.discriminatedUnion("type", [
     namespace: z.string(),
     service: z.string(),
     dataset: z.string(),
+    error: z.unknown().nullish(),
     duration: z.number().nullish(),
     timestamp: z.number(),
   }),
@@ -55,7 +56,7 @@ export const handler: CloudWatchLogsHandler = async (event) => {
 
   const decoded = decodeCloudWatchLogsEventData(event.awslogs.data);
 
-  const eventsGroupedByDataset: Record<string, BaselimeEvent[]> = {};
+  const eventsGroupedByDataset: Record<string, AxiomEvent[]> = {};
 
   for (const logEvent of decoded.logEvents) {
     const trimmedMsg = logEvent.message.trim();

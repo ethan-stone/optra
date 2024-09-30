@@ -76,7 +76,7 @@ app.use('*', async (c, next) => {
 
 		logger = new Logger({
 			env: parsedEnv.ENVIRONMENT,
-			dataset: 'api-logs',
+			dataset: 'optra-logs',
 			namespace: c.req.method + ' ' + c.req.path,
 			service: 'api',
 			requestId: reqId,
