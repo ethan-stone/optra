@@ -29,7 +29,7 @@ export default async function Clients(props: PageProps) {
       ) : (
         <div className="flex flex-col rounded-md border border-stone-300 shadow">
           {clients.map((c, idx) => (
-            <>
+            <div key={idx}>
               <ClientItem
                 key={idx}
                 name={c.name}
@@ -38,7 +38,7 @@ export default async function Clients(props: PageProps) {
                 numTokens={c.numTokens}
               />
               {idx < clients.length - 1 && <Separator />}
-            </>
+            </div>
           ))}
         </div>
       )}
