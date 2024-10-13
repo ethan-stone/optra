@@ -61,10 +61,10 @@ export function SettingsForm(props: SettingsFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 rounded border border-stone-300 p-8 shadow">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <h2 className="text pb-2">Name</h2>
+    <div className="flex flex-col gap-4 rounded border border-stone-300 px-4 py-3 shadow">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h2>Name</h2>
           <Input
             {...register("apiName", {
               required: true,
@@ -77,8 +77,8 @@ export function SettingsForm(props: SettingsFormProps) {
             <p className="text-sm text-red-500">Name is required</p>
           )}
         </div>
-        <div>
-          <h2 className="text pb-2">Token Expiration In Seconds</h2>
+        <div className="flex flex-col gap-1">
+          <h2>Token Expiration In Seconds</h2>
           <Input
             {...register("tokenExpirationInSeconds", { required: true })}
             type="number"

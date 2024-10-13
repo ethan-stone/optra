@@ -1,5 +1,10 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
+  settings: {
+    "import/resolver": {
+      typescript: {},
+    },
+  },
   parser: "@typescript-eslint/parser",
   parserOptions: {
     project: true,

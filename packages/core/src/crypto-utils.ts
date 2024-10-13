@@ -115,7 +115,7 @@ export type JwtData = {
 function bytesToByteString(bytes: Uint8Array): string {
   let byteStr = "";
   for (let i = 0; i < bytes.byteLength; i++) {
-    byteStr += String.fromCharCode(bytes[i]);
+    byteStr += String.fromCharCode(bytes[i] as number);
   }
   return byteStr;
 }
@@ -336,7 +336,7 @@ export async function verify(
     const valid = await crypto.subtle.verify(
       algorithm,
       key,
-      base64UrlToArrayBuffer(tokenParts[2]),
+      base64UrlToArrayBuffer(tokenParts[2] as string),
       textToArrayBuffer(`${tokenParts[0]}.${tokenParts[1]}`)
     );
 
@@ -357,10 +357,10 @@ export async function verify(
 export function decode(token: string): JwtData {
   return {
     header: decodePayload(
-      token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/")
+      (token.split(".")[0] as string).replace(/-/g, "+").replace(/_/g, "/")
     ),
     payload: decodePayload<JwtPayload>(
-      token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")
+      (token.split(".")[1] as string).replace(/-/g, "+").replace(/_/g, "/")
     ),
   };
 }

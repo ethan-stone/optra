@@ -1,5 +1,5 @@
 export const backend = new sst.aws.Function("DashboardBackend", {
-  handler: "packages/dashboard/backend/dist/index.handler",
+  handler: "packages/dashboard/backend/src/index.handler",
 });
 
 export const frontend = new sst.aws.StaticSite("DashboardFrontend", {

@@ -22,6 +22,22 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "ClerkPublishableKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ClerkSecretKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "DashboardBackend": {
+      "name": string
+      "type": "sst.aws.Function"
+    }
+    "DashboardFrontend": {
+      "type": "sst.aws.StaticSite"
+      "url": string
+    }
     "DbUrl": {
       "type": "sst.sst.Secret"
       "value": string
@@ -46,6 +62,14 @@ declare module "sst" {
       "type": "sst.aws.Queue"
       "url": string
     }
+    "OptraApiId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "OptraWorkspaceId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Router": {
       "type": "sst.aws.Router"
       "url": string
@@ -57,6 +81,14 @@ declare module "sst" {
     "StripeApiKey": {
       "type": "sst.sst.Secret"
       "value": string
+    }
+    "Vpc": {
+      "type": "sst.aws.Vpc"
+    }
+    "Web": {
+      "service": string
+      "type": "sst.aws.Service"
+      "url": string
     }
   }
 }

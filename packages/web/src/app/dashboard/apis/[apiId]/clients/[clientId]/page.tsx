@@ -1,14 +1,13 @@
 import { notFound, redirect } from "next/navigation";
-import { type PropsWithChildren } from "react";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getClientByWorkspaceIdAndClientId } from "@/server/data/clients";
 import { getTenantId } from "@/utils/auth";
 import { EditClientForm } from "./edit-client-form";
 import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
 
-type ClientPageProps = PropsWithChildren<{
+type ClientPageProps = {
   params: { apiId: string; clientId: string };
-}>;
+};
 
 export default async function EditClientPage({ params }: ClientPageProps) {
   const tenantId = getTenantId();

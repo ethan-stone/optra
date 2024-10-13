@@ -12,5 +12,5 @@ const s3Client = new S3Client({
 
 export const storageBucket = new S3StorageBucket(
   s3Client,
-  env.CF_JWKS_BUCKET_NAME,
+  env.AWS_S3_JWKS_BUCKET_NAME,
 );
