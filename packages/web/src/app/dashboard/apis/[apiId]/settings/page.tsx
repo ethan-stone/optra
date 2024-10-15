@@ -28,6 +28,12 @@ export default async function Settings(props: ApiSettingsProps) {
 
   return (
     <div className="flex flex-col">
+      <div className="mb-6 flex flex-col justify-between">
+        <h2 className="text-2xl font-semibold">Settings</h2>
+        <p className="text-sm text-stone-500">
+          Update the settings for your API.
+        </p>
+      </div>
       <SettingsForm
         apiId={api.id}
         apiName={api.name}
