@@ -45,7 +45,7 @@ function ApiItem(props: {
   });
 
   return (
-    <div className="m-1 rounded-sm hover:bg-stone-50">
+    <div className="m-1 rounded-sm hover:bg-stone-100">
       <div className="flex flex-row justify-between space-y-1 px-4 py-3">
         <Link
           className="flex w-full flex-col justify-center gap-2 text-sm"
@@ -55,10 +55,10 @@ function ApiItem(props: {
         </Link>
         <div className="flex w-2/3 flex-row items-center justify-start">
           <div className="flex w-fit items-center gap-2">
-            <p className="rounded-md border border-gray-300 bg-stone-200 px-1 py-0.5 text-xs">
+            <p className="rounded-md border border-gray-400 bg-stone-300 px-1 py-0.5 text-xs">
               {props.numClients} Clients
             </p>
-            <p className="rounded-md border border-gray-300 bg-stone-200 px-1 py-0.5 text-xs">
+            <p className="rounded-md border border-gray-400 bg-stone-300 px-1 py-0.5 text-xs">
               {props.numTokens} Tokens This Month
             </p>
           </div>
@@ -136,7 +136,7 @@ export function Apis(props: Props) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col rounded-md border border-stone-300 shadow">
+        <div className="flex flex-col rounded-md border bg-stone-50 shadow *:border-stone-300">
           {props.data.map((api, idx) => (
             <div key={idx}>
               <ApiItem
