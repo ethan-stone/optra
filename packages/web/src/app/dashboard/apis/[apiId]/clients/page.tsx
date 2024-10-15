@@ -27,7 +27,7 @@ export default async function Clients(props: PageProps) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col rounded-md border border-stone-300 bg-stone-100 shadow">
+        <div className="flex flex-col rounded-md border border-stone-300 bg-stone-50 shadow">
           {clients.map((c, idx) => (
             <div key={idx}>
               <ClientItem

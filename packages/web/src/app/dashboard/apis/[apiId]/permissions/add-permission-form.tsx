@@ -61,11 +61,14 @@ export function AddPermissionForm() {
 
   return (
     <form
-      className="mb-2 flex flex-row gap-4 px-4 py-3"
+      className="mb-2 flex flex-row gap-4"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="flex flex-grow flex-col gap-1">
-        Name
+        <h2 className="text-sm font-semibold">Name</h2>
+        <p className="text-sm text-stone-500">
+          The name of the permission. This must be unique within the API.
+        </p>
         <Input
           {...register("name", { required: true, minLength: 1, maxLength: 30 })}
           placeholder="api:create"
@@ -75,7 +78,10 @@ export function AddPermissionForm() {
         )}
       </div>
       <div className="flex flex-grow flex-col gap-1">
-        Description
+        <h2 className="text-sm font-semibold">Description</h2>
+        <p className="text-sm text-stone-500">
+          A description of the permission. This is optional.
+        </p>
         <Input {...register("description")} placeholder="Create APIs" />
         {errors.description !== undefined && (
           <p className="text-sm text-red-500">Name is required</p>

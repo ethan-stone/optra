@@ -99,11 +99,14 @@ export function EditClientForm(props: {
   });
 
   return (
-    <div className="flex flex-col gap-4 rounded border border-stone-300 p-8 shadow">
-      <h1 className="text-xl">Basic Settings</h1>
+    <div>
+      <h1 className="mb-3 text-xl font-semibold">Basic Settings</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <h2 className="text pb-2">Name</h2>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold">Name</h2>
+          <p className="text-sm text-stone-500">
+            A human-readable name for the client.
+          </p>
           <Input
             {...register("clientName", { required: true })}
             type="string"
@@ -119,7 +122,10 @@ export function EditClientForm(props: {
         </div>
       </form>
       <Separator className="mb-5 mt-5" />
-      <h1 className="text-xl">Permissions</h1>
+      <h1 className="mb-3 text-xl font-semibold">Permissions</h1>
+      <p className="mb-3 text-sm text-stone-500">
+        Select the scopes that the client has access to.
+      </p>
       <div>
         <DataTable />
         <div className="flex justify-end">

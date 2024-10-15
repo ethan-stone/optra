@@ -42,11 +42,11 @@ export function PermissionItem(props: PermissionItemProps) {
   });
 
   return (
-    <div className="m-1 rounded-sm hover:bg-stone-50">
+    <div className="m-1 rounded-sm hover:bg-stone-100">
       <div className="flex flex-row justify-between space-y-1 px-4 py-3">
         <div className="flex flex-col gap-2">
           <div className="flex w-fit flex-row items-center gap-1">
-            <div className="flex flex-row items-center gap-1 rounded border border-gray-300 bg-stone-200 px-1 py-0.5 text-sm leading-none">
+            <div className="flex flex-row items-center gap-1 rounded border border-gray-400 bg-stone-300 px-1 py-0.5 text-sm leading-none">
               {props.name}
               <button
                 onClick={async (e) => {

@@ -30,14 +30,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "DashboardBackend": {
-      "name": string
-      "type": "sst.aws.Function"
-    }
-    "DashboardFrontend": {
-      "type": "sst.aws.StaticSite"
-      "url": string
-    }
     "DbUrl": {
       "type": "sst.sst.Secret"
       "value": string
@@ -49,10 +41,6 @@ declare module "sst" {
     "JwksBucket": {
       "name": string
       "type": "sst.aws.Bucket"
-    }
-    "LogHandler": {
-      "name": string
-      "type": "sst.aws.Function"
     }
     "MessageDLQ": {
       "type": "sst.aws.Queue"
