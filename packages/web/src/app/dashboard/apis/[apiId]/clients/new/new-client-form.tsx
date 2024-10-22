@@ -101,8 +101,11 @@ export function NewClientForm(props: Props) {
       }}
     >
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <h4 className="pb-2">Client Name</h4>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold">Name</h2>
+          <p className="text-sm text-stone-500">
+            A human-readable name for the client.
+          </p>
           <Input
             {...register("clientName", {
               required: true,
@@ -115,11 +118,14 @@ export function NewClientForm(props: Props) {
             <p className="text-sm text-red-500">A client name is required</p>
           )}
         </div>
-        <div>
-          <h4 className="flex flex-row gap-2 pb-2">
+        <div className="flex flex-col gap-1">
+          <h2 className="flex flex-row gap-2 text-sm font-semibold">
             Client ID Prefix
-            <p className="rounded bg-stone-200 px-1">Optional</p>
-          </h4>
+            <p className="rounded-md border border-gray-400 bg-stone-300 px-1 py-0.5 text-xs">
+              Optional
+            </p>
+          </h2>
+          <p className="text-sm text-stone-500">A prefix for the client ID.</p>
           <Input
             {...register("clientIdPrefix", {
               maxLength: 12,
@@ -133,11 +139,16 @@ export function NewClientForm(props: Props) {
             </p>
           )}
         </div>
-        <div>
-          <h4 className="flex flex-row gap-2 pb-2">
+        <div className="flex flex-col gap-1">
+          <h2 className="flex flex-row gap-2 text-sm font-semibold">
             Client Secret Prefix
-            <p className="rounded bg-stone-200 px-1">Optional</p>
-          </h4>
+            <p className="rounded-md border border-gray-400 bg-stone-300 px-1 py-0.5 text-xs">
+              Optional
+            </p>
+          </h2>
+          <p className="text-sm text-stone-500">
+            A prefix for the client secret.
+          </p>
           <Input
             {...register("clientSecretPrefix", {
               maxLength: 12,
@@ -151,11 +162,17 @@ export function NewClientForm(props: Props) {
             </p>
           )}
         </div>
-        <div>
-          <h4 className="flex flex-row gap-2 pb-2">
+        <div className="flex flex-col gap-1">
+          <h2 className="flex flex-row gap-2 text-sm font-semibold  ">
             Metadata
-            <p className="rounded bg-stone-200 px-1">Optional</p>
-          </h4>
+            <p className="rounded-md border border-gray-400 bg-stone-300 px-1 py-0.5 text-xs">
+              Optional
+            </p>
+          </h2>
+          <p className="text-sm text-stone-500">
+            Metadata is optional and can be used to store additional information
+            about the client.
+          </p>
           <Textarea
             {...register("metadata", {
               validate: (data) => {
@@ -174,7 +191,9 @@ export function NewClientForm(props: Props) {
           )}
         </div>
         <div>
-          <h4 className="pb-2">Permissions</h4>
+          <h2 className="flex flex-row gap-2 text-sm font-semibold">
+            Permissions
+          </h2>
           <DataTable />
         </div>
         <Button type="submit" disabled={createClient.isLoading}>

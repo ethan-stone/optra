@@ -130,7 +130,7 @@ export class DrizzleClientRepo implements ClientRepo {
   ): Promise<{ id: string; secret: string }> {
     const clientId = params.clientIdPrefix
       ? params.clientIdPrefix + "_" + uid()
-      : uid("client");
+      : uid();
     const secretId = uid("csk");
     const secretValue = params.clientSecretPrefix
       ? params.clientSecretPrefix + "_" + uid()
