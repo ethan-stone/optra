@@ -107,7 +107,7 @@ export function RootClients(props: Props) {
   return (
     <>
       <div className="mb-6 flex flex-row items-center justify-between">
-        <h2 className="text-2xl">Root Clients</h2>
+        <h2 className="text-2xl font-semibold">Root Clients</h2>
         <Button
           onClick={() => router.push("/dashboard/settings/root-clients/new")}
         >

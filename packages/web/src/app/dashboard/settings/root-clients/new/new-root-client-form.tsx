@@ -67,17 +67,23 @@ export function NewRootClientForm() {
       }}
     >
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-        <Input
-          {...register("rootClientName", {
-            required: true,
-            minLength: 1,
-            maxLength: 100,
-          })}
-          placeholder="Root Client Name"
-        />
-        {errors.rootClientName !== undefined && (
-          <p className="text-sm text-red-500">A client name is required</p>
-        )}
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold">Name</h2>
+          <p className="text-sm text-stone-500">
+            A human-readable name for the client.
+          </p>
+          <Input
+            {...register("rootClientName", {
+              required: true,
+              minLength: 1,
+              maxLength: 100,
+            })}
+            placeholder="Root Client Name"
+          />
+          {errors.rootClientName !== undefined && (
+            <p className="text-sm text-red-500">A client name is required</p>
+          )}
+        </div>
         <Button
           type="submit"
           disabled={
