@@ -5,6 +5,7 @@ import { getTenantId } from "@/utils/auth";
 import { notFound, redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
 import { CopyApiId } from "./copy-api-id";
+import { Breadcrumbs } from "./breadcrumbs";
 
 type ApiPageProps = PropsWithChildren<{
   params: { apiId: string };
@@ -53,13 +54,16 @@ export default async function ApiPageLayout(props: ApiPageProps) {
     },
   ];
 
+  console.log();
+
   return (
     <main className="flex min-h-screen flex-col items-center">
       <div className="flex w-2/3 flex-col px-10 py-10">
-        <h1 className="flex text-2xl font-semibold">{api.name}</h1>
+        <Breadcrumbs />
+        <h1 className="mt-4 flex text-2xl font-semibold">{api.name}</h1>
         <CopyApiId id={api.id} />
         <Tabs tabs={tabs} />
-        <main className="relative mb-20 mt-8 ">{props.children}</main>
+        <main className="relative mb-20 mt-8">{props.children}</main>
       </div>
     </main>
   );
