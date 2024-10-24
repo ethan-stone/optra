@@ -17,7 +17,8 @@
     "strict": true,
     "downlevelIteration": true,
     "paths": {
-      "@optra/core": ["../core/src"]
+      "@optra/core/*": ["../core/src/*"],
+      "@optra/events/*": ["../events/src/*"]
     }
   },
   "exclude": ["node_modules"]

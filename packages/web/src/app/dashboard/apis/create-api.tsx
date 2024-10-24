@@ -2,7 +2,7 @@
 
 import { useToast } from "@/components/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -77,6 +77,7 @@ export function CreateApi() {
         <Button
           className="py-0 pl-2 text-xs"
           onClick={() => {
+            reset();
             setIsOpen(true);
           }}
         >
@@ -88,7 +89,9 @@ export function CreateApi() {
             className="flex flex-col gap-4"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <h2 className="text-2xl font-semibold">Create API</h2>
+            <DialogTitle className="text-2xl font-semibold">
+              Create API
+            </DialogTitle>
             <Input
               {...register("apiName", { required: true })}
               placeholder="API Name"

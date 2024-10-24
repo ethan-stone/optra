@@ -128,6 +128,9 @@ importers:
       '@aws-sdk/client-kms':
         specifier: ^3.658.1
         version: 3.658.1
+      '@aws-sdk/client-scheduler':
+        specifier: ^3.637.0
+        version: 3.658.1
       nanoid:
         specifier: ^5.0.7
         version: 5.0.7

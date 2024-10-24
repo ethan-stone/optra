@@ -4,6 +4,8 @@ import { getClientByWorkspaceIdAndClientId } from "@/server/data/clients";
 import { getTenantId } from "@/utils/auth";
 import { EditClientForm } from "./edit-client-form";
 import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
+import { ClientSecrets } from "./client-secrets";
+import { Separator } from "@/components/ui/separator";
 
 type ClientPageProps = {
   params: { apiId: string; clientId: string };
@@ -34,8 +36,8 @@ export default async function EditClientPage({ params }: ClientPageProps) {
   }
 
   return (
-    <div>
-      <div className="mb-6 flex flex-row items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-row items-center justify-between">
         <h2 className="text-2xl font-semibold">{client.name}</h2>
       </div>
       <EditClientForm
@@ -44,6 +46,12 @@ export default async function EditClientPage({ params }: ClientPageProps) {
         apiId={api.id}
         apiScopes={api.scopes}
         clientScopes={client.scopes}
+      />
+      <Separator />
+      <ClientSecrets
+        clientId={client.id}
+        currentClientSecret={client.currentClientSecret}
+        nextClientSecret={client.nextClientSecret}
       />
     </div>
   );

@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.658.1",
+    "@aws-sdk/client-scheduler": "^3.637.0",
     "nanoid": "^5.0.7",
     "postgres": "^3.4.4",
     "zod": "^3.23.8"

@@ -37,9 +37,6 @@ export function useDataTable<TData, TValue>({
   onRowSelectionChange,
   state,
 }: DataTableProps<TData, TValue>) {
-  console.log("state", state);
-  console.log("onRowSelectionChange", onRowSelectionChange);
-
   const table = useReactTable({
     data,
     columns,

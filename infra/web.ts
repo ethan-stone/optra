@@ -1,5 +1,7 @@
 import { bucket } from "./bucket";
 import { kmsKey } from "./kms";
+import { messageQueue } from "./queue";
+import { schedulerDLQ, schedulerRole } from "./scheduler";
 import { secrets } from "./secrets";
 
 const vpc = new sst.aws.Vpc("Vpc");
@@ -32,5 +34,8 @@ cluster.addService("Web", {
   environment: {
     NODE_ENV: $dev ? "development" : "production",
     AWS_KMS_KEY_ARN: kmsKey.arn,
+    AWS_SCHEDULER_ROLE_ARN: schedulerRole.arn,
+    AWS_SCHEDULER_FAILED_DLQ_ARN: schedulerDLQ.arn,
+    AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,
   },
 });

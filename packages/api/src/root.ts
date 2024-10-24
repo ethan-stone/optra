@@ -1,7 +1,6 @@
 import { TokenBucket } from '@/ratelimit';
 import { CacheNamespaces, InMemoryCache } from '@/cache';
-import { AWSEventScheduler, Scheduler } from '@/scheduler';
-import { SchedulerClient } from '@aws-sdk/client-scheduler';
+import { AWSEventScheduler } from '@optra/core/scheduler';
 import { TokenService } from '@/token-service';
 import { AWSS3Storage } from './storage';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -55,13 +54,6 @@ export async function initialize(env: {
 	);
 
 	const scheduler = new AWSEventScheduler(
-		new SchedulerClient({
-			credentials: {
-				accessKeyId: env.awsAccessKeyId,
-				secretAccessKey: env.awsSecretAccessKey,
-			},
-			region: 'us-east-1',
-		}),
 		{
 			roleArn: env.awsSchedulerRoleArn,
 			eventTypeToTargetMap: {
@@ -70,6 +62,9 @@ export async function initialize(env: {
 			},
 			dlqArn: env.awsSchedulerFailedDLQ,
 		},
+		'us-east-1',
+		env.awsAccessKeyId,
+		env.awsSecretAccessKey,
 	);
 
 	const storage = new AWSS3Storage(

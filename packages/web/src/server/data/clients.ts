@@ -1,7 +1,12 @@
 import { getDrizzle } from "@optra/core/drizzle";
 import { type Client, DrizzleClientRepo } from "@optra/core/clients";
+import {
+  type ClientSecret,
+  DrizzleClientSecretRepo,
+} from "@optra/core/client-secrets";
 import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
 import { env } from "@/env";
+import { getScheduler } from "../scheduler";
 
 async function getClientRepo() {
   const { db } = await getDrizzle(env.DATABASE_URL);
@@ -11,6 +16,11 @@ async function getClientRepo() {
 async function getTokenRepo() {
   const { db } = await getDrizzle(env.DATABASE_URL);
   return new DrizzleTokenGenerationRepo(db);
+}
+
+async function getClientSecretRepo() {
+  const { db } = await getDrizzle(env.DATABASE_URL);
+  return new DrizzleClientSecretRepo(db);
 }
 
 export async function getTotalClientsForApi(apiId: string) {
@@ -126,7 +136,10 @@ export async function getClientByWorkspaceIdAndClientId(
   workspaceId: string,
   clientId: string,
 ) {
-  const clients = await getClientRepo();
+  const [clients, clientSecrets] = await Promise.all([
+    getClientRepo(),
+    getClientSecretRepo(),
+  ]);
 
   const client = await clients.getById(clientId);
 
@@ -140,9 +153,37 @@ export async function getClientByWorkspaceIdAndClientId(
 
   const clientScopes = await clients.getScopesByClientId(client.id);
 
+  const currentSecret = await clientSecrets.getById(
+    client.currentClientSecretId,
+  );
+
+  if (!currentSecret) {
+    throw new Error(
+      `currentClientSecretId ${client.currentClientSecretId} not found for client ${client.id}. This should be impossible.`,
+    );
+  }
+
+  let nextSecret: ClientSecret | null = null;
+
+  if (client.nextClientSecretId !== null) {
+    const nextSecretLocal = await clientSecrets.getById(
+      client.nextClientSecretId,
+    );
+
+    if (!nextSecretLocal) {
+      throw new Error(
+        `nextClientSecretId ${client.nextClientSecretId} not found for client ${client.id} despite not being null. This should be impossible.`,
+      );
+    }
+
+    nextSecret = nextSecretLocal;
+  }
+
   return {
     ...client,
     scopes: clientScopes,
+    currentClientSecret: currentSecret,
+    nextClientSecret: nextSecret,
   };
 }
 
@@ -168,4 +209,40 @@ export async function setClientScopes(id: string, scopes: string[]) {
   const clients = await getClientRepo();
 
   await clients.setScopes({ clientId: id, apiScopeIds: scopes });
+}
+
+export async function rotateClientSecretForClient(
+  clientId: string,
+  expiresAt?: Date | null,
+) {
+  const [clients, clientSecrets, scheduler] = await Promise.all([
+    getClientRepo(),
+    getClientSecretRepo(),
+    getScheduler(),
+  ]);
+
+  const client = await clients.getById(clientId);
+
+  if (!client) {
+    throw new Error(`Client with id ${clientId} not found`);
+  }
+
+  const now = new Date();
+
+  // if the provided expiresAt is null, set it to 1 minute from now
+  const expiresAtLocal = expiresAt ?? new Date(now.getTime() + 1000 * 60);
+
+  const newSecret = await clientSecrets.rotate({
+    clientId,
+    expiresAt: expiresAtLocal,
+  });
+
+  await scheduler.createOneTimeSchedule({
+    at: expiresAtLocal,
+    eventType: "client.secret.expired",
+    payload: { clientId, clientSecretId: client.currentClientSecretId },
+    timestamp: Date.now(),
+  });
+
+  return newSecret;
 }
