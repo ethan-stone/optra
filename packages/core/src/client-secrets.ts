@@ -61,8 +61,8 @@ export class DrizzleClientSecretRepo implements ClientSecretRepo {
 
     const secretId = uid("csk");
     const secretValue = clientSecretPrefix
-      ? clientSecretPrefix + "_" + uid(undefined, 48)
-      : uid(undefined, 48);
+      ? clientSecretPrefix + "_" + uid()
+      : uid();
     const hashedSecretValue = await hashSHA256(secretValue);
 
     const now = new Date();

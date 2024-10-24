@@ -364,9 +364,11 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      await rotateClientSecretForClient(
+      const newSecret = await rotateClientSecretForClient(
         input.id,
         input.expiresAt ? new Date(input.expiresAt) : undefined,
       );
+
+      return newSecret;
     }),
 });
