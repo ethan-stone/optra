@@ -92,42 +92,59 @@ export function CreateApi() {
             <DialogTitle className="text-2xl font-semibold">
               Create API
             </DialogTitle>
-            <Input
-              {...register("apiName", { required: true })}
-              placeholder="API Name"
-            />
-            {errors.apiName !== undefined && (
-              <p className="text-sm text-red-500">API Name is required</p>
-            )}
-            <Controller
-              control={control}
-              name="algorithm"
-              rules={{
-                required: true,
-                validate(data) {
-                  return data === "rsa256" || data === "hsa256";
-                },
-              }}
-              render={({ field }) => {
-                return (
-                  <Select onValueChange={field.onChange} {...field}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a signing algorithm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Signing Algorithm</SelectLabel>
-                        <SelectItem value="rsa256">RSA256</SelectItem>
-                        <SelectItem value="hsa256">HSA256</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                );
-              }}
-            />
-            {errors.algorithm !== undefined && (
-              <p className="text-sm text-red-500">Must select an algorithm</p>
-            )}
+            <div className="flex flex-col gap-1">
+              <h2 className="text-sm font-semibold">Name</h2>
+              <p className="text-sm text-stone-500">
+                A human-readable name for the API.
+              </p>
+              <Input
+                {...register("apiName", { required: true })}
+                placeholder="API Name"
+              />
+              {errors.apiName !== undefined && (
+                <p className="text-sm text-red-500">API Name is required</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-sm font-semibold">Signing Algorithm</h2>
+              <p className="text-sm text-stone-500">
+                The algorithm to use for signing JWTs. This can not be changed
+                later.
+              </p>
+              <Controller
+                control={control}
+                name="algorithm"
+                rules={{
+                  required: true,
+                  validate(data) {
+                    return data === "rsa256" || data === "hsa256";
+                  },
+                }}
+                render={({ field }) => {
+                  return (
+                    <Select onValueChange={field.onChange} {...field}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a signing algorithm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Signing Algorithm</SelectLabel>
+                          <SelectItem value="rsa256">
+                            RSA256 Asymmetric Key
+                          </SelectItem>
+                          <SelectItem value="hsa256">
+                            HS256 Symmetric Key
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  );
+                }}
+              />
+              {errors.algorithm !== undefined && (
+                <p className="text-sm text-red-500">Must select an algorithm</p>
+              )}
+            </div>
             <Button
               type="submit"
               className="mb-6 mt-2"
