@@ -335,7 +335,18 @@ export const clientsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        expiresAt: z.string().datetime().nullish(),
+        expiresAt: z
+          .string()
+          .datetime()
+          .nullish()
+          .refine(
+            (value) => {
+              if (value === null || value === undefined) return true;
+              const date = new Date(value);
+              return date > new Date();
+            },
+            { message: "Expires at must be in the future" },
+          ),
       }),
     )
     .mutation(async ({ ctx, input }) => {
