@@ -7,6 +7,8 @@ type UploadArgs = {
 };
 
 export interface StorageBucket {
+  publicUrl: string;
+
   upload(args: UploadArgs): Promise<void>;
 }
 
@@ -14,6 +16,7 @@ export class S3StorageBucket implements StorageBucket {
   constructor(
     private readonly s3Client: S3Client,
     private readonly bucket: string,
+    public publicUrl: string,
   ) {}
 
   async upload(args: UploadArgs): Promise<void> {

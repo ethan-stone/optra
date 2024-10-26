@@ -78,7 +78,7 @@ export function RotateClientSecret({ clientId }: { clientId: string }) {
         data.expiresAtOption === "custom" && data.expiresAtDate
           ? new Date(data.expiresAtDate).toISOString()
           : data.expiresAtOption === "immediately"
-            ? now.toISOString()
+            ? undefined
             : data.expiresAtOption === "3_days"
               ? new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString()
               : data.expiresAtOption === "1_week"

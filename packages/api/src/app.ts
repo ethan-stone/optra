@@ -6,7 +6,7 @@ import { Logger } from './logger';
 import { Db } from './db';
 import { KeyManagementService } from '@optra/core/key-management';
 import { Cache, CacheNamespaces } from './cache';
-import { Scheduler } from './scheduler';
+import { Scheduler } from '@optra/core/scheduler';
 import { TokenService } from './token-service';
 import { Storage } from './storage';
 

@@ -3,6 +3,8 @@ import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getTenantId } from "@/utils/auth";
 import { notFound } from "next/navigation";
 import { SettingsForm } from "./settings-form";
+import { Separator } from "@/components/ui/separator";
+import { SigningSecrets } from "./signing-secrets";
 
 type ApiSettingsProps = {
   params: { apiId: string };
@@ -27,7 +29,7 @@ export default async function Settings(props: ApiSettingsProps) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-6">
       <div className="mb-6 flex flex-col justify-between">
         <h2 className="text-2xl font-semibold">Settings</h2>
         <p className="text-sm text-stone-500">
@@ -38,6 +40,12 @@ export default async function Settings(props: ApiSettingsProps) {
         apiId={api.id}
         apiName={api.name}
         tokenExpirationInSeconds={api.tokenExpirationInSeconds}
+      />
+      <Separator />
+      <SigningSecrets
+        apiId={api.id}
+        currentSigningSecret={api.currentSigningSecret}
+        nextSigningSecret={api.nextSigningSecret}
       />
     </div>
   );

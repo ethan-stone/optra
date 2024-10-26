@@ -162,11 +162,9 @@ export function v1RotateApiSigningSecret(app: App) {
 
 			const url = `${storage.publicUrl}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
-			const req = new Request(url, {
+			const res = await fetch(url, {
 				method: 'GET',
 			});
-
-			const res = await fetch(req);
 
 			if (res.status !== 200) {
 				logger.error(`Public keys for api ${api.id} could not be retrieved.`);
