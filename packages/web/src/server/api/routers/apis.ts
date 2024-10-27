@@ -100,7 +100,7 @@ export const apisRouter = createTRPCRouter({
 
         const now = new Date();
 
-        const { id, currentSigningSecretId } = await createApi({
+        const { id, currentSigningSecret } = await createApi({
           workspaceId: workspace.id,
           name: input.name,
           scopes: [],
@@ -121,7 +121,7 @@ export const apisRouter = createTRPCRouter({
             keys: [
               {
                 ...publicKey,
-                kid: currentSigningSecretId,
+                kid: currentSigningSecret.id,
               },
             ],
           }),
