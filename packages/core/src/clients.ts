@@ -32,6 +32,7 @@ export type ClientScope = typeof schema.clientScopes.$inferSelect;
 
 export type SetClientScopesParams = {
   clientId: string;
+  workspaceId: string;
   apiScopeIds: string[];
 };
 
@@ -113,6 +114,7 @@ export class DrizzleClientRepo implements ClientRepo {
 
       await tx.insert(schema.clientSecrets).values({
         id: secretId,
+        workspaceId: params.workspaceId,
         secret: await hashSHA256(secretValue),
         status: "active",
         createdAt: new Date(),
@@ -147,6 +149,7 @@ export class DrizzleClientRepo implements ClientRepo {
 
       await tx.insert(schema.clientSecrets).values({
         id: secretId,
+        workspaceId: params.workspaceId,
         secret: await hashSHA256(secretValue),
         status: "active",
         createdAt: now,
@@ -158,6 +161,7 @@ export class DrizzleClientRepo implements ClientRepo {
             id: uid("client_scope"),
             apiScopeId: apiScope,
             clientId: clientId,
+            workspaceId: params.workspaceId,
             createdAt: now,
             updatedAt: now,
           });
@@ -192,6 +196,7 @@ export class DrizzleClientRepo implements ClientRepo {
           id: uid("client_scope"),
           apiScopeId,
           clientId: params.clientId,
+          workspaceId: params.workspaceId,
           createdAt: now,
           updatedAt: now,
         });

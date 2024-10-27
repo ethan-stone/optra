@@ -44,6 +44,7 @@ export const clients = pgTable(
 
 export const clientSecrets = pgTable("client_secrets", {
   id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
   secret: text("secret").notNull(),
   status: text("status", { enum: ["active", "revoked"] }).notNull(),
   expiresAt: timestamp("expires_at", { mode: "date" }),
@@ -142,6 +143,7 @@ export const apis = pgTable(
 
 export const signingSecrets = pgTable("signing_secrets", {
   id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
   secret: text("secret").notNull(), // base64 encoded encrypted signing secret
   iv: text("iv").notNull(), // base64 encoded initialization vector NOT encrypted. Doesn't need to be.
   algorithm: text("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
@@ -157,6 +159,7 @@ export const apiScopes = pgTable(
   {
     id: text("id").primaryKey(),
     apiId: text("api_id").notNull(),
+    workspaceId: text("workspace_id").notNull(),
     name: text("name").notNull(),
     description: text("description").default("").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
@@ -179,6 +182,7 @@ export const clientScopes = pgTable(
     id: text("id").primaryKey(),
     clientId: text("client_id").notNull(),
     apiScopeId: text("api_scope_id").notNull(),
+    workspaceId: text("workspace_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
   },
@@ -199,7 +203,7 @@ export const dataEncryptionKeys = pgTable("data_encryption_keys", {
 });
 
 export const idempotencyKeys = pgTable("idempotency_keys", {
-  key: varchar("key", { length: 255 }).primaryKey(),
+  key: text("key").primaryKey(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   expiresAt: timestamp("expires_at", { mode: "date" }),
 });

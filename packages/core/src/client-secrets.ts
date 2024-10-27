@@ -77,6 +77,7 @@ export class DrizzleClientSecretRepo implements ClientSecretRepo {
 
       await tx.insert(schema.clientSecrets).values({
         id: secretId,
+        workspaceId: client.workspaceId,
         secret: hashedSecretValue,
         status: "active",
         createdAt: now,
@@ -93,6 +94,7 @@ export class DrizzleClientSecretRepo implements ClientSecretRepo {
 
     return {
       id: secretId,
+      workspaceId: client.workspaceId,
       secret: secretValue,
       status: "active",
       expiresAt: null,

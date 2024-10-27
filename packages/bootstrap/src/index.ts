@@ -172,6 +172,7 @@ async function newApi(
       await db.apis.createScope({
         apiId: id,
         name: "example-scope",
+        workspaceId: args.workspaceId,
         description: "Just an example scope",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -180,6 +181,7 @@ async function newApi(
       await db.apis.createScope({
         apiId: id,
         name: "another-example-scope",
+        workspaceId: args.workspaceId,
         description: "Just another example scope",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -217,7 +219,7 @@ async function newApi(
         Buffer.from(args.dataEncryptionKey, "base64")
       );
 
-      const { id, currentSigningSecretId } = await db.apis.create({
+      const { id, currentSigningSecret } = await db.apis.create({
         name: apiName,
         workspaceId: args.workspaceId,
         algorithm: "rsa256",
@@ -232,6 +234,7 @@ async function newApi(
 
       await db.apis.createScope({
         apiId: id,
+        workspaceId: args.workspaceId,
         name: "example-scope",
         description: "Just an example scope",
         createdAt: new Date(),
@@ -240,6 +243,7 @@ async function newApi(
 
       await db.apis.createScope({
         apiId: id,
+        workspaceId: args.workspaceId,
         name: "another-example-scope",
         description: "Just another example scope",
         createdAt: new Date(),
@@ -251,7 +255,7 @@ async function newApi(
           Bucket: args.bucketName,
           Key: `jwks/${args.workspaceId}/${apiId}/.well-known/jwks.json`,
           Body: JSON.stringify({
-            keys: [{ ...publicKey, kid: currentSigningSecretId }],
+            keys: [{ ...publicKey, kid: currentSigningSecret.id }],
           }),
           ContentType: "application/json",
         })
@@ -278,6 +282,7 @@ async function newApiScope(
   await db.insert(schema.apiScopes).values({
     id,
     apiId: args.apiId,
+    workspaceId: args.workspaceId,
     name: args.name,
     description: args.description,
     createdAt: new Date(),

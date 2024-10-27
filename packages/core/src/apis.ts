@@ -62,6 +62,7 @@ export class DrizzleApiRepo implements ApiRepo {
     await this.db.transaction(async (tx) => {
       await tx.insert(schema.signingSecrets).values({
         id: signingSecretId,
+        workspaceId: params.workspaceId,
         secret: params.encryptedSigningSecret,
         iv: params.iv,
         status: "active",
@@ -83,6 +84,7 @@ export class DrizzleApiRepo implements ApiRepo {
           await tx.insert(schema.apiScopes).values({
             id: uid("api_scope"),
             apiId: apiId,
+            workspaceId: params.workspaceId,
             name: scopes.name,
             description: scopes.description,
             createdAt: now,

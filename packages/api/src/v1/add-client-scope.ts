@@ -121,6 +121,7 @@ export function v1AddClientScope(app: App) {
 		await db.clients.createScope({
 			apiScopeId: scope.id,
 			clientId: client.id,
+			workspaceId: client.workspaceId,
 			createdAt: now,
 			updatedAt: now,
 		});

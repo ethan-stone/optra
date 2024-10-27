@@ -40,6 +40,7 @@ export class DrizzleSigningSecretRepo implements SigningSecretRepo {
 
     await this.db.insert(schema.signingSecrets).values({
       id,
+      workspaceId: params.workspaceId,
       secret: params.secret,
       iv: params.iv,
       algorithm: params.algorithm,
@@ -70,6 +71,7 @@ export class DrizzleSigningSecretRepo implements SigningSecretRepo {
 
       await tx.insert(schema.signingSecrets).values({
         id: signingSecretId,
+        workspaceId: api.workspaceId,
         secret: params.encryptedSigningSecret,
         algorithm: params.algorithm,
         iv: params.iv,

@@ -43,6 +43,13 @@
       "when": 1727642697460,
       "tag": "0005_panoramic_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1729999450598,
+      "tag": "0006_right_starbolt",
+      "breakpoints": true
     }
   ]
 }

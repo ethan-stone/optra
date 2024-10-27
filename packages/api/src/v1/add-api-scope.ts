@@ -87,6 +87,7 @@ export function v1AddApiScope(app: App) {
 
 		const { id } = await db.apis.createScope({
 			apiId: apiId,
+			workspaceId: api.workspaceId,
 			name: scope.name,
 			description: scope.description,
 			createdAt: now,
