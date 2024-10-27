@@ -74,9 +74,7 @@ export function ClientItem(props: Props) {
               <DropdownMenuItem>
                 <button
                   className="flex w-full flex-row items-center gap-2 text-left font-light text-stone-900 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
+                  onClick={() => {
                     navigator.clipboard
                       .writeText(props.id)
                       .then(() => {

@@ -4,6 +4,15 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/hooks/use-toast";
 import { Copy } from "lucide-react";
 import { RotateSigningSecret } from "./rotate-signing-secret";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Ellipses } from "@/components/icons/ellipses";
 
 type SigningSecretsProps = {
   apiId: string;
@@ -67,31 +76,41 @@ export function SigningSecretItem({
           </p>
           <p className="text-xs text-stone-500">{statusToDescription[type]}</p>
         </div>
-
-        <p className="flex w-fit items-center gap-1 rounded-md border border-stone-400 bg-stone-300 px-1 py-0.5 text-xs">
-          {id}
-          <button
-            className="flex w-full flex-row items-center gap-2 text-left font-light text-stone-900 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              navigator.clipboard
-                .writeText(id)
-                .then(() => {
-                  toast({
-                    title: "Client Secret ID Copied",
-                    description: "Client Secret ID copied to clipboard",
-                  });
-                })
-                .catch((err) => {
-                  console.error(err);
-                  alert(err);
-                });
-            }}
-          >
-            <Copy className="h-3 w-3 text-stone-900" />
-          </button>
-        </p>
+        <div className="flex flex-row items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex flex-row gap-2 rounded border border-stone-300 bg-white p-1 shadow-sm focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0">
+                <Ellipses />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <button
+                  className="flex w-full flex-row items-center gap-2 text-left font-light text-stone-900 focus:outline-none focus:ring-0 focus:ring-transparent focus:ring-offset-0"
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(id)
+                      .then(() => {
+                        toast({
+                          title: "Client ID Copied",
+                          description: "Client ID copied to clipboard",
+                        });
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                        alert(err);
+                      });
+                  }}
+                >
+                  Copy ID
+                  <Copy className="h-3 w-3 text-stone-900" />
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   );
