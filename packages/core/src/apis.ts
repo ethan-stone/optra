@@ -34,8 +34,6 @@ export interface ApiRepo {
     id: string;
     currentSigningSecret: {
       id: string;
-      algorithm: "hsa256" | "rsa256";
-      secret: string;
     };
   }>;
   update(id: string, params: UpdateApiParams): Promise<void>;
@@ -56,8 +54,6 @@ export class DrizzleApiRepo implements ApiRepo {
     id: string;
     currentSigningSecret: {
       id: string;
-      algorithm: "hsa256" | "rsa256";
-      secret: string;
     };
   }> {
     const apiId = uid("api");
@@ -100,8 +96,6 @@ export class DrizzleApiRepo implements ApiRepo {
       id: apiId,
       currentSigningSecret: {
         id: signingSecretId,
-        algorithm: params.algorithm,
-        secret: params.encryptedSigningSecret,
       },
     };
   }

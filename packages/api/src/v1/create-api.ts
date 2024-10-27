@@ -175,7 +175,11 @@ export function v1CreateApi(app: App) {
 						name,
 						workspaceId: workspace.id,
 						tokenExpirationInSeconds,
-						currentSigningSecret,
+						currentSigningSecret: {
+							id: currentSigningSecret.id,
+							algorithm: algorithm,
+							secret: exportedSigningSecret,
+						},
 						createdAt: now.toISOString(),
 						updatedAt: now.toISOString(),
 					},
@@ -232,13 +236,25 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Successfully created api with id ${id}`);
 
+				const exportedPemPrivateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+				const exportedPemPrivateKeyString = Buffer.from(exportedPemPrivateKey).toString('base64');
+				const pemFormat = [
+					'-----BEGIN PRIVATE KEY-----',
+					...exportedPemPrivateKeyString.match(/.{1,64}/g)!, // split into lines of 64 characters
+					'-----END PRIVATE KEY-----',
+				].join('\n');
+
 				return c.json(
 					{
 						id,
 						name,
 						workspaceId: workspace.id,
 						tokenExpirationInSeconds,
-						currentSigningSecret,
+						currentSigningSecret: {
+							id: currentSigningSecret.id,
+							algorithm: algorithm,
+							secret: pemFormat,
+						},
 						createdAt: now.toISOString(),
 						updatedAt: now.toISOString(),
 					},

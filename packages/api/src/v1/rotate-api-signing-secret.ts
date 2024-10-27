@@ -26,7 +26,11 @@ const route = createRoute({
 			description: 'Response from rotating a signing secret',
 			content: {
 				'application/json': {
-					schema: z.object({ id: z.string() }),
+					schema: z.object({
+						id: z.string(),
+						algorithm: z.enum(['hsa256', 'rsa256']),
+						secret: z.string(),
+					}),
 				},
 			},
 		},
@@ -129,6 +133,8 @@ export function v1RotateApiSigningSecret(app: App) {
 			return c.json(
 				{
 					id: nextSigningSecretId,
+					algorithm: 'hsa256' as const,
+					secret: exportedSigningSecret,
 				},
 				200,
 			);
@@ -197,9 +203,19 @@ export function v1RotateApiSigningSecret(app: App) {
 				timestamp: Date.now(),
 			});
 
+			const exportedPemPrivateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+			const exportedPemPrivateKeyString = Buffer.from(exportedPemPrivateKey).toString('base64');
+			const pemFormat = [
+				'-----BEGIN PRIVATE KEY-----',
+				...exportedPemPrivateKeyString.match(/.{1,64}/g)!, // split into lines of 64 characters
+				'-----END PRIVATE KEY-----',
+			].join('\n');
+
 			return c.json(
 				{
 					id: nextSigningSecretId,
+					algorithm: 'rsa256' as const,
+					secret: pemFormat,
 				},
 				200,
 			);
