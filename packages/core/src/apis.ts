@@ -30,9 +30,14 @@ export type CreateApiScopeParams = Omit<
 >;
 
 export interface ApiRepo {
-  create(
-    params: CreateApiParams
-  ): Promise<{ id: string; currentSigningSecretId: string }>;
+  create(params: CreateApiParams): Promise<{
+    id: string;
+    currentSigningSecret: {
+      id: string;
+      algorithm: "hsa256" | "rsa256";
+      secret: string;
+    };
+  }>;
   update(id: string, params: UpdateApiParams): Promise<void>;
   getById(id: string): Promise<Api | null>;
   getByWorkspaceAndName(workspaceId: string, name: string): Promise<Api | null>;
@@ -47,9 +52,14 @@ export interface ApiRepo {
 export class DrizzleApiRepo implements ApiRepo {
   constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
-  async create(
-    params: CreateApiParams
-  ): Promise<{ id: string; currentSigningSecretId: string }> {
+  async create(params: CreateApiParams): Promise<{
+    id: string;
+    currentSigningSecret: {
+      id: string;
+      algorithm: "hsa256" | "rsa256";
+      secret: string;
+    };
+  }> {
     const apiId = uid("api");
     const signingSecretId = uid("ssk");
 
@@ -88,7 +98,11 @@ export class DrizzleApiRepo implements ApiRepo {
 
     return {
       id: apiId,
-      currentSigningSecretId: signingSecretId,
+      currentSigningSecret: {
+        id: signingSecretId,
+        algorithm: params.algorithm,
+        secret: params.encryptedSigningSecret,
+      },
     };
   }
 

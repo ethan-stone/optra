@@ -49,6 +49,23 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						id: z.string(),
+						name: z.string(),
+						workspaceId: z.string(),
+						tokenExpirationInSeconds: z.number().int().min(0),
+						currentSigningSecret: z.discriminatedUnion('algorithm', [
+							z.object({
+								id: z.string(),
+								algorithm: z.literal('hsa256'),
+								secret: z.string(),
+							}),
+							z.object({
+								id: z.string(),
+								algorithm: z.literal('rsa256'),
+								secret: z.string(),
+							}),
+						]),
+						createdAt: z.string().datetime(),
+						updatedAt: z.string().datetime(),
 					}),
 				},
 			},
@@ -138,7 +155,7 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Encrypted signing secret.`);
 
-				const { id } = await db.apis.create({
+				const { id, currentSigningSecret } = await db.apis.create({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),
@@ -152,7 +169,18 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Successfully created api with id ${id}`);
 
-				return c.json({ id }, 200);
+				return c.json(
+					{
+						id,
+						name,
+						workspaceId: workspace.id,
+						tokenExpirationInSeconds,
+						currentSigningSecret,
+						createdAt: now.toISOString(),
+						updatedAt: now.toISOString(),
+					},
+					200,
+				);
 			}
 			case 'rsa256': {
 				const keyPair = (await crypto.subtle.generateKey(
@@ -178,7 +206,7 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Encrypted signing secret.`);
 
-				const { id, currentSigningSecretId } = await db.apis.create({
+				const { id, currentSigningSecret } = await db.apis.create({
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),
@@ -196,7 +224,7 @@ export function v1CreateApi(app: App) {
 						keys: [
 							{
 								...publicKey,
-								kid: currentSigningSecretId,
+								kid: currentSigningSecret.id,
 							},
 						],
 					}),
@@ -204,7 +232,18 @@ export function v1CreateApi(app: App) {
 
 				logger.info(`Successfully created api with id ${id}`);
 
-				return c.json({ id }, 200);
+				return c.json(
+					{
+						id,
+						name,
+						workspaceId: workspace.id,
+						tokenExpirationInSeconds,
+						currentSigningSecret,
+						createdAt: now.toISOString(),
+						updatedAt: now.toISOString(),
+					},
+					200,
+				);
 			}
 			default: {
 				throw new HTTPException({
