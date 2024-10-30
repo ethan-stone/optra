@@ -106,6 +106,7 @@ export async function updateApiById(id: string, args: UpdateApiByIdArgs) {
 }
 
 type AddScopeToApiArgs = {
+  workspaceId: string;
   apiId: string;
   name: string;
   description: string;
@@ -117,6 +118,7 @@ export async function addScopeToApi(args: AddScopeToApiArgs) {
   const apis = await getApiRepo();
 
   const scope = await apis.createScope({
+    workspaceId: args.workspaceId,
     apiId: args.apiId,
     name: args.name,
     description: args.description,

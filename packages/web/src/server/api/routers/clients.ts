@@ -327,7 +327,7 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      await setClientScopes(input.id, input.scopes);
+      await setClientScopes(input.id, workspace.id, input.scopes);
 
       return null;
     }),

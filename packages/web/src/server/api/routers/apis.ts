@@ -14,6 +14,7 @@ import {
   updateApiById,
 } from "@/server/data/apis";
 import { getKeyManagementService } from "@/server/key-management";
+import { getSigningSecretById } from "@/server/data/signing-secrets";
 
 export const apisRouter = createTRPCRouter({
   createApi: protectedProcedure
@@ -233,6 +234,7 @@ export const apisRouter = createTRPCRouter({
         apiId: input.apiId,
         name: input.name,
         description: input.description,
+        workspaceId: workspace.id,
       });
 
       return { id };
@@ -409,5 +411,56 @@ export const apisRouter = createTRPCRouter({
       }
 
       return { success: true };
+    }),
+  getSigningSecretValue: protectedProcedure
+    .input(z.object({ signingSecretId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+      const keyManagementService = await getKeyManagementService();
+
+      if (!workspace) {
+        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+      }
+
+      const signingSecret = await getSigningSecretById(input.signingSecretId);
+
+      if (!signingSecret || signingSecret.workspaceId !== workspace.id) {
+        console.error(
+          `Signing secret not found for id ${input.signingSecretId}`,
+        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Signing secret not found",
+        });
+      }
+
+      const decryptResult = await keyManagementService.decryptWithDataKey(
+        workspace.dataEncryptionKeyId,
+        Buffer.from(signingSecret.secret, "base64"),
+        Buffer.from(signingSecret.iv, "base64"),
+      );
+
+      if (signingSecret.algorithm === "rsa256") {
+
+      const pemFormat = [
+        "-----BEGIN PRIVATE KEY-----",
+        ...Buffer.from(decryptResult.decryptedData)
+          .toString("base64")
+          .match(/.{1,64}/g)!, // split into lines of 64 characters
+        "-----END PRIVATE KEY-----",
+      ].join("\n");
+
+      return {
+        secret: pemFormat,
+        };
+      } else {
+        return {
+          secret: Buffer.from(decryptResult.decryptedData).toString("base64"),
+        };
+      }
     }),
 });

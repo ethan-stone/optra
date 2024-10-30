@@ -205,10 +205,18 @@ export async function updateClientById(id: string, name: string) {
   await clients.update(id, { name });
 }
 
-export async function setClientScopes(id: string, scopes: string[]) {
+export async function setClientScopes(
+  id: string,
+  workspaceId: string,
+  scopes: string[],
+) {
   const clients = await getClientRepo();
 
-  await clients.setScopes({ clientId: id, apiScopeIds: scopes });
+  await clients.setScopes({
+    clientId: id,
+    workspaceId: workspaceId,
+    apiScopeIds: scopes,
+  });
 }
 
 export async function rotateClientSecretForClient(
