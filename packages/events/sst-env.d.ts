@@ -38,6 +38,10 @@ declare module "sst" {
       "type": "sst.aws.StaticSite"
       "url": string
     }
+    "Email": {
+      "sender": string
+      "type": "sst.aws.Email"
+    }
     "JwksBucket": {
       "name": string
       "type": "sst.aws.Bucket"
