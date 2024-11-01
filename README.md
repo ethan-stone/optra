@@ -1,17 +1,27 @@
-# Architecture
+# Repo Layout
 
-## Services
+## Packages
 
-- Cloudflare Workers
-  - Used for the core API to management APIs, clients, scopes, etc.
-- Cloudflare R2
-  - Used for storing JSON Web Key sets for RSA256 APIs.
-- Clerk
-  - Used for managing dashboard users and organizations.
-- Supabase
-  - Core data store for the application.
-- AWS SQS
-  - Used for queuing async tasks.
-- AWS Lambda
-  - Triggered by SQS to process background tasks. Used for rotating client secrets, rotating signing secrets, and invoicing customers.
-  - Also have a lambda to that is a CRON job to loop through all customers and send a messages to the queue to invoice them.
+- `web`: Next.js app for the dashboard.
+- `api`: AWS Lambda function using https://hono.dev/.
+- `bootstrap`: A helper libray to bootstrap the entire application for development.
+- `core`: Shared core logic for the application.
+- `lambdas`: AWS Lambda functions for background tasks such as rotating client secrets, rotating signing secrets, and invoicing customers.
+- `docs`: Mintifly docs for the API reference and guides.
+- `default-route`: Under the hood we use a cloudfront distributino to route requests to the correct origin. This is the origin that cloudfront routes to by default.
+
+## Production Checklist
+
+- [ ] Nice homepage.
+- [ ] Viewable metrics for tokens issued per API.
+- [ ] Viewable metrics for tokens issued per client.
+- [ ] Set scopes API route.
+- [ ] Onboarding flow when new sign up.
+- [ ] Internal scopes for `api`.
+- [ ] Use internal scopes to authorize `api` requests.
+- [ ] Setup better logging for `web`.
+- [ ] Migrate to Supabase for auth instead of Clerk for less services.
+- [ ] Billing management page.
+- [ ] User management page.
+- [ ] Have documentation, guides, API reference, and examples.
+- [ ] Complete Stripe (or LemonSqueezy, need to check it out) integration with handling of payment fails.
