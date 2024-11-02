@@ -25,3 +25,4 @@
 - [ ] User management page.
 - [ ] Have documentation, guides, API reference, and examples.
 - [ ] Complete Stripe (or LemonSqueezy, need to check it out) integration with handling of payment fails.
+- [ ] Setup some sort of incident tracker. Maybe incident.io.
