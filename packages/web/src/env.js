@@ -29,6 +29,8 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    SUPABASE_URL: z.string(),
+    SUPABASE_ANON_KEY: z.string(),
   },
 
   /**
@@ -38,6 +40,8 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_SUPABASE_URL: z.string(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -61,6 +65,10 @@ export const env = createEnv({
     AWS_MESSAGE_QUEUE_ARN: process.env.AWS_MESSAGE_QUEUE_ARN,
     OPTRA_API_ID: Resource.OptraApiId.value,
     OPTRA_WORKSPACE_ID: Resource.OptraWorkspaceId.value,
+    SUPABASE_URL: Resource.SupabaseUrl.value,
+    SUPABASE_ANON_KEY: Resource.SupabaseAnonKey.value,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

@@ -1,9 +1,7 @@
-import { SignInButton, UserButton, auth } from "@clerk/nextjs";
 import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 
 export default async function Home() {
-  const { user } = auth();
   noStore();
 
   return (
@@ -13,8 +11,8 @@ export default async function Home() {
           Optra
         </h1>
         <Link href="/dashboard">Dashboard</Link>
-        {user ? <SignInButton /> : null}
-        <UserButton afterSignOutUrl="/" />
+        <Link href="/sign-in">Sign in</Link>
+        <Link href="/sign-up">Sign up</Link>
       </div>
     </main>
   );

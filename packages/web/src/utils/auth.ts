@@ -1,8 +1,16 @@
-import { auth } from "@clerk/nextjs";
+import { createClient } from "@/server/supabase/server-client";
 import { notFound } from "next/navigation";
 
-export function getTenantId() {
-  const { userId, orgId } = auth();
+export async function getTenantId() {
+  const supabase = await createClient();
 
-  return orgId ?? userId ?? notFound();
+  console.log("here 5");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  console.log("here 6", user?.id);
+
+  return user?.id ?? notFound();
 }

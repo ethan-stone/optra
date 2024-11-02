@@ -12,7 +12,7 @@ type PageProps = {
 };
 
 export default async function NewClient(props: PageProps) {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   const workspace = await getWorkspaceByTenantId(tenantId);
 

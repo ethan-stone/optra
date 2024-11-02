@@ -5,7 +5,7 @@ import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getRootClientsForWorkspace } from "@/server/data/clients";
 
 export default async function RootClientsPage() {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   const workspace = await getWorkspaceByTenantId(tenantId);
 

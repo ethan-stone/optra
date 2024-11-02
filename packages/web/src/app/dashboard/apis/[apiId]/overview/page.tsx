@@ -10,7 +10,7 @@ type ApiPageProps = {
 };
 
 export default async function OverviewPage(props: ApiPageProps) {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   const workspace = await getWorkspaceByTenantId(tenantId);
 

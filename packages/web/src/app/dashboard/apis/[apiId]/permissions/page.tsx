@@ -11,7 +11,7 @@ type PermissionsProps = {
 };
 
 export default async function Permissions(props: PermissionsProps) {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
   const workspace = await getWorkspaceByTenantId(tenantId);

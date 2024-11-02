@@ -6,7 +6,7 @@ import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getApisForWorkspace } from "@/server/data/apis";
 
 export default async function ApisPage() {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   const workspace = await getWorkspaceByTenantId(tenantId);
 

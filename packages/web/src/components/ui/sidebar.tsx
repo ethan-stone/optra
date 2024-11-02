@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type LucideIcon, ChevronsUpDownIcon, Check } from "lucide-react";
+import { type LucideIcon, ChevronsUpDownIcon } from "lucide-react";
 import { cn } from "@/utils/shadcn-utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { Button, buttonVariants } from "./button";
@@ -14,11 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { useOrganization, useOrganizationList, useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { Spinner } from "../icons/spinner";
-import { ScrollArea } from "./scroll-area";
-import { useMemo, useState } from "react";
+import { useUser } from "../hooks/use-user";
+import { createClient } from "@/utils/supabase";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -32,45 +31,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ links, isCollapsed }: SidebarProps) {
-  const { isLoaded, setActive, userMemberships } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-      pageSize: 100,
-    },
-  });
-
-  const { organization: currentOrg } = useOrganization();
-  const { user } = useUser();
+  const supabase = createClient();
+  const { data } = useUser();
   const router = useRouter();
-
-  async function changeOrg(orgId: string | null) {
-    if (!setActive) {
-      return;
-    }
-
-    try {
-      await setActive({
-        organization: orgId,
-      });
-    } finally {
-      router.refresh();
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [search, _setSearch] = useState("");
-
-  const filteredOrgs = useMemo(() => {
-    if (!userMemberships.data) {
-      return [];
-    }
-    if (search === "") {
-      return userMemberships.data;
-    }
-    return userMemberships.data?.filter(({ organization }) =>
-      organization.name.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [search, userMemberships]);
 
   return (
     <aside
@@ -80,7 +43,7 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button className="m-2 flex flex-row justify-between rounded-md bg-white text-black hover:bg-muted">
-            {!isLoaded ? <Spinner /> : currentOrg?.name ?? "Personal Workspace"}
+            {!data?.user ? <Spinner /> : "Personal Workspace"}
             <ChevronsUpDownIcon className="h-3 w-3" />
           </Button>
         </DropdownMenuTrigger>
@@ -88,49 +51,30 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
           <DropdownMenuLabel className="text-xs font-medium">
             Personal Account
           </DropdownMenuLabel>
-          <DropdownMenuItem
-            className="flex items-center justify-between"
-            onClick={() => changeOrg(null)}
-          >
-            <span className={currentOrg === null ? "font-semibold" : undefined}>
-              {user?.username ?? user?.fullName ?? "Personal Workspace"}
-            </span>
-            {currentOrg === null ? <Check className="h-4 w-4" /> : null}
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-xs font-medium">
             Workspaces
           </DropdownMenuLabel>
           <DropdownMenuGroup>
-            <ScrollArea className="h-96">
-              {filteredOrgs.map((membership) => {
-                return (
-                  <DropdownMenuItem
-                    key={membership.id}
-                    className="flex items-center justify-between"
-                    onClick={() => changeOrg(membership.organization.id)}
-                  >
-                    <span
-                      className={
-                        membership.organization.id === currentOrg?.id
-                          ? "font-semibold"
-                          : undefined
-                      }
-                    >
-                      {membership.organization.name}
-                    </span>
-                    {membership.organization.id === currentOrg?.id ? (
-                      <Check className="h-4 w-4" />
-                    ) : null}
-                  </DropdownMenuItem>
-                );
-              })}
-            </ScrollArea>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Link href="/onboarding" className="flex items-center">
                 <span>Create Workspace</span>
               </Link>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut();
+                  router.refresh();
+                }}
+                className="flex items-center text-red-600"
+              >
+                <span>Sign Out</span>
+              </button>
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

@@ -12,7 +12,7 @@ type ApiPageProps = PropsWithChildren<{
 }>;
 
 export default async function ApiPageLayout(props: ApiPageProps) {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
 

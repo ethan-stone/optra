@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { CreateWorkspace } from "./create-workspace";
 import {
@@ -6,17 +5,27 @@ import {
   getWorkspaceByTenantId,
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
+import { createClient } from "@/server/supabase/server-client";
 
 export default async function Onboarding() {
-  const { userId } = auth();
+  const supabase = await createClient();
 
-  if (userId) {
+  console.log("here 1");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  console.log("here 2");
+
+  if (user) {
     // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
     // find the free workspace for the user
+    console.log("here 3");
 
     const keyManagementService = await getKeyManagementService();
 
-    const freeWorkspace = await getWorkspaceByTenantId(userId);
+    const freeWorkspace = await getWorkspaceByTenantId(user.id);
 
     if (!freeWorkspace) {
       // create the free workspace for the user
@@ -28,10 +37,12 @@ export default async function Onboarding() {
       await createWorkspace({
         dataEncryptionKeyId: dek.keyId,
         name: "Personal",
-        tenantId: userId,
+        tenantId: user.id,
         createdAt: now,
         updatedAt: now,
       });
+
+      console.log("here 4");
 
       return redirect("/dashboard");
     }
@@ -44,5 +55,4 @@ export default async function Onboarding() {
       <CreateWorkspace />
     </main>
   );
-  return redirect("/");
 }

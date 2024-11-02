@@ -134,7 +134,7 @@ export function Apis(props: Props) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col rounded-md border bg-stone-50 shadow *:border-stone-300">
+        <div className="flex flex-col rounded-md border border-stone-300 bg-stone-50 shadow">
           {props.data.map((api, idx) => (
             <div key={idx}>
               <ApiItem

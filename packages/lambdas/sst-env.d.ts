@@ -74,6 +74,14 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "SupabaseAnonKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "SupabaseUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Vpc": {
       "type": "sst.aws.Vpc"
     }

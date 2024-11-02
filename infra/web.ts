@@ -20,6 +20,8 @@ cluster.addService("Web", {
     secrets.OptraWorkspaceId,
     secrets.AWSAccessKeyId,
     secrets.AWSSecretAccessKey,
+    secrets.SupabaseUrl,
+    secrets.SupabaseAnonKey,
   ],
   public: {
     ports: [{ listen: "80/http", forward: "3000/http" }],
@@ -37,5 +39,7 @@ cluster.addService("Web", {
     AWS_SCHEDULER_ROLE_ARN: schedulerRole.arn,
     AWS_SCHEDULER_FAILED_DLQ_ARN: schedulerDLQ.arn,
     AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,
+    NEXT_PUBLIC_SUPABASE_URL: secrets.SupabaseUrl.value,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: secrets.SupabaseAnonKey.value,
   },
 });

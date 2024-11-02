@@ -11,7 +11,7 @@ type ApiSettingsProps = {
 };
 
 export default async function Settings(props: ApiSettingsProps) {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   const workspace = await getWorkspaceByTenantId(tenantId);
 

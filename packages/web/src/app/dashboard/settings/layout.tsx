@@ -7,7 +7,7 @@ import { type PropsWithChildren } from "react";
 type SettingsPageProps = PropsWithChildren;
 
 export default async function SettingsPageLayout(props: SettingsPageProps) {
-  const tenantId = getTenantId();
+  const tenantId = await getTenantId();
 
   // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
   const workspace = await getWorkspaceByTenantId(tenantId);

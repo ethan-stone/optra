@@ -14,4 +14,12 @@ export const secrets = {
     "ws_brMq3FFLJLj9QtzEG8CfR"
   ),
   OptraApiId: new sst.Secret("OptraApiId", "api_xQ7AJfrWQ939EVL7WGU9Y"),
+  SupabaseUrl: new sst.Secret(
+    "SupabaseUrl",
+    "https://zkfacwibmxqkhnmgkviy.supabase.co"
+  ),
+  SupabaseAnonKey: new sst.Secret(
+    "SupabaseAnonKey",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZmFjd2libXhxa2hubWdrdml5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjEwMDc1MjAsImV4cCI6MjAzNjU4MzUyMH0.PzkTq9nKhIbgzQ0_p7PTybdmqDVRiaGgJg3wLzrI5Rk"
+  ),
 };

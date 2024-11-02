@@ -31,6 +31,8 @@ ARG SST_RESOURCE_OptraWorkspaceId
 ARG SST_RESOURCE_AWSAccessKeyId
 ARG SST_RESOURCE_AWSSecretAccessKey
 ARG SST_RESOURCE_JwksBucket
+ARG SST_RESOURCE_SupabaseUrl
+ARG SST_RESOURCE_SupabaseAnonKey
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

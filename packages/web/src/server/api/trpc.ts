@@ -10,8 +10,8 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { getAuth } from "@clerk/nextjs/server";
 import { type NextRequest } from "next/server";
+import { createClient } from "../supabase/server-client";
 
 /**
  * 1. CONTEXT
@@ -26,12 +26,17 @@ import { type NextRequest } from "next/server";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (req: NextRequest) => {
-  const { userId } = getAuth(req);
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return {
     req,
-    user: userId ? { id: userId } : null,
-    tenant: userId ? { id: userId } : null,
+    supabase,
+    user: user ? { id: user.id } : null,
+    tenant: user ? { id: user.id } : null,
   };
 };
 
