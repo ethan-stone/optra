@@ -54,6 +54,7 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
       refresh_token: newSession.refresh_token,
     });
 
+    router.replace("/dashboard");
     router.refresh();
     accessibleWorkspaces.refetch();
     user.refetch();

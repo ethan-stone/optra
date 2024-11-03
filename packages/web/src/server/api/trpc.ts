@@ -56,8 +56,6 @@ export const createTRPCContext = async (req: NextRequest) => {
     activeWorkspaceId = parsedDecoded.active_workspace_id;
   }
 
-  console.log("activeWorkspaceId", activeWorkspaceId);
-
   return {
     req,
     supabase,
