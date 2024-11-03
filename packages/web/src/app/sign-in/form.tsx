@@ -30,7 +30,7 @@ export function SignInForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex w-2/3 flex-col gap-4 rounded-md border border-stone-300 bg-stone-50 p-4 shadow md:w-1/2 xl:w-1/4"
     >
-      <h1 className="text-2xl font-semibold">Sign up</h1>
+      <h1 className="text-2xl font-semibold">Sign in</h1>
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-semibold">Email</h2>
         <Input {...register("email")} />

@@ -14,6 +14,8 @@ export async function handler(
   const payload = event.body;
 
   if (!payload) {
+    console.log("no payload");
+
     return {
       statusCode: 400,
       body: "No payload",
@@ -23,6 +25,8 @@ export async function handler(
   const headers = HeadersSchema.safeParse(event.headers);
 
   if (!headers.success) {
+    console.log("invalid headers");
+
     return {
       statusCode: 400,
       body: "Invalid headers",
@@ -31,7 +35,9 @@ export async function handler(
 
   const secret = Resource.SupabaseWebhookSecret.value;
 
-  const wh = new Webhook(secret);
+  const base64Secret = secret.split(",")[1].split("_")[1];
+
+  const wh = new Webhook(base64Secret);
 
   try {
     const unknownData = wh.verify(payload, headers.data);
@@ -39,6 +45,10 @@ export async function handler(
     const parsedData = BodySchema.safeParse(unknownData);
 
     if (!parsedData.success) {
+      console.log("invalid payload");
+
+      console.log(parsedData.error);
+
       return {
         statusCode: 400,
         body: "Invalid payload",
@@ -47,14 +57,22 @@ export async function handler(
 
     const { user_id, claims } = parsedData.data;
 
-    const user = await userRepo.getById(user_id);
+    let user = await userRepo.getById(user_id);
 
     if (!user) {
-      return {
-        statusCode: 404,
-        body: "User not found",
-      };
+      // the first time a user logs in, we create them in the database.
+      // we set the active workspace id to null, because they will only
+      // have access to the default personal workspace.
+      user = await userRepo.create({
+        id: user_id,
+        email: claims.email,
+        activeWorkspaceId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
     }
+
+    console.log(`User ${user_id} logged in`);
 
     return {
       body: JSON.stringify({
@@ -105,7 +123,7 @@ const AMREntry = z.object({
 
 // Define the claims schema
 const Claims = z.object({
-  aud: z.string(),
+  aud: z.array(z.string()),
   exp: z.number(),
   iat: z.number(),
   sub: z.string(),

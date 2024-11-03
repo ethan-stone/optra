@@ -67,8 +67,8 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <button
-                onClick={() => {
-                  supabase.auth.signOut();
+                onClick={async () => {
+                  await supabase.auth.signOut();
                   router.refresh();
                 }}
                 className="flex items-center text-red-600"

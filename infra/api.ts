@@ -103,12 +103,16 @@ new sst.aws.Cron("InvoiceCron", {
   schedule: "cron(0 12 1 * ? *)",
 });
 
-new sst.aws.Function("SupabaseCustomAccessTokenHook", {
-  handler: "packages/lambdas/src/supabase/custom-access-token-hook.handler",
-  link: [secrets.DbUrl, secrets.SupabaseWebhookSecret],
-  url: true,
-});
+const supabaseCustomAccessTokenHook = new sst.aws.Function(
+  "SupabaseCustomAccessTokenHook",
+  {
+    handler: "packages/lambdas/src/supabase/custom-access-token-hook.handler",
+    link: [secrets.DbUrl, secrets.SupabaseWebhookSecret],
+    url: true,
+  }
+);
 
 export const outputs = {
   ApiUrl: apiFn.url,
+  SupabaseCustomAccessTokenHookUrl: supabaseCustomAccessTokenHook.url,
 };

@@ -6,7 +6,7 @@ export type CreateUserParams = typeof schema.users.$inferInsert;
 export type User = typeof schema.users.$inferSelect;
 
 export interface UserRepo {
-  create(params: CreateUserParams): Promise<{ id: string }>;
+  create(params: CreateUserParams): Promise<User>;
   getById(id: string): Promise<User | null>;
   setActiveWorkspaceId(userId: string, workspaceId: string): Promise<void>;
 }
@@ -14,12 +14,15 @@ export interface UserRepo {
 export class DrizzleUserRepo implements UserRepo {
   constructor(private readonly db: PostgresJsDatabase<typeof schema>) {}
 
-  async create(params: CreateUserParams): Promise<{ id: string }> {
+  async create(params: CreateUserParams): Promise<User> {
     await this.db.insert(schema.users).values({
       ...params,
     });
 
-    return { id: params.id };
+    return {
+      ...params,
+      activeWorkspaceId: params.activeWorkspaceId ?? null,
+    };
   }
 
   async getById(id: string): Promise<User | null> {
