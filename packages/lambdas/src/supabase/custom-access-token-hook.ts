@@ -60,6 +60,7 @@ export async function handler(
     let user = await userRepo.getById(user_id);
 
     if (!user) {
+      console.log("creating user for first time");
       // the first time a user logs in, we create them in the database.
       // we set the active workspace id to null, because they will only
       // have access to the default personal workspace.
@@ -70,9 +71,11 @@ export async function handler(
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+
+      console.log(`created user ${user_id}`);
     }
 
-    console.log(`User ${user_id} logged in`);
+    console.log(`user ${user_id} logged in`);
 
     return {
       body: JSON.stringify({
@@ -123,7 +126,7 @@ const AMREntry = z.object({
 
 // Define the claims schema
 const Claims = z.object({
-  aud: z.array(z.string()),
+  aud: z.union([z.array(z.string()), z.string()]),
   exp: z.number(),
   iat: z.number(),
   sub: z.string(),

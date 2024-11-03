@@ -10,18 +10,13 @@ import { createClient } from "@/server/supabase/server-client";
 export default async function Onboarding() {
   const supabase = await createClient();
 
-  console.log("here 1");
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  console.log("here 2");
-
   if (user) {
     // TODO: add isNull(deletedAt) to the query once deleting workspaces is implemented
     // find the free workspace for the user
-    console.log("here 3");
 
     const keyManagementService = await getKeyManagementService();
 
@@ -42,8 +37,6 @@ export default async function Onboarding() {
         createdAt: now,
         updatedAt: now,
       });
-
-      console.log("here 4");
 
       return redirect("/dashboard");
     }

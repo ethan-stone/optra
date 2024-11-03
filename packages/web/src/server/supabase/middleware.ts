@@ -3,7 +3,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { Resource } from "sst";
 
 export const updateSession = async (request: NextRequest) => {
-  console.log("update session");
   // This `try/catch` block is only here for the interactive tutorial.
   // Feel free to remove once you have Supabase connected.
   try {

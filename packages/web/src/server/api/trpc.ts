@@ -12,6 +12,9 @@ import { ZodError } from "zod";
 
 import { type NextRequest } from "next/server";
 import { createClient } from "../supabase/server-client";
+import { verify } from "jsonwebtoken";
+import { Resource } from "sst";
+import { z } from "zod";
 
 /**
  * 1. CONTEXT
@@ -32,11 +35,36 @@ export const createTRPCContext = async (req: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  let activeWorkspaceId: string | null = null;
+
+  if (session) {
+    const decoded = verify(
+      session.access_token,
+      Resource.SupabaseJwtSecret.value,
+    );
+
+    const parsedDecoded = z
+      .object({
+        active_workspace_id: z.string().nullable(),
+      })
+      .parse(decoded);
+
+    activeWorkspaceId = parsedDecoded.active_workspace_id;
+  }
+
   return {
     req,
     supabase,
     user: user ? { id: user.id } : null,
-    tenant: user ? { id: user.id } : null,
+    tenant: activeWorkspaceId
+      ? { id: activeWorkspaceId }
+      : user
+        ? { id: user.id }
+        : null,
   };
 };
 

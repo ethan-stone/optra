@@ -23,4 +23,5 @@ export const secrets = {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZmFjd2libXhxa2hubWdrdml5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjEwMDc1MjAsImV4cCI6MjAzNjU4MzUyMH0.PzkTq9nKhIbgzQ0_p7PTybdmqDVRiaGgJg3wLzrI5Rk"
   ),
   SupabaseWebhookSecret: new sst.Secret("SupabaseWebhookSecret"),
+  SupabaseJwtSecret: new sst.Secret("SupabaseJwtSecret"),
 };

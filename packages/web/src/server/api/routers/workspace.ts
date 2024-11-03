@@ -5,6 +5,10 @@ import {
   createWorkspace,
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
+import { uid } from "@optra/core/uid";
+import { setActiveWorkspaceId } from "@/server/data/users";
+import { createClient } from "@/server/supabase/server-client";
+import { TRPCError } from "@trpc/server";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -15,14 +19,15 @@ export const workspaceRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const keyManagementService = await getKeyManagementService();
-
       const dek = await keyManagementService.createDataKey();
 
       const now = new Date();
 
+      const tenantId = uid();
+
       const workspace = await createWorkspace({
         name: input.name,
-        tenantId: ctx.tenant.id,
+        tenantId,
         type: "paid",
         dataEncryptionKeyId: dek.keyId,
         createdAt: now,
@@ -31,10 +36,12 @@ export const workspaceRouter = createTRPCRouter({
 
       const addMemberResult = await addMemberToWorkspace(
         workspace.id,
-        ctx.tenant.id,
+        ctx.user.id,
       );
 
       if (!addMemberResult.success) throw new Error("Failed to add member");
+
+      await setActiveWorkspaceId(ctx.user.id, tenantId);
 
       return {
         workspaceId: workspace.id,

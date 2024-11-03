@@ -22,6 +22,7 @@ cluster.addService("Web", {
     secrets.AWSSecretAccessKey,
     secrets.SupabaseUrl,
     secrets.SupabaseAnonKey,
+    secrets.SupabaseJwtSecret,
   ],
   public: {
     ports: [{ listen: "80/http", forward: "3000/http" }],
