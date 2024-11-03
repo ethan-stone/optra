@@ -75,6 +75,11 @@ export async function handler(
       console.log(`created user ${user_id}`);
     }
 
+    console.log(
+      `active workspace id for user ${user_id} is`,
+      user.activeWorkspaceId
+    );
+
     console.log(`user ${user_id} logged in`);
 
     return {

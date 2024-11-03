@@ -7,8 +7,6 @@ import {
 import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
 import { setActiveWorkspaceId } from "@/server/data/users";
-import { createClient } from "@/server/supabase/server-client";
-import { TRPCError } from "@trpc/server";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -42,6 +40,8 @@ export const workspaceRouter = createTRPCRouter({
       if (!addMemberResult.success) throw new Error("Failed to add member");
 
       await setActiveWorkspaceId(ctx.user.id, tenantId);
+
+      console.log(`active workspace id for user ${ctx.user.id} is ${tenantId}`);
 
       return {
         workspaceId: workspace.id,

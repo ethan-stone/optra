@@ -1,5 +1,5 @@
 import { createClient } from "@/server/supabase/server-client";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -46,4 +46,26 @@ export const authRouter = createTRPCRouter({
         session: data.session,
       };
     }),
+  refreshSession: protectedProcedure.mutation(async ({ ctx }) => {
+    const currentSession = await ctx.supabase.auth.getSession();
+
+    if (!currentSession.data.session) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const { data, error } = await ctx.supabase.auth.refreshSession({
+      refresh_token: currentSession.data.session.refresh_token,
+    });
+
+    if (error) {
+      console.error(error.code + ": " + error.message);
+      throw new TRPCError({ code: "BAD_REQUEST", message: error.message });
+    }
+
+    if (!data.session) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    return data.session;
+  }),
 });
