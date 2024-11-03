@@ -58,7 +58,7 @@ export function CreateWorkspace() {
         <Input {...register("name")} placeholder="Workspace Name" />
       </div>
       <Button type="submit" className="mt-4">
-        Create Workspace
+        {createWorkspace.isLoading ? "Creating..." : "Create Workspace"}
       </Button>
     </form>
   );
