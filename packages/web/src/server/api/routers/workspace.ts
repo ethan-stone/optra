@@ -3,10 +3,13 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
   addMemberToWorkspace,
   createWorkspace,
+  getAccessibleWorkspaces,
+  getWorkspaceById,
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
 import { setActiveWorkspaceId } from "@/server/data/users";
+import { TRPCError } from "@trpc/server";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -37,7 +40,11 @@ export const workspaceRouter = createTRPCRouter({
         ctx.user.id,
       );
 
-      if (!addMemberResult.success) throw new Error("Failed to add member");
+      if (!addMemberResult.success)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to add member",
+        });
 
       await setActiveWorkspaceId(ctx.user.id, tenantId);
 
@@ -47,5 +54,39 @@ export const workspaceRouter = createTRPCRouter({
         workspaceId: workspace.id,
         memberId: addMemberResult.memberId,
       };
+    }),
+  getAccessibleWorkspaces: protectedProcedure.query(async ({ ctx }) => {
+    const workspaces = await getAccessibleWorkspaces(ctx.user.id);
+
+    return workspaces;
+  }),
+  changeActiveWorkspace: protectedProcedure
+    .input(z.object({ workspaceId: z.string().nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!input.workspaceId) {
+        await setActiveWorkspaceId(ctx.user.id, null);
+        return { success: true };
+      }
+
+      const workspace = await getWorkspaceById(input.workspaceId);
+
+      if (!workspace)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+
+      const accessibleWorkspaces = await getAccessibleWorkspaces(ctx.user.id);
+
+      const workspaceIsAccessible = accessibleWorkspaces.find(
+        (w) => w.id === input.workspaceId,
+      );
+
+      if (!workspaceIsAccessible)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not allowed" });
+
+      await setActiveWorkspaceId(ctx.user.id, workspace.tenantId);
+
+      return { success: true };
     }),
 });

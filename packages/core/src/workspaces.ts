@@ -128,4 +128,20 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
 
     return { success: true, memberId: memberId };
   }
+
+  async getAccessibleWorkspaces(userId: string): Promise<Workspace[]> {
+    const personalWorkspace = await this.db.query.workspaces.findFirst({
+      where: eq(schema.workspaces.tenantId, userId),
+      with: { billingInfo: true },
+    });
+
+    const paidWorkspaces = await this.db.query.workspaceMembers.findMany({
+      where: eq(schema.workspaceMembers.userId, userId),
+      with: { workspace: { with: { billingInfo: true } } },
+    });
+
+    return personalWorkspace
+      ? [personalWorkspace, ...paidWorkspaces.map((p) => p.workspace)]
+      : paidWorkspaces.map((p) => p.workspace);
+  }
 }

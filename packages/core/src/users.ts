@@ -35,7 +35,7 @@ export class DrizzleUserRepo implements UserRepo {
 
   async setActiveWorkspaceId(
     userId: string,
-    workspaceId: string
+    workspaceId: string | null
   ): Promise<void> {
     await this.db
       .update(schema.users)

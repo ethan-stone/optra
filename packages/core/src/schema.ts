@@ -110,13 +110,24 @@ export const workspaces = pgTable(
   }
 );
 
-export const workspaceMembers = pgTable("workspace_members", {
-  id: text("id").primaryKey(),
-  workspaceId: text("workspace_id").notNull(),
-  userId: text("user_id").notNull(),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
-});
+export const workspaceMembers = pgTable(
+  "workspace_members",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    userId: text("user_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+  },
+  (table) => {
+    return {
+      workspaceIdUserIdIdx: index(
+        "workspace_members_workspace_id_user_id_idx"
+      ).on(table.workspaceId, table.userId),
+      userIdIdx: index("workspace_members_user_id_idx").on(table.userId),
+    };
+  }
+);
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -318,6 +329,31 @@ export const workspacesRelations = relations(workspaces, ({ many, one }) => {
       fields: [workspaces.id],
       references: [workspaceBillingInfo.workspaceId],
     }),
+    members: many(workspaceMembers),
+  };
+});
+
+export const workspaceMembersRelations = relations(
+  workspaceMembers,
+  ({ one }) => {
+    return {
+      workspace: one(workspaces, {
+        relationName: "workspace_member_relation",
+        fields: [workspaceMembers.workspaceId],
+        references: [workspaces.id],
+      }),
+      user: one(users, {
+        relationName: "user_member_relation",
+        fields: [workspaceMembers.userId],
+        references: [users.id],
+      }),
+    };
+  }
+);
+
+export const usersRelations = relations(users, ({ many }) => {
+  return {
+    memberships: many(workspaceMembers),
   };
 });
 

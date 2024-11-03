@@ -33,3 +33,8 @@ export async function addMemberToWorkspace(
   const workspaces = await getWorkspaceRepo();
   return workspaces.addMember(workspaceId, userId);
 }
+
+export async function getAccessibleWorkspaces(userId: string) {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.getAccessibleWorkspaces(userId);
+}

@@ -9,7 +9,7 @@ async function getUserRepo() {
 
 export async function setActiveWorkspaceId(
   userId: string,
-  workspaceId: string,
+  workspaceId: string | null,
 ) {
   const userRepo = await getUserRepo();
   await userRepo.setActiveWorkspaceId(userId, workspaceId);

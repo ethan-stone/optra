@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type LucideIcon, ChevronsUpDownIcon } from "lucide-react";
+import { type LucideIcon, Check, ChevronsUpDownIcon } from "lucide-react";
 import { cn } from "@/utils/shadcn-utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { Button, buttonVariants } from "./button";
@@ -18,6 +18,8 @@ import { Spinner } from "../icons/spinner";
 import { useUser } from "../hooks/use-user";
 import { createClient } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
+import { ScrollArea } from "./scroll-area";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -32,8 +34,36 @@ interface SidebarProps {
 
 export function Sidebar({ links, isCollapsed }: SidebarProps) {
   const supabase = createClient();
-  const { data } = useUser();
+
+  const user = useUser();
+
+  const accessibleWorkspaces =
+    api.workspaces.getAccessibleWorkspaces.useQuery();
+
+  const changeActiveWorkspace =
+    api.workspaces.changeActiveWorkspace.useMutation();
+
+  const refreshSession = api.auth.refreshSession.useMutation();
+
+  async function changeWorkspace(workspaceId: string | null) {
+    await changeActiveWorkspace.mutateAsync({ workspaceId });
+    const newSession = await refreshSession.mutateAsync();
+
+    await supabase.auth.setSession({
+      access_token: newSession.access_token,
+      refresh_token: newSession.refresh_token,
+    });
+
+    router.refresh();
+    accessibleWorkspaces.refetch();
+    user.refetch();
+  }
+
   const router = useRouter();
+
+  const currentWorkspace = accessibleWorkspaces.data?.find(
+    (w) => w.tenantId === user.data?.user?.activeWorkspaceId,
+  );
 
   return (
     <aside
@@ -43,7 +73,11 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button className="m-2 flex flex-row justify-between rounded-md bg-white text-black hover:bg-muted">
-            {!data?.user ? <Spinner /> : "Personal Workspace"}
+            {!user.data || !accessibleWorkspaces.data ? (
+              <Spinner />
+            ) : (
+              (currentWorkspace?.name ?? "Personal Workspace")
+            )}
             <ChevronsUpDownIcon className="h-3 w-3" />
           </Button>
         </DropdownMenuTrigger>
@@ -51,30 +85,58 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
           <DropdownMenuLabel className="text-xs font-medium">
             Personal Account
           </DropdownMenuLabel>
+          <DropdownMenuItem
+            className="flex items-center justify-between hover:cursor-pointer"
+            onClick={() => changeWorkspace(null)}
+          >
+            <span className={!currentWorkspace ? "font-semibold" : undefined}>
+              Personal Workspace
+            </span>
+            {!currentWorkspace ? <Check className="h-4 w-4" /> : null}
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-xs font-medium">
             Workspaces
           </DropdownMenuLabel>
           <DropdownMenuGroup>
+            <ScrollArea className="h-96">
+              {accessibleWorkspaces.data
+                ?.filter((w) => w.tenantId !== user.data?.user?.id)
+                .map((workspace) => (
+                  <DropdownMenuItem
+                    key={workspace.tenantId}
+                    className="flex items-center justify-between hover:cursor-pointer"
+                    onClick={() => changeWorkspace(workspace.id)}
+                  >
+                    {workspace.name}
+                    {workspace.tenantId === currentWorkspace?.tenantId ? (
+                      <Check className="h-4 w-4" />
+                    ) : null}
+                  </DropdownMenuItem>
+                ))}
+            </ScrollArea>
+          </DropdownMenuGroup>
+          <DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Link href="/onboarding" className="flex items-center">
+              <Link
+                href="/onboarding"
+                className="flex items-center hover:cursor-pointer"
+              >
                 <span>Create Workspace</span>
               </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  router.refresh();
-                }}
-                className="flex items-center text-red-600"
-              >
-                <span>Sign Out</span>
-              </button>
+            <DropdownMenuItem
+              className="flex items-center text-red-600 hover:cursor-pointer"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.refresh();
+              }}
+            >
+              <span>Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
