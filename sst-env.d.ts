@@ -78,7 +78,16 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "SupabaseCustomAccessTokenHook": {
+      "name": string
+      "type": "sst.aws.Function"
+      "url": string
+    }
     "SupabaseUrl": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "SupabaseWebhookSecret": {
       "type": "sst.sst.Secret"
       "value": string
     }

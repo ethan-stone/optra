@@ -38,6 +38,7 @@ export default async function Onboarding() {
         dataEncryptionKeyId: dek.keyId,
         name: "Personal",
         tenantId: user.id,
+        type: "free",
         createdAt: now,
         updatedAt: now,
       });

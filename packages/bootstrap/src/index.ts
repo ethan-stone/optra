@@ -110,6 +110,7 @@ async function newWorkspace(
   const { id } = await db.workspaces.create({
     name: generateRandomName(),
     tenantId: uid(),
+    type: "free",
     createdAt: new Date(),
     updatedAt: new Date(),
     dataEncryptionKeyId: dataEncryptionKeyId,

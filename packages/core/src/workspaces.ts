@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { uid } from "./uid";
 
 export type WorkspaceBillingInfo =
@@ -15,11 +15,25 @@ export type CreateWorkspaceParams = Omit<
   "id"
 >;
 
+export type AddMemberResult =
+  | {
+      success: true;
+      memberId: string;
+    }
+  | {
+      success: false;
+      error:
+        | "user_already_in_workspace"
+        | "workspace_not_paid"
+        | "workspace_not_found";
+    };
+
 export interface WorkspaceRepo {
   create(params: CreateWorkspaceParams): Promise<{ id: string }>;
   getById(id: string): Promise<Workspace | null>;
   getBillableWorkspaces(): Promise<WorkspaceBillingInfo[]>;
   getByTenantId(tenantId: string): Promise<Workspace | null>;
+  addMember(workspaceId: string, userId: string): Promise<AddMemberResult>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -75,5 +89,43 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       schema.Subscriptions.parse(workspace.billingInfo.subscriptions);
 
     return workspace;
+  }
+
+  async addMember(
+    workspaceId: string,
+    userId: string
+  ): Promise<AddMemberResult> {
+    const workspace = await this.db.query.workspaces.findFirst({
+      where: eq(schema.workspaces.id, workspaceId),
+    });
+
+    if (!workspace) return { success: false, error: "workspace_not_found" };
+
+    if (workspace.type === "free")
+      return { success: false, error: "workspace_not_paid" };
+
+    const existingMember = await this.db.query.workspaceMembers.findFirst({
+      where: and(
+        eq(schema.workspaceMembers.workspaceId, workspaceId),
+        eq(schema.workspaceMembers.userId, userId)
+      ),
+    });
+
+    if (existingMember)
+      return { success: false, error: "user_already_in_workspace" };
+
+    const now = new Date();
+
+    const memberId = uid("wm");
+
+    await this.db.insert(schema.workspaceMembers).values({
+      id: memberId,
+      workspaceId,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return { success: true, memberId: memberId };
   }
 }

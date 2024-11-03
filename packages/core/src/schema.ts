@@ -95,6 +95,7 @@ export const workspaces = pgTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     tenantId: text("tenant_id").notNull(),
+    type: text("type", { enum: ["free", "paid"] }).notNull(),
     dataEncryptionKeyId: text("data_encryption_key_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
@@ -108,6 +109,22 @@ export const workspaces = pgTable(
     };
   }
 );
+
+export const workspaceMembers = pgTable("workspace_members", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
+  userId: text("user_id").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+});
+
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull(),
+  activeWorkspaceId: text("active_workspace_id"), // this is the current workspace the user is logged into.
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+});
 
 // separate table for billing to decouple billing from the rest of the workspace
 // otherwise it would be very difficult to test and bootstrap

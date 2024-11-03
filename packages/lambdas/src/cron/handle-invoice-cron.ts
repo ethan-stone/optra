@@ -4,7 +4,7 @@ import {
   SendMessageBatchCommand,
   SendMessageBatchRequestEntry,
 } from "@aws-sdk/client-sqs";
-import { InvoiceWorkspaceEvent } from "@optra/events/event-schemas";
+import { InvoiceWorkspaceEvent } from "@optra/core/event-schemas";
 import { Resource } from "sst";
 import { getDrizzle } from "@optra/core/drizzle";
 import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";

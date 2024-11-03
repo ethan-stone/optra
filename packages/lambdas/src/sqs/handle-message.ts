@@ -1,4 +1,4 @@
-import { EventSchemas } from "@optra/events/event-schemas";
+import { EventSchemas } from "@optra/core/event-schemas";
 import { SQSHandler } from "aws-lambda";
 import { expireApiSigningSecret } from "./expire-api-signing-secret";
 import { expireClientSecret } from "./expire-client-secret";

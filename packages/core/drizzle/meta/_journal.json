@@ -50,6 +50,13 @@
       "when": 1729999450598,
       "tag": "0006_right_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1730605280228,
+      "tag": "0007_dizzy_shocker",
+      "breakpoints": true
     }
   ]
 }

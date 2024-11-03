@@ -25,3 +25,11 @@ export async function createWorkspace(workspace: CreateWorkspaceParams) {
   const workspaces = await getWorkspaceRepo();
   return workspaces.create(workspace);
 }
+
+export async function addMemberToWorkspace(
+  workspaceId: string,
+  userId: string,
+) {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.addMember(workspaceId, userId);
+}
