@@ -4,8 +4,11 @@ import { createRoute, z } from '@hono/zod-openapi';
 import { webcrypto } from 'crypto';
 
 const route = createRoute({
+	operationId: 'createApi',
 	method: 'post' as const,
 	path: '/v1/apis.createApi',
+	summary: 'Create an API',
+	description: 'Create an api by providing a name, algorithm, and some scopes to automatically.',
 	security: [
 		{
 			oauth2: [],

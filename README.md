@@ -20,9 +20,10 @@
 - [ ] Internal scopes for `api`.
 - [ ] Use internal scopes to authorize `api` requests.
 - [ ] Setup better logging for `web`.
-- [ ] Migrate to Supabase for auth instead of Clerk for less services.
+- [x] Migrate to Supabase for auth instead of Clerk for less services.
 - [ ] Billing management page.
 - [ ] User management page.
 - [ ] Have documentation, guides, API reference, and examples.
 - [ ] Complete Stripe (or LemonSqueezy, need to check it out) integration with handling of payment fails.
 - [ ] Setup some sort of incident tracker. Maybe incident.io.
+- [ ] Be able to record usage of a client.

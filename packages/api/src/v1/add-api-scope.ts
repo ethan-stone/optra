@@ -3,8 +3,11 @@ import { HTTPException, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'addApiScope',
 	method: 'post' as const,
 	path: '/v1/apis.addScope',
+	summary: 'Add a Scope to an API',
+	description: 'Add a scope to an api by providing a name and description',
 	request: {
 		body: {
 			required: true,

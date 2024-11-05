@@ -4,8 +4,12 @@ import { createRoute, z } from '@hono/zod-openapi';
 import { webcrypto } from 'crypto';
 
 const route = createRoute({
+	operationId: 'rotateApiSigningSecret',
 	method: 'post' as const,
 	path: '/v1/apis.rotateSigningSecret',
+	summary: 'Rotate an API Signing Secret',
+	description:
+		'Rotate an APIs signing secret by providing an expiration date. It may still take up to a minute for all changes to propagate.',
 	request: {
 		body: {
 			required: true,

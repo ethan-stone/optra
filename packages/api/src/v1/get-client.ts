@@ -3,8 +3,11 @@ import { HTTPException, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'getClient',
 	method: 'get' as const,
 	path: '/v1/clients.getClient',
+	summary: 'Get a Client By ID',
+	description: 'Get a client by its unique ID',
 	request: {
 		query: z.object({
 			clientId: z.string(),

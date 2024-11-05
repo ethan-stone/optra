@@ -22,8 +22,11 @@ function getStringSizeInBytes(str: string): number {
 }
 
 const route = createRoute({
+	operationId: 'createClient',
 	method: 'post' as const,
 	path: '/v1/clients.createClient',
+	summary: 'Create a Client',
+	description: 'Create a client for an api by providing a name and the api it is for. Can also specify scopes and metadata.',
 	security: [
 		{
 			oauth2: [],

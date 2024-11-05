@@ -3,8 +3,11 @@ import { HTTPException } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'getApi',
 	method: 'get' as const,
 	path: '/v1/apis.getApi',
+	summary: 'Get API By ID',
+	description: 'Get an API by its unique ID',
 	request: {
 		query: z.object({
 			apiId: z.string(),

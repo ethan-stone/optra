@@ -3,8 +3,11 @@ import { HTTPException } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'deleteClient',
 	method: 'post' as const,
 	path: '/v1/clients.deleteClient',
+	summary: 'Delete a Client',
+	description: 'Delete a client by its unique ID',
 	request: {
 		body: {
 			required: true,

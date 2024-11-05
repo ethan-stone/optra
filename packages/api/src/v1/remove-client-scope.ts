@@ -3,11 +3,14 @@ import { HTTPException, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'removeClientScope',
 	method: 'post' as const,
 	path: '/v1/clients.removeScope',
+	summary: 'Remove a Scope from a Client',
+	description: 'Remove a scope from a client by providing the scope name',
 	security: [
 		{
-			outh2: [],
+			oauth2: [],
 		},
 	],
 	request: {

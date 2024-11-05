@@ -3,8 +3,11 @@ import { HTTPException, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'rotateClientSecret',
 	method: 'post' as const,
 	path: '/v1/clients.rotateSecret',
+	summary: 'Rotate a Client Secret',
+	description: 'Rotate a client secret by providing an expiration date. It may still take up to a minute for all changes to propagate.',
 	request: {
 		body: {
 			required: true,

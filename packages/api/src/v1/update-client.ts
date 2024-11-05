@@ -22,8 +22,11 @@ function getStringSizeInBytes(str: string): number {
 }
 
 const route = createRoute({
+	operationId: 'updateClient',
 	method: 'patch' as const,
 	path: '/v1/clients.updateClient',
+	summary: 'Update a Client',
+	description: 'Update a client by providing a rate limit bucket size, refill amount, refill interval, and metadata',
 	security: [
 		{
 			oauth2: [],

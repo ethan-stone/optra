@@ -3,8 +3,11 @@ import { HTTPException, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
 
 const route = createRoute({
+	operationId: 'deleteApi',
 	method: 'post' as const,
 	path: '/v1/apis.deleteApi',
+	summary: 'Delete an API',
+	description: 'Delete an api by its unique ID',
 	security: [
 		{
 			oauth2: [],

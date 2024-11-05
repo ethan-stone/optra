@@ -23,8 +23,11 @@ const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
 export type VerifyTokenResponse = z.infer<typeof verifyTokenResponseSchema>;
 
 const route = createRoute({
+	operationId: 'verifyToken',
 	method: 'post' as const,
 	path: '/v1/tokens.verifyToken',
+	summary: 'Verify a Token',
+	description: 'Verify a token by providing the token and the scopes that are required',
 	request: {
 		body: {
 			content: {

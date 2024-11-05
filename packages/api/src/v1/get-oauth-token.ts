@@ -20,8 +20,11 @@ const res = z.object({
 export type GetOAuthTokenRes = z.infer<typeof res>;
 
 const route = createRoute({
+	operationId: 'getOAuthToken',
 	method: 'post' as const,
 	path: '/v1/oauth/token',
+	summary: 'Get an OAuth Token',
+	description: 'Get an OAuth token by providing a client id and client secret',
 	request: {
 		body: {
 			content: {
