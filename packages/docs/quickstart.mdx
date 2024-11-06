@@ -31,8 +31,55 @@ RS256 is an asymmetric algorithm, where a private key is used to sign the tokens
 
 Generally, we recommend using RS256. But view the use cases section of our documentation to see what fits best.
 
+After creating your API, you'll be redirected to the API's page.
+
 ## Create your first client
 
 <Warning>ADD SCREENSHOTS</Warning>
 
-Once your API is created, you'll be able to create clients for it. Clients are the entities that will be using your API. For example, if you're building a mobile app, you might create a client for each platform (iOS, Android, etc.).
+Now you can create a client for your API. A client is a set of credentials that can be used to obtain an access token, and thus authenticate with your API.
+
+You can create a client by clicking the "Clients" tab on the API's page, and then the "Create Client" button. You can give a name for the client, and optionally provide prefixes for the `Client ID` and `Client Secret` that will be generated.
+
+<Note>
+An underscore (`_`) will be added between the prefix and the generated ID/secret if you provide a prefix, so there is no need to include one in the input.
+
+For example, if you provide the prefix `pk` for the `Client ID Prefix` and `sk` for the `Client Secret Prefix`, the generated `Client ID` will be `pk_<random>`, and the generated `Client Secret` will be `sk_<random>`.
+
+</Note>
+
+After submitting the form, a modal will appear with the generated `Client ID` and `Client Secret`.
+
+<Warning>
+  Make sure to save the `Client Secret` in a secure location, as it will not be
+  shown again.
+</Warning>
+
+Now with a client created, in the next section we'll go over how to obtain an access token.
+
+## Obtaining an access token
+
+Obtaining an access token is as simple as sending the `Client ID` and `Client Secret` to our oauth token endpoint.
+
+```shell Example cURL request
+curl --request POST \
+  --url https://api.phractal.xyz/v1/oauth/token \
+  --header 'Authorization: Bearer <token>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "clientId": "<string>",
+  "clientSecret": "<string>",
+  "grantType": "client_credentials"
+}'
+```
+
+This will response with a payload containing an access token, how much time until the token expires, the type of token, and the scope of the token.
+
+```json Example response
+{
+  "accessToken": "<string>",
+  "tokenType": "<string>",
+  "expiresIn": 123,
+  "scope": "<string>"
+}
+```
