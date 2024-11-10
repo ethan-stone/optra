@@ -15,7 +15,7 @@
 - [ ] Nice homepage.
 - [ ] Viewable metrics for tokens issued per API.
 - [ ] Viewable metrics for tokens issued per client.
-- [ ] Set scopes API route.
+- [x] Set scopes API route.
 - [ ] Onboarding flow when new sign up.
 - [ ] Internal scopes for `api`.
 - [ ] Use internal scopes to authorize `api` requests.
