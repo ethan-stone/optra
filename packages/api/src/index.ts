@@ -20,6 +20,7 @@ import { v1RotateApiSigningSecret } from '@/v1/rotate-api-signing-secret';
 import { v1UpdateClient } from '@/v1/update-client';
 import { handle } from 'hono/aws-lambda';
 import { Resource } from 'sst';
+import { v1SetClientScopes } from './v1/set-client-scopes';
 
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
@@ -121,6 +122,7 @@ v1UpdateClient(app);
 v1DeleteClient(app);
 v1AddClientScope(app);
 v1RemoveClientScope(app);
+v1SetClientScopes(app);
 v1RotateClientSecret(app);
 v1VerifyToken(app);
 

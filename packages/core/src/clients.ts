@@ -56,6 +56,7 @@ export interface ClientRepo {
     month: number;
     year: number;
   }): Promise<{ total: number; apiId: string }[]>;
+  setScopes(params: SetClientScopesParams): Promise<void>;
 }
 
 export class DrizzleClientRepo implements ClientRepo {
