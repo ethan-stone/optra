@@ -13,7 +13,7 @@
 ## Production Checklist
 
 - [ ] Nice homepage.
-- [ ] Viewable metrics for tokens issued per API.
+- [x] Viewable metrics for tokens issued per API.
 - [ ] Viewable metrics for tokens issued per client.
 - [x] Set scopes API route.
 - [ ] Onboarding flow when new sign up.
