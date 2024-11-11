@@ -1,4 +1,4 @@
-import { eq, and, sql, inArray } from "drizzle-orm";
+import { eq, and, sql, inArray, gte, lte } from "drizzle-orm";
 import { tokenGenerations } from "./schema";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from ".";
@@ -7,6 +7,12 @@ export type CreateTokenGenerationParams =
   typeof schema.tokenGenerations.$inferInsert;
 
 export type TokenGeneration = typeof schema.tokenGenerations.$inferSelect;
+
+export type GetGroupedByMonthResult = {
+  year: number;
+  month: number;
+  total: number;
+};
 
 export interface TokenGenerationRepo {
   create(tokenGeneration: CreateTokenGenerationParams): Promise<void>;
@@ -26,6 +32,12 @@ export interface TokenGenerationRepo {
     month: number;
     year: number;
   }): Promise<{ total: number; clientId: string }[]>;
+  getGroupedByMonth(params: {
+    timestampGt: Date;
+    timestampLt: Date;
+    workspaceId: string;
+    apiId?: string;
+  }): Promise<GetGroupedByMonthResult[]>;
 }
 
 export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
@@ -47,7 +59,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
     apiId?: string;
   }): Promise<{ total: number }> {
     const result = await this.db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: sql<string>`count(*)` })
       .from(tokenGenerations)
       .where(
         and(
@@ -59,7 +71,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
       );
 
     return {
-      total: result[0]?.count ?? 0,
+      total: parseInt(result[0]?.count ?? "0"),
     };
   }
 
@@ -70,7 +82,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
   }): Promise<{ total: number; apiId: string }[]> {
     const results = await this.db
       .select({
-        total: sql<number>`count(*)`,
+        total: sql<string>`count(*)`,
         apiId: tokenGenerations.apiId,
       })
       .from(tokenGenerations)
@@ -83,7 +95,10 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
         )
       );
 
-    return results;
+    return results.map((item) => ({
+      total: parseInt(item.total),
+      apiId: item.apiId,
+    }));
   }
 
   async getForClients(params: {
@@ -93,7 +108,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
   }): Promise<{ total: number; clientId: string }[]> {
     const results = await this.db
       .select({
-        total: sql<number>`count(*)`,
+        total: sql<string>`count(*)`,
         clientId: tokenGenerations.clientId,
       })
       .from(tokenGenerations)
@@ -106,6 +121,42 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
         )
       );
 
-    return results;
+    return results.map((item) => ({
+      total: parseInt(item.total),
+      clientId: item.clientId,
+    }));
+  }
+
+  async getGroupedByMonth(params: {
+    timestampGt: Date;
+    timestampLt: Date;
+    workspaceId: string;
+    apiId?: string;
+  }): Promise<GetGroupedByMonthResult[]> {
+    const result = await this.db
+      .select({
+        total: sql<string>`count(*)`,
+        month: sql<string>`EXTRACT(MONTH FROM ${tokenGenerations.timestamp})`,
+        year: sql<string>`EXTRACT(YEAR FROM ${tokenGenerations.timestamp})`,
+      })
+      .from(tokenGenerations)
+      .where(
+        and(
+          eq(tokenGenerations.workspaceId, params.workspaceId),
+          gte(tokenGenerations.timestamp, params.timestampGt),
+          lte(tokenGenerations.timestamp, params.timestampLt),
+          params.apiId ? eq(tokenGenerations.apiId, params.apiId) : undefined
+        )
+      )
+      .groupBy(
+        sql`EXTRACT(MONTH FROM ${tokenGenerations.timestamp})`,
+        sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp})`
+      );
+
+    return result.map((item) => ({
+      total: parseInt(item.total),
+      month: parseInt(item.month),
+      year: parseInt(item.year),
+    }));
   }
 }

@@ -1,4 +1,3 @@
-import { BaselimeLogger } from '@baselime/edge-logger';
 import { z } from 'zod';
 
 export type Fields = {
@@ -49,7 +48,6 @@ export type LoggerOptions =
 	  };
 
 export class Logger implements Logger {
-	private baselime?: BaselimeLogger;
 	private opts: LoggerOptions;
 	public readonly defaultFields: Fields = {};
 
@@ -76,10 +74,6 @@ export class Logger implements Logger {
 		}
 
 		logFn(message, JSON.stringify(f));
-
-		if (this.opts.env === 'production' && this.baselime) {
-			this.baselime.log(message, f);
-		}
 	}
 
 	info(message: string, fields?: Fields): void {
@@ -119,11 +113,5 @@ export class Logger implements Logger {
 		});
 	}
 
-	async flush(): Promise<void> {
-		if (this.baselime) {
-			await this.baselime.flush().catch((err) => {
-				console.error('Could not flush logs to baselime', err);
-			});
-		}
-	}
+	async flush(): Promise<void> {}
 }

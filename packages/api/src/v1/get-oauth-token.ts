@@ -198,6 +198,17 @@ export function v1GetOAuthToken(app: App) {
 					timestamp: Date.now(),
 				});
 
+				console.log('woeifjweoifjweoifjwoefjwoefij');
+
+				if (c.get('root').env === 'development') {
+					await db.tokenGenerations.create({
+						workspaceId: workspace.id,
+						apiId: api.id,
+						clientId: client.id,
+						timestamp: now,
+					});
+				}
+
 				return c.json(
 					{
 						accessToken: jwt,
@@ -234,6 +245,15 @@ export function v1GetOAuthToken(app: App) {
 					apiId: api.id,
 					timestamp: Date.now(),
 				});
+
+				if (c.get('root').env === 'development') {
+					await db.tokenGenerations.create({
+						workspaceId: workspace.id,
+						apiId: api.id,
+						clientId: client.id,
+						timestamp: now,
+					});
+				}
 
 				return c.json(
 					{

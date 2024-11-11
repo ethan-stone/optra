@@ -11,6 +11,7 @@ import { TokenService } from './token-service';
 import { Storage } from './storage';
 
 type Root = {
+	env: 'development' | 'production';
 	db: Db;
 	keyManagementService: KeyManagementService;
 	storage: Storage;

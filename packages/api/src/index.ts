@@ -65,6 +65,7 @@ app.use('*', async (c, next) => {
 		});
 
 		c.set('root', {
+			env: parsedEnv.ENVIRONMENT,
 			storage: root.storage,
 			cache: root.cache,
 			db: root.db,

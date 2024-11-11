@@ -53,6 +53,32 @@ export class TokenService implements TokenService {
 		private readonly storage: Storage,
 	) {}
 
+	private async logTokenVerification(
+		message: string,
+		data: {
+			workspaceId: string;
+			clientId: string;
+			apiId: string;
+			timestamp: number;
+			deniedReason: string | null;
+		},
+		ctx: Context<HonoEnv>,
+	) {
+		const logger = ctx.get('logger');
+
+		logger.metric(message, {
+			name: 'token.verified',
+			...data,
+		});
+
+		if (ctx.get('root').env === 'development') {
+			await this.db.tokenVerifications.create({
+				...data,
+				timestamp: new Date(data.timestamp),
+			});
+		}
+	}
+
 	async verifyAuthHeader(header: string | null | undefined): Promise<VerifyAuthHeaderResult> {
 		if (!header) {
 			return { valid: false, message: 'Authorization header is missing' };
@@ -219,11 +245,9 @@ export class TokenService implements TokenService {
 
 					const url = `${storage.publicUrl}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
-					const req = new Request(url, {
+					const res = await fetch(url, {
 						method: 'GET',
 					});
-
-					const res = await fetch(req);
 
 					if (res.status !== 200) {
 						logger.error(`Public keys for api ${api.id} could not be retrieved.`);
@@ -288,14 +312,17 @@ export class TokenService implements TokenService {
 				});
 
 				if (!hasAtLeastOneScope) {
-					logger.metric(`Token verified for client ${client.id}`, {
-						name: 'token.verified',
-						workspaceId: client.workspaceId,
-						clientId: client.id,
-						apiId: client.apiId,
-						timestamp: Date.now(),
-						deniedReason: 'MISSING_SCOPES',
-					});
+					await this.logTokenVerification(
+						`Token verified for client ${client.id}`,
+						{
+							workspaceId: client.workspaceId,
+							clientId: client.id,
+							apiId: client.apiId,
+							timestamp: Date.now(),
+							deniedReason: 'MISSING_SCOPES',
+						},
+						ctx,
+					);
 
 					return {
 						valid: false,
@@ -313,14 +340,17 @@ export class TokenService implements TokenService {
 				});
 
 				if (!hasAllScopes) {
-					logger.metric(`Token verified for client ${client.id}`, {
-						name: 'token.verified',
-						workspaceId: client.workspaceId,
-						clientId: client.id,
-						apiId: client.apiId,
-						timestamp: Date.now(),
-						deniedReason: 'MISSING_SCOPES',
-					});
+					await this.logTokenVerification(
+						`Token verified for client ${client.id}`,
+						{
+							workspaceId: client.workspaceId,
+							clientId: client.id,
+							apiId: client.apiId,
+							timestamp: Date.now(),
+							deniedReason: 'MISSING_SCOPES',
+						},
+						ctx,
+					);
 
 					return {
 						valid: false,
@@ -382,14 +412,17 @@ export class TokenService implements TokenService {
 
 		if (!verifyResult.valid) {
 			if (verifyResult.reason === 'EXPIRED' || verifyResult.reason === 'MISSING_SCOPES') {
-				logger.metric(`Token verified for client ${client.id}`, {
-					name: 'token.verified',
-					workspaceId: client.workspaceId,
-					clientId: client.id,
-					apiId: client.apiId,
-					timestamp: Date.now(),
-					deniedReason: verifyResult.reason,
-				});
+				await this.logTokenVerification(
+					`Token verified for client ${client.id}`,
+					{
+						workspaceId: client.workspaceId,
+						clientId: client.id,
+						apiId: client.apiId,
+						timestamp: Date.now(),
+						deniedReason: verifyResult.reason,
+					},
+					ctx,
+				);
 			}
 
 			return {
@@ -400,14 +433,17 @@ export class TokenService implements TokenService {
 		}
 
 		if (payload.secret_expires_at && payload.secret_expires_at < Date.now() / 1000) {
-			logger.metric(`Token verified for client ${client.id}`, {
-				name: 'token.verified',
-				workspaceId: client.workspaceId,
-				clientId: client.id,
-				apiId: client.apiId,
-				timestamp: Date.now(),
-				deniedReason: 'SECRET_EXPIRED',
-			});
+			await this.logTokenVerification(
+				`Token verified for client ${client.id}`,
+				{
+					workspaceId: client.workspaceId,
+					clientId: client.id,
+					apiId: client.apiId,
+					timestamp: Date.now(),
+					deniedReason: 'SECRET_EXPIRED',
+				},
+				ctx,
+			);
 
 			return {
 				valid: false,
@@ -417,14 +453,17 @@ export class TokenService implements TokenService {
 		}
 
 		if (payload.version !== client.version) {
-			logger.metric(`Token verified for client ${client.id}`, {
-				name: 'token.verified',
-				workspaceId: client.workspaceId,
-				clientId: client.id,
-				apiId: client.apiId,
-				timestamp: Date.now(),
-				deniedReason: 'VERSION_MISMATCH',
-			});
+			await this.logTokenVerification(
+				`Token verified for client ${client.id}`,
+				{
+					workspaceId: client.workspaceId,
+					clientId: client.id,
+					apiId: client.apiId,
+					timestamp: Date.now(),
+					deniedReason: 'VERSION_MISMATCH',
+				},
+				ctx,
+			);
 
 			return {
 				valid: false,
@@ -438,14 +477,17 @@ export class TokenService implements TokenService {
 		if (!client.rateLimitBucketSize || !client.rateLimitRefillAmount || !client.rateLimitRefillInterval) {
 			logger.info(`Client ${client.id} has no rate limit. Token is valid.`);
 
-			logger.metric(`Token verified for client ${client.id}`, {
-				name: 'token.verified',
-				workspaceId: client.workspaceId,
-				clientId: client.id,
-				apiId: client.apiId,
-				timestamp: Date.now(),
-				deniedReason: null,
-			});
+			await this.logTokenVerification(
+				`Token verified for client ${client.id}`,
+				{
+					workspaceId: client.workspaceId,
+					clientId: client.id,
+					apiId: client.apiId,
+					timestamp: Date.now(),
+					deniedReason: null,
+				},
+				ctx,
+			);
 
 			return {
 				valid: true,
@@ -471,14 +513,17 @@ export class TokenService implements TokenService {
 		if (!tokenBucket.getTokens(1)) {
 			logger.info(`Client ${client.id} has exceeded their rate limit`);
 
-			logger.metric(`Token verified for client ${client.id}`, {
-				name: 'token.verified',
-				workspaceId: client.workspaceId,
-				clientId: client.id,
-				apiId: client.apiId,
-				timestamp: Date.now(),
-				deniedReason: 'RATELIMIT_EXCEEDED',
-			});
+			await this.logTokenVerification(
+				`Token verified for client ${client.id}`,
+				{
+					workspaceId: client.workspaceId,
+					clientId: client.id,
+					apiId: client.apiId,
+					timestamp: Date.now(),
+					deniedReason: 'RATELIMIT_EXCEEDED',
+				},
+				ctx,
+			);
 
 			return {
 				valid: false,
@@ -489,14 +534,29 @@ export class TokenService implements TokenService {
 
 		logger.info(`Client ${client.id} has not exceeded their rate limit. Token is valid.`);
 
-		logger.metric(`Token verified for client ${client.id}`, {
-			name: 'token.verified',
-			workspaceId: client.workspaceId,
-			clientId: client.id,
-			apiId: client.apiId,
-			timestamp: Date.now(),
-			deniedReason: null,
-		});
+		await this.logTokenVerification(
+			`Token verified for client ${client.id}`,
+			{
+				workspaceId: client.workspaceId,
+				clientId: client.id,
+				apiId: client.apiId,
+				timestamp: Date.now(),
+				deniedReason: null,
+			},
+			ctx,
+		);
+
+		// token verifications are recorded by setting up a cloudwatch log group subscription and then parsing the logs
+		// in development this doesn't really work so we make the entry in the db directly
+		if (ctx.get('root').env === 'development') {
+			await this.db.tokenVerifications.create({
+				workspaceId: client.workspaceId,
+				apiId: client.apiId,
+				clientId: client.id,
+				timestamp: new Date(),
+				deniedReason: null,
+			});
+		}
 
 		return { valid: true, client };
 	}

@@ -58,3 +58,37 @@ export async function getVerifications(params: GetVerifications) {
 
   return verifications;
 }
+type GetGroupedByMonth = {
+  workspaceId: string;
+  timestampGt: Date;
+  timestampLt: Date;
+  apiId?: string;
+};
+
+export async function getVerificationsGroupedByMonth(
+  params: GetGroupedByMonth,
+) {
+  const tokenVerifications = await getTokenVerificationsRepo();
+
+  const result = await tokenVerifications.getGroupedByMonthForWorkspace({
+    workspaceId: params.workspaceId,
+    timestampGt: params.timestampGt,
+    timestampLt: params.timestampLt,
+    apiId: params.apiId,
+  });
+
+  return result;
+}
+
+export async function getGenerationsGroupedByMonth(params: GetGroupedByMonth) {
+  const tokenGenerations = await getTokenGenerationsRepo();
+
+  const result = await tokenGenerations.getGroupedByMonth({
+    timestampGt: params.timestampGt,
+    timestampLt: params.timestampLt,
+    workspaceId: params.workspaceId,
+    apiId: params.apiId,
+  });
+
+  return result;
+}
