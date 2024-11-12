@@ -14,6 +14,7 @@ import { columns } from "./columns";
 import { Textarea } from "@/components/ui/textarea";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { type RowSelectionState } from "@tanstack/react-table";
+import { useToast } from "@/components/hooks/use-toast";
 
 type Props = {
   scopes: { id: string; name: string; description: string }[];
@@ -34,6 +35,8 @@ export function NewClientForm(props: Props) {
 
   const router = useRouter();
   const params = useParams<{ apiId: string }>();
+
+  const { toast } = useToast();
 
   const {
     register,
@@ -208,7 +211,13 @@ export function NewClientForm(props: Props) {
             <div>
               <Button
                 className="w-min bg-transparent hover:bg-stone-200"
-                onClick={() => navigator.clipboard.writeText(clientId)}
+                onClick={async () => {
+                  await navigator.clipboard.writeText(clientId);
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "Client ID has been copied to clipboard",
+                  });
+                }}
               >
                 <Copy className="h-5 w-5 text-stone-900" />
               </Button>
@@ -230,7 +239,13 @@ export function NewClientForm(props: Props) {
               </Button>
               <Button
                 className="w-min bg-transparent hover:bg-stone-200"
-                onClick={() => navigator.clipboard.writeText(clientSecret)}
+                onClick={async () => {
+                  await navigator.clipboard.writeText(clientSecret);
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "Client secret has been copied to clipboard",
+                  });
+                }}
               >
                 <Copy className="h-5 w-5 text-stone-900" />
               </Button>
