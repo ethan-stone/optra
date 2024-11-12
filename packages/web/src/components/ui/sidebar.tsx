@@ -56,8 +56,8 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
 
     router.replace("/dashboard");
     router.refresh();
-    accessibleWorkspaces.refetch();
-    user.refetch();
+    await accessibleWorkspaces.refetch();
+    await user.refetch();
   }
 
   const router = useRouter();

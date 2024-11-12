@@ -49,6 +49,7 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
     month: number;
     year: number;
     apiId?: string;
+    clientId?: string;
   }): Promise<{ successful: number; failed: number }> {
     const result = await this.db
       .select({
@@ -61,7 +62,10 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
           eq(tokenVerifications.workspaceId, params.workspaceId),
           sql`EXTRACT(MONTH FROM ${tokenVerifications.timestamp}) = ${params.month}`,
           sql`EXTRACT(YEAR FROM ${tokenVerifications.timestamp}) = ${params.year}`,
-          params.apiId ? eq(tokenVerifications.apiId, params.apiId) : undefined
+          params.apiId ? eq(tokenVerifications.apiId, params.apiId) : undefined,
+          params.clientId
+            ? eq(tokenVerifications.clientId, params.clientId)
+            : undefined
         )
       );
 
@@ -76,6 +80,7 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
     timestampGt: Date;
     timestampLt: Date;
     apiId?: string;
+    clientId?: string;
   }): Promise<GetGroupedByMonthForWorkspaceResult[]> {
     const result = await this.db
       .select({
@@ -90,7 +95,10 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
           eq(tokenVerifications.workspaceId, params.workspaceId),
           gte(tokenVerifications.timestamp, params.timestampGt),
           lte(tokenVerifications.timestamp, params.timestampLt),
-          params.apiId ? eq(tokenVerifications.apiId, params.apiId) : undefined
+          params.apiId ? eq(tokenVerifications.apiId, params.apiId) : undefined,
+          params.clientId
+            ? eq(tokenVerifications.clientId, params.clientId)
+            : undefined
         )
       )
       .groupBy(

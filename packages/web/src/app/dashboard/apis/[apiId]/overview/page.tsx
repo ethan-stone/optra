@@ -9,8 +9,8 @@ import { getTotalClientsForApi } from "@/server/data/clients";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getTenantId } from "@/utils/auth";
 import { notFound } from "next/navigation";
-import { TokenVerificationsChart } from "./token-verifications-chart";
-import { TokenGenerationsChart } from "./token-generations-chart";
+import { TokenVerificationsChart } from "@/components/ui/token-verifications-chart";
+import { TokenGenerationsChart } from "@/components/ui/token-generations-chart";
 
 type ApiPageProps = {
   params: { apiId: string };

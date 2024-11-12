@@ -6,6 +6,7 @@ import { DrizzleTokenVerificationRepo } from "@optra/core/token-verifications";
 type GetGenerations = {
   workspaceId: string;
   apiId?: string;
+  clientId?: string;
   month: number;
   year: number;
 };
@@ -26,6 +27,7 @@ export async function getGenerations(params: GetGenerations) {
     month: params.month,
     year: params.year,
     apiId: params.apiId,
+    clientId: params.clientId,
   });
 
   return generations;
@@ -34,6 +36,7 @@ export async function getGenerations(params: GetGenerations) {
 type GetVerifications = {
   workspaceId: string;
   apiId?: string;
+  clientId?: string;
   month: number;
   year: number;
 };
@@ -63,6 +66,7 @@ type GetGroupedByMonth = {
   timestampGt: Date;
   timestampLt: Date;
   apiId?: string;
+  clientId?: string;
 };
 
 export async function getVerificationsGroupedByMonth(
@@ -75,6 +79,7 @@ export async function getVerificationsGroupedByMonth(
     timestampGt: params.timestampGt,
     timestampLt: params.timestampLt,
     apiId: params.apiId,
+    clientId: params.clientId,
   });
 
   return result;
