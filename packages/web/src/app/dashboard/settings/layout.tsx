@@ -22,6 +22,11 @@ export default async function SettingsPageLayout(props: SettingsPageProps) {
       href: `/dashboard/settings/root-clients`,
       segment: "root-clients",
     },
+    {
+      name: "Billing",
+      href: `/dashboard/settings/billing`,
+      segment: "billing",
+    },
   ];
 
   return (
