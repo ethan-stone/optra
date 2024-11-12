@@ -119,7 +119,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				['sign', 'verify'],
 			)) as webcrypto.CryptoKey;
 
-			const exportedSigningSecret = Buffer.from((await crypto.subtle.exportKey('raw', signingSecret)) as ArrayBuffer).toString('base64');
+			const exportedSigningSecret = Buffer.from(await crypto.subtle.exportKey('raw', signingSecret)).toString('base64');
 
 			const encryptResult = await keyManagementService.encryptWithDataKey(
 				workspace.dataEncryptionKeyId,

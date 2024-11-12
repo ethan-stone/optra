@@ -445,17 +445,16 @@ export const apisRouter = createTRPCRouter({
       );
 
       if (signingSecret.algorithm === "rsa256") {
+        const pemFormat = [
+          "-----BEGIN PRIVATE KEY-----",
+          ...Buffer.from(decryptResult.decryptedData)
+            .toString("base64")
+            .match(/.{1,64}/g)!, // split into lines of 64 characters
+          "-----END PRIVATE KEY-----",
+        ].join("\n");
 
-      const pemFormat = [
-        "-----BEGIN PRIVATE KEY-----",
-        ...Buffer.from(decryptResult.decryptedData)
-          .toString("base64")
-          .match(/.{1,64}/g)!, // split into lines of 64 characters
-        "-----END PRIVATE KEY-----",
-      ].join("\n");
-
-      return {
-        secret: pemFormat,
+        return {
+          secret: pemFormat,
         };
       } else {
         return {
