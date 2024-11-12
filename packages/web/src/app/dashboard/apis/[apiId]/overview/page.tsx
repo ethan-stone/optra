@@ -48,80 +48,16 @@ export default async function OverviewPage(props: ApiPageProps) {
     getGenerationsGroupedByMonth({
       workspaceId: workspace.id,
       apiId: props.params.apiId,
-      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 12)),
       timestampLt: new Date(),
     }),
     getVerificationsGroupedByMonth({
-      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 12)),
       timestampLt: new Date(),
       workspaceId: workspace.id,
       apiId: props.params.apiId,
     }),
   ]);
-
-  const combinedVerifications = verificationsByMonth.map((item) => ({
-    ...item,
-    yearMonth: `${item.year}-${item.month}`,
-  }));
-
-  const combinedGenerations = generationsByMonth.map((item) => ({
-    ...item,
-    yearMonth: `${item.year}-${item.month}`,
-  }));
-
-  // Fill in missing months for the last 12 months
-  const last12Months = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    return {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      yearMonth: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    };
-  });
-
-  const filledVerifications = last12Months
-    .map((monthData) => {
-      const existing = combinedVerifications.find(
-        (v) => v.yearMonth === monthData.yearMonth,
-      );
-      return (
-        existing ?? {
-          successful: 0,
-          failed: 0,
-          month: monthData.month,
-          year: monthData.year,
-          yearMonth: monthData.yearMonth,
-        }
-      );
-    })
-    .sort((a, b) => {
-      if (a.year < b.year) {
-        return -1;
-      }
-      return a.month - b.month;
-    });
-
-  const filledGenerations = last12Months
-    .map((monthData) => {
-      const existing = combinedGenerations.find(
-        (g) => g.yearMonth === monthData.yearMonth,
-      );
-      return (
-        existing ?? {
-          total: 0,
-          month: monthData.month,
-          year: monthData.year,
-          yearMonth: monthData.yearMonth,
-        }
-      );
-    })
-    .sort((a, b) => {
-      if (a.year < b.year) {
-        return -1;
-      }
-      return a.month - b.month;
-    });
 
   return (
     <div className="flex flex-col gap-8">
@@ -143,8 +79,18 @@ export default async function OverviewPage(props: ApiPageProps) {
           </p>
         </div>
       </div>
-      <TokenVerificationsChart data={filledVerifications} />
-      <TokenGenerationsChart data={filledGenerations} />
+      <TokenVerificationsChart
+        data={verificationsByMonth.map((item) => ({
+          ...item,
+          yearMonth: `${item.year}-${item.month}`,
+        }))}
+      />
+      <TokenGenerationsChart
+        data={generationsByMonth.map((item) => ({
+          ...item,
+          yearMonth: `${item.year}-${item.month}`,
+        }))}
+      />
     </div>
   );
 }

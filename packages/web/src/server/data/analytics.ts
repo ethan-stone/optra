@@ -22,7 +22,7 @@ async function getTokenGenerationsRepo() {
 export async function getGenerations(params: GetGenerations) {
   const tokenGenerations = await getTokenGenerationsRepo();
 
-  const generations = await tokenGenerations.getForWorkspace({
+  const generations = await tokenGenerations.getTotals({
     workspaceId: params.workspaceId,
     month: params.month,
     year: params.year,
@@ -52,7 +52,7 @@ async function getTokenVerificationsRepo() {
 export async function getVerifications(params: GetVerifications) {
   const tokenVerifications = await getTokenVerificationsRepo();
 
-  const verifications = await tokenVerifications.getForWorkspace({
+  const verifications = await tokenVerifications.getTotals({
     workspaceId: params.workspaceId,
     month: params.month,
     year: params.year,
@@ -69,12 +69,62 @@ type GetGroupedByMonth = {
   clientId?: string;
 };
 
+function fillTokenVerificationsByMonth(
+  data: {
+    year: number;
+    month: number;
+    successful: number;
+    failed: number;
+  }[],
+  start: Date,
+  end: Date,
+) {
+  const recordMap = new Map<
+    string,
+    { year: number; month: number; successful: number; failed: number }
+  >(
+    data.map((item) => [
+      `${item.year}-${item.month}`,
+      {
+        year: item.year,
+        month: item.month,
+        successful: item.successful,
+        failed: item.failed,
+      },
+    ]),
+  );
+
+  const filledRecords: {
+    year: number;
+    month: number;
+    successful: number;
+    failed: number;
+  }[] = [];
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  while (startDate <= endDate) {
+    const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}`;
+
+    if (recordMap.has(key)) {
+      filledRecords.push(recordMap.get(key)!);
+    } else {
+      filledRecords.push({ year: 0, month: 0, successful: 0, failed: 0 });
+    }
+
+    startDate.setMonth(startDate.getMonth() + 1);
+  }
+
+  return filledRecords;
+}
+
 export async function getVerificationsGroupedByMonth(
   params: GetGroupedByMonth,
 ) {
   const tokenVerifications = await getTokenVerificationsRepo();
 
-  const result = await tokenVerifications.getGroupedByMonthForWorkspace({
+  const result = await tokenVerifications.getGroupedByMonth({
     workspaceId: params.workspaceId,
     timestampGt: params.timestampGt,
     timestampLt: params.timestampLt,
@@ -82,7 +132,59 @@ export async function getVerificationsGroupedByMonth(
     clientId: params.clientId,
   });
 
-  return result;
+  return fillTokenVerificationsByMonth(
+    result,
+    params.timestampGt,
+    params.timestampLt,
+  ).sort((a, b) => {
+    if (a.year < b.year) {
+      return -1;
+    }
+    return a.month - b.month;
+  });
+}
+
+function fillTokenGenerationsByMonth(
+  data: {
+    year: number;
+    month: number;
+    total: number;
+  }[],
+  start: Date,
+  end: Date,
+) {
+  const recordMap = new Map<
+    string,
+    { year: number; month: number; total: number }
+  >(
+    data.map((item) => [
+      `${item.year}-${item.month}`,
+      { year: item.year, month: item.month, total: item.total },
+    ]),
+  );
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  const filledRecords: {
+    year: number;
+    month: number;
+    total: number;
+  }[] = [];
+
+  while (startDate <= endDate) {
+    const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}`;
+
+    if (recordMap.has(key)) {
+      filledRecords.push(recordMap.get(key)!);
+    } else {
+      filledRecords.push({ year: 0, month: 0, total: 0 });
+    }
+
+    startDate.setMonth(startDate.getMonth() + 1);
+  }
+
+  return filledRecords;
 }
 
 export async function getGenerationsGroupedByMonth(params: GetGroupedByMonth) {
@@ -95,5 +197,18 @@ export async function getGenerationsGroupedByMonth(params: GetGroupedByMonth) {
     apiId: params.apiId,
   });
 
-  return result;
+  const filledGenerationsByMonth = fillTokenGenerationsByMonth(
+    result,
+    params.timestampGt,
+    params.timestampLt,
+  ).sort((a, b) => {
+    if (a.year < b.year) {
+      return -1;
+    }
+    return a.month - b.month;
+  });
+
+  console.log(filledGenerationsByMonth);
+
+  return filledGenerationsByMonth;
 }

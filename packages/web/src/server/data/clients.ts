@@ -41,7 +41,7 @@ export async function getClientsByApi(apiId: string) {
 
   const now = new Date();
 
-  const tokenGenerationList = await tokenGenerations.getForClients({
+  const tokenGenerationList = await tokenGenerations.getTotalsForClients({
     clientIds: clientsList.map((c) => c.id),
     month: now.getMonth() + 1,
     year: now.getFullYear(),

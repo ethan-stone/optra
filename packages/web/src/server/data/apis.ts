@@ -169,7 +169,7 @@ export async function getApisForWorkspace(workspaceId: string) {
   const now = new Date();
 
   const [tokenGenerationList, clientList] = await Promise.all([
-    tokenGenerations.getForApis({
+    tokenGenerations.getTotalsForApis({
       apiIds,
       month: now.getMonth() + 1,
       year: now.getFullYear(),

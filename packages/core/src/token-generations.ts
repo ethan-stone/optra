@@ -16,18 +16,18 @@ export type GetGroupedByMonthResult = {
 
 export interface TokenGenerationRepo {
   create(tokenGeneration: CreateTokenGenerationParams): Promise<void>;
-  getForWorkspace(params: {
+  getTotals(params: {
     workspaceId: string;
     month: number;
     year: number;
     apiId?: string;
   }): Promise<{ total: number }>;
-  getForApis(params: {
+  getTotalsForApis(params: {
     apiIds: string[];
     month: number;
     year: number;
   }): Promise<{ total: number; apiId: string }[]>;
-  getForClients(params: {
+  getTotalsForClients(params: {
     clientIds: string[];
     month: number;
     year: number;
@@ -52,7 +52,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
     });
   }
 
-  async getForWorkspace(params: {
+  async getTotals(params: {
     workspaceId: string;
     month: number;
     year: number;
@@ -79,7 +79,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
     };
   }
 
-  async getForApis(params: {
+  async getTotalsForApis(params: {
     apiIds: string[];
     month: number;
     year: number;
@@ -105,7 +105,7 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
     }));
   }
 
-  async getForClients(params: {
+  async getTotalsForClients(params: {
     clientIds: string[];
     month: number;
     year: number;

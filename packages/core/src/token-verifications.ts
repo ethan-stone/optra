@@ -15,13 +15,13 @@ export type GetGroupedByMonthForWorkspaceResult = {
 
 export interface TokenVerificationRepo {
   create(tokenVerification: CreateTokenVerificationParams): Promise<void>;
-  getForWorkspace(params: {
+  getTotals(params: {
     workspaceId: string;
     month: number;
     year: number;
     apiId?: string;
   }): Promise<{ successful: number; failed: number }>;
-  getGroupedByMonthForWorkspace(params: {
+  getGroupedByMonth(params: {
     workspaceId: string;
     timestampGt: Date;
     timestampLt: Date;
@@ -44,7 +44,7 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
     });
   }
 
-  async getForWorkspace(params: {
+  async getTotals(params: {
     workspaceId: string;
     month: number;
     year: number;
@@ -75,7 +75,7 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
     };
   }
 
-  async getGroupedByMonthForWorkspace(params: {
+  async getGroupedByMonth(params: {
     workspaceId: string;
     timestampGt: Date;
     timestampLt: Date;
