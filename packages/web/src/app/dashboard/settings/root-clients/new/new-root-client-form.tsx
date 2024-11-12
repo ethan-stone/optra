@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/hooks/use-toast";
 import { EyeIcon } from "@/components/icons/eye";
 import { EyeSlashIcon } from "@/components/icons/eye-slash";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ export function NewRootClientForm() {
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [showSecret, setShowSecret] = useState(false);
+
+  const { toast } = useToast();
 
   const router = useRouter();
 
@@ -101,7 +104,13 @@ export function NewRootClientForm() {
             <div>
               <Button
                 className="w-min bg-transparent hover:bg-stone-200"
-                onClick={() => navigator.clipboard.writeText(clientId)}
+                onClick={async () => {
+                  await navigator.clipboard.writeText(clientId);
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "Client ID has been copied to clipboard",
+                  });
+                }}
               >
                 <Copy className="h-5 w-5 text-stone-900" />
               </Button>
@@ -123,7 +132,13 @@ export function NewRootClientForm() {
               </Button>
               <Button
                 className="w-min bg-transparent hover:bg-stone-200"
-                onClick={() => navigator.clipboard.writeText(clientSecret)}
+                onClick={async () => {
+                  await navigator.clipboard.writeText(clientSecret);
+                  toast({
+                    title: "Copied to clipboard",
+                    description: "Client secret has been copied to clipboard",
+                  });
+                }}
               >
                 <Copy className="h-5 w-5 text-stone-900" />
               </Button>
