@@ -199,7 +199,9 @@ export function SigningSecrets({
         <div>
           <h1 className="mb-3 text-xl font-semibold">Signing Secrets</h1>
           <p className="mb-3 text-sm text-stone-500">
-            These are the signing secrets that are valid for this API.
+            These are the signing secrets that are valid for this API. You can
+            rotate signing secrets to invalidate all old tokens once the current
+            signing secret expires.
           </p>
         </div>
         <RotateSigningSecret apiId={apiId} />

@@ -42,5 +42,6 @@ cluster.addService("Web", {
     AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,
     NEXT_PUBLIC_SUPABASE_URL: secrets.SupabaseUrl.value,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: secrets.SupabaseAnonKey.value,
+    NEXT_PUBLIC_JWKS_BUCKET_URL: `https://${bucket.name}.s3.amazonaws.com`,
   },
 });

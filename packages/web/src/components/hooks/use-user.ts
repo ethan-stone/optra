@@ -37,8 +37,6 @@ export function useUser() {
         activeWorkspaceId: jwtData.active_workspace_id ?? null,
       };
 
-      console.log("user", user);
-
       return { user };
     },
   });
