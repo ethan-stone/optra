@@ -18,11 +18,25 @@ import {
   SelectValue,
 } from "./select";
 
-export function TokenVerificationsChart({
-  data,
-}: {
-  data: { yearMonth: string; successful: number; failed: number }[];
-}) {
+type Props =
+  | {
+      groupBy: "day";
+      data: {
+        yearMonthDay: string;
+        successful: number;
+        failed: number;
+      }[];
+    }
+  | {
+      groupBy: "month";
+      data: {
+        yearMonth: string;
+        successful: number;
+        failed: number;
+      }[];
+    };
+
+export function TokenVerificationsChart({ data, groupBy }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-between">
@@ -50,7 +64,7 @@ export function TokenVerificationsChart({
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="yearMonth"
+              dataKey={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
               tickLine={false}
               axisLine={{ stroke: "#94a3b8" }}
               interval="preserveStartEnd"
@@ -63,13 +77,13 @@ export function TokenVerificationsChart({
               name="Successful Verifications"
               dataKey="successful"
               fill="#1d4ed8"
-              stackId="yearMonth"
+              stackId={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
             />
             <Bar
               name="Failed Verifications"
               dataKey="failed"
               fill="#b91c1c"
-              stackId="yearMonth"
+              stackId={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
             />
           </ComposedChart>
         </ResponsiveContainer>

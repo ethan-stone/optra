@@ -69,6 +69,14 @@ type GetGroupedByMonth = {
   clientId?: string;
 };
 
+type GetGroupedByDay = {
+  workspaceId: string;
+  timestampGt: Date;
+  timestampLt: Date;
+  apiId?: string;
+  clientId?: string;
+};
+
 function fillTokenVerificationsByMonth(
   data: {
     year: number;
@@ -110,10 +118,80 @@ function fillTokenVerificationsByMonth(
     if (recordMap.has(key)) {
       filledRecords.push(recordMap.get(key)!);
     } else {
-      filledRecords.push({ year: 0, month: 0, successful: 0, failed: 0 });
+      filledRecords.push({
+        year: startDate.getFullYear(),
+        month: startDate.getMonth() + 1,
+        successful: 0,
+        failed: 0,
+      });
     }
 
     startDate.setMonth(startDate.getMonth() + 1);
+  }
+
+  return filledRecords;
+}
+
+function fillTokenVerificationsByDay(
+  data: {
+    year: number;
+    month: number;
+    day: number;
+    successful: number;
+    failed: number;
+  }[],
+  start: Date,
+  end: Date,
+) {
+  const recordMap = new Map<
+    string,
+    {
+      year: number;
+      month: number;
+      day: number;
+      successful: number;
+      failed: number;
+    }
+  >(
+    data.map((item) => [
+      `${item.year}-${item.month}-${item.day}`,
+      {
+        year: item.year,
+        month: item.month,
+        day: item.day,
+        successful: item.successful,
+        failed: item.failed,
+      },
+    ]),
+  );
+
+  const filledRecords: {
+    year: number;
+    month: number;
+    day: number;
+    successful: number;
+    failed: number;
+  }[] = [];
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  while (startDate <= endDate) {
+    const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+
+    if (recordMap.has(key)) {
+      filledRecords.push(recordMap.get(key)!);
+    } else {
+      filledRecords.push({
+        year: startDate.getFullYear(),
+        month: startDate.getMonth() + 1,
+        day: startDate.getDate(),
+        successful: 0,
+        failed: 0,
+      });
+    }
+
+    startDate.setDate(startDate.getDate() + 1);
   }
 
   return filledRecords;
@@ -140,6 +218,11 @@ export async function getVerificationsGroupedByMonth(
     if (a.year < b.year) {
       return -1;
     }
+
+    if (a.year > b.year) {
+      return 1;
+    }
+
     return a.month - b.month;
   });
 }
@@ -178,10 +261,69 @@ function fillTokenGenerationsByMonth(
     if (recordMap.has(key)) {
       filledRecords.push(recordMap.get(key)!);
     } else {
-      filledRecords.push({ year: 0, month: 0, total: 0 });
+      filledRecords.push({
+        year: startDate.getFullYear(),
+        month: startDate.getMonth() + 1,
+        total: 0,
+      });
     }
 
     startDate.setMonth(startDate.getMonth() + 1);
+  }
+
+  return filledRecords;
+}
+
+function fillTokenGenerationsByDay(
+  data: {
+    year: number;
+    month: number;
+    day: number;
+    total: number;
+  }[],
+  start: Date,
+  end: Date,
+) {
+  const recordMap = new Map<
+    string,
+    { year: number; month: number; day: number; total: number }
+  >(
+    data.map((item) => [
+      `${item.year}-${item.month}-${item.day}`,
+      {
+        year: item.year,
+        month: item.month,
+        day: item.day,
+        total: item.total,
+      },
+    ]),
+  );
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  const filledRecords: {
+    year: number;
+    month: number;
+    day: number;
+    total: number;
+  }[] = [];
+
+  while (startDate <= endDate) {
+    const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+
+    if (recordMap.has(key)) {
+      filledRecords.push(recordMap.get(key)!);
+    } else {
+      filledRecords.push({
+        year: startDate.getFullYear(),
+        month: startDate.getMonth() + 1,
+        day: startDate.getDate(),
+        total: 0,
+      });
+    }
+
+    startDate.setDate(startDate.getDate() + 1);
   }
 
   return filledRecords;
@@ -205,10 +347,79 @@ export async function getGenerationsGroupedByMonth(params: GetGroupedByMonth) {
     if (a.year < b.year) {
       return -1;
     }
+
+    if (a.year > b.year) {
+      return 1;
+    }
+
     return a.month - b.month;
   });
 
-  console.log(filledGenerationsByMonth);
-
   return filledGenerationsByMonth;
+}
+
+export async function getVerificationsGroupedByDay(params: GetGroupedByDay) {
+  const tokenVerifications = await getTokenVerificationsRepo();
+
+  const result = await tokenVerifications.getGroupedByDay(params);
+
+  const sorted = fillTokenVerificationsByDay(
+    result,
+    params.timestampGt,
+    params.timestampLt,
+  ).sort((a, b) => {
+    if (a.year < b.year) {
+      return -1;
+    }
+
+    if (a.year > b.year) {
+      return 1;
+    }
+
+    if (a.month < b.month) {
+      return -1;
+    }
+
+    if (a.month > b.month) {
+      return 1;
+    }
+
+    return a.day - b.day;
+  });
+
+  return sorted;
+}
+
+export async function getGenerationsGroupedByDay(params: GetGroupedByDay) {
+  const tokenGenerations = await getTokenGenerationsRepo();
+
+  const result = await tokenGenerations.getGroupedByDay(params);
+
+  const filled = fillTokenGenerationsByDay(
+    result,
+    params.timestampGt,
+    params.timestampLt,
+  );
+
+  const sorted = filled.sort((a, b) => {
+    if (a.year < b.year) {
+      return -1;
+    }
+
+    if (a.year > b.year) {
+      return 1;
+    }
+
+    if (a.month < b.month) {
+      return -1;
+    }
+
+    if (a.month > b.month) {
+      return 1;
+    }
+
+    return a.day - b.day;
+  });
+
+  return sorted;
 }

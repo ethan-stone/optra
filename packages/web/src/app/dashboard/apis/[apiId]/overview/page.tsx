@@ -1,9 +1,9 @@
 import { Separator } from "@/components/ui/separator";
 import {
   getGenerations,
-  getVerificationsGroupedByMonth,
   getVerifications,
-  getGenerationsGroupedByMonth,
+  getVerificationsGroupedByDay,
+  getGenerationsGroupedByDay,
 } from "@/server/data/analytics";
 import { getTotalClientsForApi } from "@/server/data/clients";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
@@ -45,14 +45,14 @@ export default async function OverviewPage(props: ApiPageProps) {
       year: new Date().getFullYear(),
       apiId: props.params.apiId,
     }),
-    getGenerationsGroupedByMonth({
+    getGenerationsGroupedByDay({
       workspaceId: workspace.id,
       apiId: props.params.apiId,
-      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 12)),
+      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 2)),
       timestampLt: new Date(),
     }),
-    getVerificationsGroupedByMonth({
-      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 12)),
+    getVerificationsGroupedByDay({
+      timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 2)),
       timestampLt: new Date(),
       workspaceId: workspace.id,
       apiId: props.params.apiId,
@@ -82,14 +82,16 @@ export default async function OverviewPage(props: ApiPageProps) {
       <TokenVerificationsChart
         data={verificationsByMonth.map((item) => ({
           ...item,
-          yearMonth: `${item.year}-${item.month}`,
+          yearMonthDay: `${item.year}-${item.month}-${item.day}`,
         }))}
+        groupBy="day"
       />
       <TokenGenerationsChart
         data={generationsByMonth.map((item) => ({
           ...item,
-          yearMonth: `${item.year}-${item.month}`,
+          yearMonthDay: `${item.year}-${item.month}-${item.day}`,
         }))}
+        groupBy="day"
       />
     </div>
   );

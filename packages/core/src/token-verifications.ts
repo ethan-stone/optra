@@ -13,6 +13,14 @@ export type GetGroupedByMonthForWorkspaceResult = {
   year: number;
 };
 
+export type GetGroupedByDayResult = {
+  year: number;
+  month: number;
+  day: number;
+  successful: number;
+  failed: number;
+};
+
 export interface TokenVerificationRepo {
   create(tokenVerification: CreateTokenVerificationParams): Promise<void>;
   getTotals(params: {
@@ -20,13 +28,22 @@ export interface TokenVerificationRepo {
     month: number;
     year: number;
     apiId?: string;
+    clientId?: string;
   }): Promise<{ successful: number; failed: number }>;
   getGroupedByMonth(params: {
     workspaceId: string;
     timestampGt: Date;
     timestampLt: Date;
     apiId?: string;
+    clientId?: string;
   }): Promise<GetGroupedByMonthForWorkspaceResult[]>;
+  getGroupedByDay(params: {
+    workspaceId: string;
+    timestampGt: Date;
+    timestampLt: Date;
+    apiId?: string;
+    clientId?: string;
+  }): Promise<GetGroupedByDayResult[]>;
 }
 
 export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
@@ -111,6 +128,48 @@ export class DrizzleTokenVerificationRepo implements TokenVerificationRepo {
       failed: parseInt(item.failed),
       month: parseInt(item.month),
       year: parseInt(item.year),
+    }));
+  }
+
+  async getGroupedByDay(params: {
+    workspaceId: string;
+    timestampGt: Date;
+    timestampLt: Date;
+    apiId?: string;
+    clientId?: string;
+  }): Promise<GetGroupedByDayResult[]> {
+    const result = await this.db
+      .select({
+        successful: sql<string>`SUM(CASE WHEN ${tokenVerifications.deniedReason} IS NULL THEN 1 ELSE 0 END)`,
+        failed: sql<string>`SUM(CASE WHEN ${tokenVerifications.deniedReason} IS NOT NULL THEN 1 ELSE 0 END)`,
+        month: sql<string>`EXTRACT(MONTH FROM ${tokenVerifications.timestamp})`,
+        year: sql<string>`EXTRACT(YEAR FROM ${tokenVerifications.timestamp})`,
+        day: sql<string>`EXTRACT(DAY FROM ${tokenVerifications.timestamp})`,
+      })
+      .from(tokenVerifications)
+      .where(
+        and(
+          eq(tokenVerifications.workspaceId, params.workspaceId),
+          gte(tokenVerifications.timestamp, params.timestampGt),
+          lte(tokenVerifications.timestamp, params.timestampLt),
+          params.apiId ? eq(tokenVerifications.apiId, params.apiId) : undefined,
+          params.clientId
+            ? eq(tokenVerifications.clientId, params.clientId)
+            : undefined
+        )
+      )
+      .groupBy(
+        sql`EXTRACT(MONTH FROM ${tokenVerifications.timestamp})`,
+        sql`EXTRACT(YEAR FROM ${tokenVerifications.timestamp})`,
+        sql`EXTRACT(DAY FROM ${tokenVerifications.timestamp})`
+      );
+
+    return result.map((item) => ({
+      successful: parseInt(item.successful),
+      failed: parseInt(item.failed),
+      month: parseInt(item.month),
+      year: parseInt(item.year),
+      day: parseInt(item.day),
     }));
   }
 }

@@ -14,6 +14,13 @@ export type GetGroupedByMonthResult = {
   total: number;
 };
 
+export type GetGroupedByDayResult = {
+  year: number;
+  month: number;
+  day: number;
+  total: number;
+};
+
 export interface TokenGenerationRepo {
   create(tokenGeneration: CreateTokenGenerationParams): Promise<void>;
   getTotals(params: {
@@ -21,6 +28,7 @@ export interface TokenGenerationRepo {
     month: number;
     year: number;
     apiId?: string;
+    clientId?: string;
   }): Promise<{ total: number }>;
   getTotalsForApis(params: {
     apiIds: string[];
@@ -37,7 +45,15 @@ export interface TokenGenerationRepo {
     timestampLt: Date;
     workspaceId: string;
     apiId?: string;
+    clientId?: string;
   }): Promise<GetGroupedByMonthResult[]>;
+  getGroupedByDay(params: {
+    timestampGt: Date;
+    timestampLt: Date;
+    workspaceId: string;
+    apiId?: string;
+    clientId?: string;
+  }): Promise<GetGroupedByDayResult[]>;
 }
 
 export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
@@ -165,6 +181,46 @@ export class DrizzleTokenGenerationRepo implements TokenGenerationRepo {
       total: parseInt(item.total),
       month: parseInt(item.month),
       year: parseInt(item.year),
+    }));
+  }
+
+  async getGroupedByDay(params: {
+    timestampGt: Date;
+    timestampLt: Date;
+    workspaceId: string;
+    apiId?: string;
+    clientId?: string;
+  }): Promise<GetGroupedByDayResult[]> {
+    const result = await this.db
+      .select({
+        total: sql<string>`count(*)`,
+        month: sql<string>`EXTRACT(MONTH FROM ${tokenGenerations.timestamp})`,
+        year: sql<string>`EXTRACT(YEAR FROM ${tokenGenerations.timestamp})`,
+        day: sql<string>`EXTRACT(DAY FROM ${tokenGenerations.timestamp})`,
+      })
+      .from(tokenGenerations)
+      .where(
+        and(
+          eq(tokenGenerations.workspaceId, params.workspaceId),
+          gte(tokenGenerations.timestamp, params.timestampGt),
+          lte(tokenGenerations.timestamp, params.timestampLt),
+          params.apiId ? eq(tokenGenerations.apiId, params.apiId) : undefined,
+          params.clientId
+            ? eq(tokenGenerations.clientId, params.clientId)
+            : undefined
+        )
+      )
+      .groupBy(
+        sql`EXTRACT(MONTH FROM ${tokenGenerations.timestamp})`,
+        sql`EXTRACT(YEAR FROM ${tokenGenerations.timestamp})`,
+        sql`EXTRACT(DAY FROM ${tokenGenerations.timestamp})`
+      );
+
+    return result.map((item) => ({
+      total: parseInt(item.total),
+      month: parseInt(item.month),
+      year: parseInt(item.year),
+      day: parseInt(item.day),
     }));
   }
 }

@@ -11,11 +11,22 @@ import {
   YAxis,
 } from "recharts";
 
-export function TokenGenerationsChart({
-  data,
-}: {
-  data: { yearMonth: string; total: number }[];
-}) {
+type Props =
+  | {
+      groupBy: "day";
+      data: {
+        yearMonthDay: string;
+        total: number;
+      }[];
+    }
+  | {
+      groupBy: "month";
+      data: {
+        yearMonth: string;
+        total: number;
+      }[];
+    };
+export function TokenGenerationsChart({ groupBy, data }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-start">
@@ -31,7 +42,7 @@ export function TokenGenerationsChart({
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="yearMonth"
+              dataKey={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
               tickLine={false}
               axisLine={{ stroke: "#94a3b8" }}
               interval="preserveStartEnd"
