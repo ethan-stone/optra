@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import { createClient } from "@/utils/supabase";
-import { router } from "@trpc/server";
 import { useRouter } from "next/navigation";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 
 type FormInput = {
   name: string;
@@ -25,7 +24,7 @@ export function CreateWorkspace() {
 
   const onSubmit: SubmitHandler<FormInput> = (data) => {
     createWorkspace.mutate(data, {
-      onSuccess(data) {
+      onSuccess() {
         refreshSession.mutate(undefined, {
           onSuccess(data) {
             supabase.auth
