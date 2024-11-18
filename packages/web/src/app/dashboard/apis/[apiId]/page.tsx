@@ -11,7 +11,7 @@ import { getTenantId } from "@/utils/auth";
 import { notFound } from "next/navigation";
 import { TokenVerificationsChart } from "@/components/ui/token-verifications-chart";
 import { TokenGenerationsChart } from "@/components/ui/token-generations-chart";
-import { DateRangeSelector } from "./date-range-selector";
+import { DateRangeSelector } from "@/components/ui/time-range-selector";
 
 type ApiPageProps = {
   params: { apiId: string };

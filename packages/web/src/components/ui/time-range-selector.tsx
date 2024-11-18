@@ -7,18 +7,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useParams, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function DateRangeSelector({ timePeriod }: { timePeriod: string }) {
   const router = useRouter();
-  const params = useParams<{ apiId: string }>();
+  const params = useSearchParams();
+  const pathname = usePathname();
+
+  const searchParams = new URLSearchParams(params);
 
   return (
     <Select
       defaultValue={timePeriod}
       onValueChange={(value) => {
-        console.log(value);
-        router.push(`/dashboard/apis/${params.apiId}?timePeriod=${value}`, {
+        searchParams.set("timePeriod", value);
+        router.push(`${pathname}?${searchParams.toString()}`, {
           scroll: false,
         });
       }}

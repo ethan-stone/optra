@@ -1,9 +1,9 @@
 import { Separator } from "@/components/ui/separator";
 import {
   getGenerations,
-  getGenerationsGroupedByMonth,
+  getGenerationsGroupedByDay,
   getVerifications,
-  getVerificationsGroupedByMonth,
+  getVerificationsGroupedByDay,
 } from "@/server/data/analytics";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getTenantId } from "@/utils/auth";
@@ -13,9 +13,13 @@ import { TokenGenerationsChart } from "@/components/ui/token-generations-chart";
 import { getClientByWorkspaceIdAndClientId } from "@/server/data/clients";
 import Link from "next/link";
 import { Settings } from "lucide-react";
+import { DateRangeSelector } from "@/components/ui/time-range-selector";
 
 type ClientPageProps = {
   params: { apiId: string; clientId: string };
+  searchParams: {
+    timePeriod?: "1m" | "3m" | "6m";
+  };
 };
 
 export default async function ClientPage(props: ClientPageProps) {
@@ -36,6 +40,20 @@ export default async function ClientPage(props: ClientPageProps) {
     return notFound();
   }
 
+  const timePeriod = props.searchParams.timePeriod ?? "1m";
+
+  const startDate = new Date();
+  switch (timePeriod) {
+    case "3m":
+      startDate.setUTCMonth(startDate.getUTCMonth() - 3);
+      break;
+    case "6m":
+      startDate.setUTCMonth(startDate.getUTCMonth() - 6);
+      break;
+    default: // "1m"
+      startDate.setUTCMonth(startDate.getUTCMonth() - 1);
+  }
+
   const [generations, verifications, generationsByMonth, verificationsByMonth] =
     await Promise.all([
       getGenerations({
@@ -52,85 +70,21 @@ export default async function ClientPage(props: ClientPageProps) {
         apiId: props.params.apiId,
         clientId: props.params.clientId,
       }),
-      getGenerationsGroupedByMonth({
+      getGenerationsGroupedByDay({
         workspaceId: workspace.id,
         apiId: props.params.apiId,
         clientId: props.params.clientId,
-        timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        timestampGt: startDate,
         timestampLt: new Date(),
       }),
-      getVerificationsGroupedByMonth({
+      getVerificationsGroupedByDay({
         workspaceId: workspace.id,
         apiId: props.params.apiId,
         clientId: props.params.clientId,
-        timestampGt: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        timestampGt: startDate,
         timestampLt: new Date(),
       }),
     ]);
-
-  const combinedVerifications = verificationsByMonth.map((item) => ({
-    ...item,
-    yearMonth: `${item.year}-${item.month}`,
-  }));
-
-  const combinedGenerations = generationsByMonth.map((item) => ({
-    ...item,
-    yearMonth: `${item.year}-${item.month}`,
-  }));
-
-  // Fill in missing months for the last 12 months
-  const last12Months = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    return {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      yearMonth: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    };
-  });
-
-  const filledVerifications = last12Months
-    .map((monthData) => {
-      const existing = combinedVerifications.find(
-        (v) => v.yearMonth === monthData.yearMonth,
-      );
-      return (
-        existing ?? {
-          successful: 0,
-          failed: 0,
-          month: monthData.month,
-          year: monthData.year,
-          yearMonth: monthData.yearMonth,
-        }
-      );
-    })
-    .sort((a, b) => {
-      if (a.year < b.year) {
-        return -1;
-      }
-      return a.month - b.month;
-    });
-
-  const filledGenerations = last12Months
-    .map((monthData) => {
-      const existing = combinedGenerations.find(
-        (g) => g.yearMonth === monthData.yearMonth,
-      );
-      return (
-        existing ?? {
-          total: 0,
-          month: monthData.month,
-          year: monthData.year,
-          yearMonth: monthData.yearMonth,
-        }
-      );
-    })
-    .sort((a, b) => {
-      if (a.year < b.year) {
-        return -1;
-      }
-      return a.month - b.month;
-    });
 
   return (
     <div className="flex flex-col gap-6">
@@ -157,8 +111,29 @@ export default async function ClientPage(props: ClientPageProps) {
           </p>
         </div>
       </div>
-      <TokenVerificationsChart data={filledVerifications} />
-      <TokenGenerationsChart data={filledGenerations} />
+      <Separator />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-row justify-between">
+          <h4 className="text-center text-2xl font-semibold">Analytics</h4>
+          <div className="flex w-1/6 flex-row items-center gap-2">
+            <DateRangeSelector timePeriod={timePeriod} />
+          </div>
+        </div>
+        <TokenVerificationsChart
+          data={verificationsByMonth.map((item) => ({
+            ...item,
+            yearMonthDay: `${item.year}-${item.month}-${item.day}`,
+          }))}
+          groupBy="day"
+        />
+        <TokenGenerationsChart
+          data={generationsByMonth.map((item) => ({
+            ...item,
+            yearMonthDay: `${item.year}-${item.month}-${item.day}`,
+          }))}
+          groupBy="day"
+        />
+      </div>
     </div>
   );
 }
