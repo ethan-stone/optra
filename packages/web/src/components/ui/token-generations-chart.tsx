@@ -45,7 +45,8 @@ export function TokenGenerationsChart({ groupBy, data }: Props) {
               dataKey={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
               tickLine={false}
               axisLine={{ stroke: "#94a3b8" }}
-              interval="preserveStartEnd"
+              interval="equidistantPreserveStart"
+              type="category"
               padding={{ left: 10, right: 10 }}
             />
             <YAxis />

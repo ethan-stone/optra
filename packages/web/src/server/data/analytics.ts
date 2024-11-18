@@ -177,21 +177,21 @@ function fillTokenVerificationsByDay(
   const endDate = new Date(end);
 
   while (startDate <= endDate) {
-    const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+    const key = `${startDate.getUTCFullYear()}-${startDate.getUTCMonth() + 1}-${startDate.getUTCDate()}`;
 
     if (recordMap.has(key)) {
       filledRecords.push(recordMap.get(key)!);
     } else {
       filledRecords.push({
-        year: startDate.getFullYear(),
-        month: startDate.getMonth() + 1,
-        day: startDate.getDate(),
+        year: startDate.getUTCFullYear(),
+        month: startDate.getUTCMonth() + 1,
+        day: startDate.getUTCDate(),
         successful: 0,
         failed: 0,
       });
     }
 
-    startDate.setDate(startDate.getDate() + 1);
+    startDate.setUTCDate(startDate.getUTCDate() + 1);
   }
 
   return filledRecords;
@@ -310,20 +310,20 @@ function fillTokenGenerationsByDay(
   }[] = [];
 
   while (startDate <= endDate) {
-    const key = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+    const key = `${startDate.getUTCFullYear()}-${startDate.getUTCMonth() + 1}-${startDate.getUTCDate()}`;
 
     if (recordMap.has(key)) {
       filledRecords.push(recordMap.get(key)!);
     } else {
       filledRecords.push({
-        year: startDate.getFullYear(),
-        month: startDate.getMonth() + 1,
-        day: startDate.getDate(),
+        year: startDate.getUTCFullYear(),
+        month: startDate.getUTCMonth() + 1,
+        day: startDate.getUTCDate(),
         total: 0,
       });
     }
 
-    startDate.setDate(startDate.getDate() + 1);
+    startDate.setUTCDate(startDate.getUTCDate() + 1);
   }
 
   return filledRecords;

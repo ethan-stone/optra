@@ -34,8 +34,8 @@ export default async function ApiPageLayout(props: ApiPageProps) {
   const tabs = [
     {
       name: "Overview",
-      href: `/dashboard/apis/${api.id}/overview`,
-      segment: "overview",
+      href: `/dashboard/apis/${api.id}`,
+      segment: null,
     },
     {
       name: "Clients",
