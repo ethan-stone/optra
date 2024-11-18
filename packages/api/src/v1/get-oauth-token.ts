@@ -127,7 +127,7 @@ export function v1GetOAuthToken(app: App) {
 				const year = now.getUTCFullYear();
 				const month = now.getUTCMonth() + 1;
 
-				const res = await db.tokenGenerations.getForWorkspace({
+				const res = await db.tokenGenerations.getTotals({
 					workspaceId: key,
 					month,
 					year,

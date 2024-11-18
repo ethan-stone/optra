@@ -1,4 +1,5 @@
 import { bucket } from "./bucket";
+import { jwksCloudfront } from "./jwks";
 import { kmsKey } from "./kms";
 import { messageQueue } from "./queue";
 import { schedulerDLQ, schedulerRole } from "./scheduler";
@@ -37,6 +38,7 @@ cluster.addService("Web", {
   environment: {
     NODE_ENV: $dev ? "development" : "production",
     AWS_KMS_KEY_ARN: kmsKey.arn,
+    JWKS_BASE_URL: jwksCloudfront.url,
     AWS_SCHEDULER_ROLE_ARN: schedulerRole.arn,
     AWS_SCHEDULER_FAILED_DLQ_ARN: schedulerDLQ.arn,
     AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,

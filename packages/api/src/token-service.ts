@@ -172,7 +172,7 @@ export class TokenService implements TokenService {
 					const year = now.getUTCFullYear();
 					const month = now.getUTCMonth() + 1;
 
-					const res = await db.tokenVerifications.getForWorkspace({
+					const res = await db.tokenVerifications.getTotals({
 						workspaceId: key,
 						month,
 						year,

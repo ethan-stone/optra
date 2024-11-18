@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const testEnvSchema = z.object({
 	TEST_BASE_URL: z.string(),
-	JWKS_BUCKET_URL: z.string(),
+	JWKS_BASE_URL: z.string(),
 	OPTRA_WORKSPACE_ID: z.string(),
 	OPTRA_API_ID: z.string(),
 	WORKSPACE_ID: z.string(),

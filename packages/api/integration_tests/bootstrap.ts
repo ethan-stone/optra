@@ -1,5 +1,13 @@
 import { bootstrap } from '@optra/bootstrap';
-import { DRIZZLE_DATABASE_URL, AWS_ACCESS_KEY_ID, AWS_KMS_KEY_ARN, AWS_SECRET_ACCESS_KEY, BUCKET_NAME } from './env';
+import {
+	DRIZZLE_DATABASE_URL,
+	AWS_ACCESS_KEY_ID,
+	AWS_KMS_KEY_ARN,
+	AWS_SECRET_ACCESS_KEY,
+	BUCKET_NAME,
+	TEST_BASE_URL,
+	JWKS_BASE_URL,
+} from './env';
 import { writeFileSync } from 'fs';
 
 function format(obj: Record<string, any>): string {
@@ -13,8 +21,8 @@ export async function bootstrapTests() {
 
 	const dataStr = format({
 		...data,
-		TEST_BASE_URL: 'https://demc8isvv0psp.cloudfront.net/api',
-		JWKS_BUCKET_URL: 'https://demc8isvv0psp.cloudfront.net', // TODO: Change this to have jwks at the end instead of appending jwks everywhere it's used.
+		TEST_BASE_URL,
+		JWKS_BASE_URL,
 	});
 
 	writeFileSync('./.env.test', dataStr);

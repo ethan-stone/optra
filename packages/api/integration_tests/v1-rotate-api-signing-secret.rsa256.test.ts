@@ -153,7 +153,7 @@ describe('POST /v1/apis.rotateSigningSecret for rsa256 apis', () => {
 		expect(headerJson).toHaveProperty('kid');
 		expect(headerJson.kid).toEqual(signingSecretId);
 
-		const jwksRes = await fetch(`${env.JWKS_BUCKET_URL}/jwks/${env.WORKSPACE_ID}/${apiId}/.well-known/jwks.json`, {
+		const jwksRes = await fetch(`${env.JWKS_BASE_URL}/jwks/${env.WORKSPACE_ID}/${apiId}/.well-known/jwks.json`, {
 			method: 'GET',
 		});
 

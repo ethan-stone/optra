@@ -1,4 +1,5 @@
 import { bucket } from "./bucket";
+import { jwksCloudfront } from "./jwks";
 import { kmsKey } from "./kms";
 import { messageQueue } from "./queue";
 import { schedulerDLQ, schedulerRole } from "./scheduler";
@@ -8,7 +9,7 @@ export const apiFn = new sst.aws.Function("Api", {
   handler: "packages/api/src/index.handler",
   logging: { retention: "1 week" },
   environment: {
-    AWS_S3_PUBLIC_URL: bucket.domain,
+    JWKS_BASE_URL: jwksCloudfront.url,
     ENVIRONMENT: "development",
     AWS_KMS_KEY_ARN: kmsKey.arn,
     AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,

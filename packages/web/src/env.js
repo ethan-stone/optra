@@ -11,7 +11,7 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string(),
     AWS_SECRET_ACCESS_KEY: z.string(),
     AWS_KMS_KEY_ARN: z.string(),
-    AWS_S3_ENDPOINT: z.string(),
+    JWKS_BASE_URL: z.string(),
     AWS_S3_JWKS_BUCKET_NAME: z.string(),
     AWS_SCHEDULER_ROLE_ARN: z.string(),
     AWS_SCHEDULER_FAILED_DLQ_ARN: z.string(),
@@ -57,8 +57,7 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: Resource.AWSAccessKeyId.value,
     AWS_SECRET_ACCESS_KEY: Resource.AWSSecretAccessKey.value,
     AWS_KMS_KEY_ARN: process.env.AWS_KMS_KEY_ARN,
-    AWS_S3_ENDPOINT:
-      "https://" + Resource.JwksBucket.name + ".s3.amazonaws.com",
+    JWKS_BASE_URL: process.env.JWKS_BASE_URL,
     AWS_S3_JWKS_BUCKET_NAME: Resource.JwksBucket.name,
     AWS_SCHEDULER_ROLE_ARN: process.env.AWS_SCHEDULER_ROLE_ARN,
     AWS_SCHEDULER_FAILED_DLQ_ARN: process.env.AWS_SCHEDULER_FAILED_DLQ_ARN,

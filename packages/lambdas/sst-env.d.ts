@@ -46,6 +46,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
+    "JwksCloudfront": {
+      "type": "sst.aws.Router"
+      "url": string
+    }
     "MessageDLQ": {
       "type": "sst.aws.Queue"
       "url": string

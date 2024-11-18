@@ -31,7 +31,7 @@ export async function initialize(env: {
 	awsSchedulerRoleArn: string;
 	awsSchedulerFailedDLQ: string;
 	awsS3BucketArn: string;
-	awsS3PublicUrl: string;
+	jwksPublicUrl: string;
 }) {
 	const { db: drizzleClient } = await getDrizzle(env.dbUrl);
 
@@ -76,7 +76,7 @@ export async function initialize(env: {
 			region: 'us-east-1',
 		}),
 		env.awsS3BucketArn,
-		env.awsS3PublicUrl,
+		env.jwksPublicUrl,
 	);
 
 	const tokenService = new TokenService(db, keyManagementService, cache, tokenBuckets, storage);

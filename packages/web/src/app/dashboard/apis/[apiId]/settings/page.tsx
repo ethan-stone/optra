@@ -30,7 +30,7 @@ export default async function Settings(props: ApiSettingsProps) {
     return notFound();
   }
 
-  const publicKeyUrl = `${env.AWS_S3_ENDPOINT}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
+  const publicKeyUrl = `${env.JWKS_BASE_URL}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
 
   return (
     <div className="flex flex-col gap-6">

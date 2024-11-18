@@ -8,7 +8,7 @@ export const envSchema = z.object({
 	AWS_MESSAGE_QUEUE_URL: z.string(),
 	AWS_SCHEDULER_ROLE_ARN: z.string(),
 	AWS_SCHEDULER_FAILED_DLQ: z.string(),
-	AWS_S3_PUBLIC_URL: z.string(),
+	JWKS_BASE_URL: z.string(),
 });
 
 export type Env = z.infer<typeof envSchema>;
