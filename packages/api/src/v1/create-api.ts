@@ -214,6 +214,7 @@ export function v1CreateApi(app: App) {
 				logger.info(`Encrypted signing secret.`);
 
 				const { id, currentSigningSecret } = await db.apis.create({
+					jwksBaseUrl: storage.publicUrl,
 					encryptedSigningSecret: Buffer.from(encryptResult.encryptedData).toString('base64'),
 					tokenExpirationInSeconds,
 					iv: Buffer.from(encryptResult.iv).toString('base64'),

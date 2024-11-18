@@ -16,9 +16,10 @@ type UpdateApiParams = {
 
 export type CreateApiParams = Omit<
   typeof schema.apis.$inferInsert,
-  "id" | "currentSigningSecretId" | "nextSigningSecretId"
+  "id" | "currentSigningSecretId" | "nextSigningSecretId" | "urls"
 > & {
   scopes?: { name: string; description: string }[];
+  jwksBaseUrl?: string; // must be provided if the algorithm is rsa256
   algorithm: "hsa256" | "rsa256";
   encryptedSigningSecret: string;
   iv: string;
@@ -59,6 +60,10 @@ export class DrizzleApiRepo implements ApiRepo {
     const apiId = uid("api");
     const signingSecretId = uid("ssk");
 
+    if (params.algorithm === "rsa256" && !params.jwksBaseUrl) {
+      throw new Error("jwksBaseUrl is required for rsa256 apis");
+    }
+
     await this.db.transaction(async (tx) => {
       await tx.insert(schema.signingSecrets).values({
         id: signingSecretId,
@@ -74,6 +79,12 @@ export class DrizzleApiRepo implements ApiRepo {
       await tx.insert(schema.apis).values({
         id: apiId,
         currentSigningSecretId: signingSecretId,
+        urls: {
+          jwks: params.jwksBaseUrl
+            ? params.jwksBaseUrl +
+              `/jwks/${params.workspaceId}/${apiId}/.well-known/jwks.json`
+            : null,
+        },
         ...params,
       });
 

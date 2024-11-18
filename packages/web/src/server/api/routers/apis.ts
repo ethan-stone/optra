@@ -106,6 +106,7 @@ export const apisRouter = createTRPCRouter({
           name: input.name,
           scopes: [],
           algorithm: "rsa256",
+          jwksBaseUrl: storageBucket.publicUrl,
           encryptedSigningSecret: Buffer.from(
             encryptResult.encryptedData,
           ).toString("base64"),

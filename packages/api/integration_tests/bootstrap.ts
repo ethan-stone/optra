@@ -17,7 +17,7 @@ function format(obj: Record<string, any>): string {
 }
 
 export async function bootstrapTests() {
-	const data = await bootstrap(DRIZZLE_DATABASE_URL, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ARN, BUCKET_NAME);
+	const data = await bootstrap(DRIZZLE_DATABASE_URL, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ARN, BUCKET_NAME, JWKS_BASE_URL);
 
 	const dataStr = format({
 		...data,

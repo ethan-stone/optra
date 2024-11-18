@@ -155,6 +155,12 @@ export const apis = pgTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     workspaceId: text("workspace_id").notNull(),
+    algorithm: text("algorithm", { enum: ["rsa256", "hsa256"] }).notNull(),
+    urls: json("urls")
+      .$type<{
+        jwks?: string | null; // URL to the JWKS endpoint. Will null if the algorithm is HSA256.
+      }>()
+      .notNull(),
     tokenExpirationInSeconds: integer("token_expiration_in_seconds").notNull(), // in seconds
     currentSigningSecretId: text("current_signing_secret_id").notNull(),
     nextSigningSecretId: text("next_signing_secret_id"),

@@ -133,6 +133,7 @@ async function newApi(
     dataEncryptionKey: string;
     algorithm: "hsa256" | "rsa256";
     bucketName: string;
+    jwksBaseUrl: string;
   }
 ) {
   const apiName = generateRandomName();
@@ -226,6 +227,7 @@ async function newApi(
         algorithm: "rsa256",
         encryptedSigningSecret: Buffer.from(encryptedData).toString("base64"),
         iv: Buffer.from(iv).toString("base64"),
+        jwksBaseUrl: args.jwksBaseUrl,
         tokenExpirationInSeconds: 84600,
         updatedAt: new Date(),
         createdAt: new Date(),
@@ -354,7 +356,8 @@ export async function bootstrap(
   accessKeyId: string,
   secretAccessKey: string,
   awsKMSKeyArn: string,
-  bucketName: string
+  bucketName: string,
+  jwksBaseUrl: string
 ) {
   console.log("Starting bootstrap process...");
 
@@ -404,6 +407,7 @@ export async function bootstrap(
       dataEncryptionKey: internalDataEncryptionKey,
       algorithm: "rsa256",
       bucketName,
+      jwksBaseUrl,
     }
   );
   console.log(`Internal API created with ID: ${internalApiId}`);
@@ -470,6 +474,7 @@ export async function bootstrap(
       dataEncryptionKey: dataEncryptionKey,
       algorithm: "rsa256",
       bucketName,
+      jwksBaseUrl,
     }
   );
   console.log(`API created with ID: ${apiId}`);
