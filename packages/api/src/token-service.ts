@@ -243,9 +243,14 @@ export class TokenService implements TokenService {
 				case 'rsa256': {
 					logger.info(`Fetching public key for api ${api.id}`);
 
-					const url = `${storage.publicUrl}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
+					const jwksUrl = api.urls.jwks;
 
-					const res = await fetch(url, {
+					if (!jwksUrl) {
+						logger.error(`Public keys for api ${api.id} could not be retrieved.`);
+						throw new Error(`Public keys for api ${api.id} could not be retrieved.`);
+					}
+
+					const res = await fetch(jwksUrl, {
 						method: 'GET',
 					});
 

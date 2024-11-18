@@ -6,7 +6,6 @@ import { SettingsForm } from "./settings-form";
 import { Separator } from "@/components/ui/separator";
 import { SigningSecrets } from "./signing-secrets";
 import { PublicKeyUrl } from "./public-key-url";
-import { env } from "@/env";
 
 type ApiSettingsProps = {
   params: { apiId: string };
@@ -30,7 +29,7 @@ export default async function Settings(props: ApiSettingsProps) {
     return notFound();
   }
 
-  const publicKeyUrl = `${env.JWKS_BASE_URL}/jwks/${workspace.id}/${api.id}/.well-known/jwks.json`;
+  const publicKeyUrl = api.urls.jwks;
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,7 +50,7 @@ export default async function Settings(props: ApiSettingsProps) {
         currentSigningSecret={api.currentSigningSecret}
         nextSigningSecret={api.nextSigningSecret}
       />
-      {api.currentSigningSecret.algorithm === "rsa256" ? (
+      {api.currentSigningSecret.algorithm === "rsa256" && publicKeyUrl ? (
         <>
           <Separator />
           <PublicKeyUrl publicKeyUrl={publicKeyUrl} />
