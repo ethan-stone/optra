@@ -72,13 +72,13 @@ export function TokenVerificationsChart({ data, groupBy }: Props) {
             <ChartLegend content={<ChartLegendContent />} />
             <Bar
               radius={4}
-              name="Successful Verifications"
+              name="Successful"
               dataKey="successful"
               fill="var(--color-successful)"
             />
             <Bar
               radius={4}
-              name="Failed Verifications"
+              name="Failed"
               dataKey="failed"
               fill="var(--color-failed)"
             />
