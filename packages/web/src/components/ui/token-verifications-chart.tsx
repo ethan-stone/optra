@@ -30,12 +30,15 @@ type Props =
 export function TokenVerificationsChart({ data, groupBy }: Props) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between">
-        <h4 className="text-md text-center font-semibold">
-          Number of Verifications Per Month
-        </h4>
-      </div>
-      <div className="flex h-96 justify-center rounded border border-stone-300 py-8 text-xs shadow">
+      <div className="flex h-96 flex-col rounded border border-stone-300 py-4 shadow">
+        <div className="flex flex-col px-8 pb-4">
+          <h4 className="text-md font-semibold">
+            Number of Verifications Per Month
+          </h4>
+          <span className="text-xs text-stone-500">
+            This is the number of successful and failed verifications per month.
+          </span>
+        </div>
         <ChartContainer
           config={{
             successful: {
