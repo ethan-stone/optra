@@ -12,7 +12,8 @@ async function main() {
     process.env.AWS_ACCESS_KEY_ID!,
     process.env.AWS_SECRET_ACCESS_KEY!,
     process.env.AWS_KMS_KEY_ARN!,
-    process.env.BUCKET_NAME!
+    process.env.BUCKET_NAME!,
+    process.env.JWKS_BASE_URL!
   );
 
   console.log(format(data));
