@@ -46,6 +46,7 @@
     "react-hook-form": "^7.53.0",
     "recharts": "^2.13.3",
     "server-only": "^0.0.1",
+    "stripe": "^14.25.0",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.3",
     "tailwindcss-animate": "^1.0.7",

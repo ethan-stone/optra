@@ -1,15 +1,13 @@
 "use client";
 
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+  ChartContainer,
+  ChartLegend,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegendContent,
+} from "./chart";
 
 type Props =
   | {
@@ -38,37 +36,51 @@ export function TokenVerificationsChart({ data, groupBy }: Props) {
         </h4>
       </div>
       <div className="flex h-96 justify-center rounded border border-stone-300 py-8 text-xs shadow">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart
+        <ChartContainer
+          config={{
+            successful: {
+              label: "Successful",
+              color: "#1d4ed8",
+            },
+            failed: {
+              label: "Failed",
+              color: "#b91c1c",
+            },
+          }}
+          className="min-h-[200px] w-full"
+        >
+          <BarChart
+            accessibilityLayer
             data={data}
-            margin={{ top: -10, right: 20, bottom: 0, left: -20 }}
+            margin={{ top: 0, right: 20, bottom: 0, left: -20 }}
           >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
               tickLine={false}
-              axisLine={{ stroke: "#94a3b8" }}
+              axisLine={false}
+              tickMargin={10}
               interval="equidistantPreserveStart"
               type="category"
               padding={{ left: 10, right: 10 }}
             />
             <YAxis />
-            <Tooltip cursor={false} />
-            <Legend verticalAlign="top" height={36} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
             <Bar
+              radius={4}
               name="Successful Verifications"
               dataKey="successful"
-              fill="#1d4ed8"
-              stackId={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
+              fill="var(--color-successful)"
             />
             <Bar
+              radius={4}
               name="Failed Verifications"
               dataKey="failed"
-              fill="#b91c1c"
-              stackId={groupBy === "day" ? "yearMonthDay" : "yearMonth"}
+              fill="var(--color-failed)"
             />
-          </ComposedChart>
-        </ResponsiveContainer>
+          </BarChart>
+        </ChartContainer>
       </div>
     </div>
   );
