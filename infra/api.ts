@@ -98,7 +98,7 @@ if (!$dev) {
 new sst.aws.Cron("InvoiceCron", {
   job: {
     handler: "packages/lambdas/src/cron/handle-invoice-cron.handler",
-    link: [messageQueue, secrets.DbUrl],
+    link: [messageQueue, secrets.DbUrl, secrets.OptraWorkspaceId],
     timeout: "15 minutes",
   },
   schedule: "cron(0 12 1 * ? *)",

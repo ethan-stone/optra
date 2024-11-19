@@ -39,6 +39,13 @@ export const handler: ScheduledHandler = async (event) => {
   console.log(`Validating messages`);
 
   for (const workspace of workspacesArray) {
+    if (workspace.workspaceId === Resource.OptraWorkspaceId.value) {
+      console.log(
+        `Skipping workspace ${workspace.workspaceId} because it is the internal optra workspace`
+      );
+      continue;
+    }
+
     const msg: InvoiceWorkspaceEvent = {
       eventType: "workspace.invoice",
       payload: {
