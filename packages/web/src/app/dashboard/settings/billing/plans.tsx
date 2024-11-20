@@ -10,6 +10,7 @@ import {
 
 type PlanItemProps = {
   name: string;
+  type: "free" | "pro" | "enterprise";
   description: string;
   features: string[];
   isCurrentPlan: boolean;
@@ -57,29 +58,40 @@ function PlanItem({
 const plans: PlanItemProps[] = [
   {
     name: "Free",
+    type: "free",
     description: "The free plan",
     features: ["1000 generations per month", "10000 tokens per month"],
     isCurrentPlan: true,
   },
   {
     name: "Pro",
+    type: "pro",
     description: "The pro plan",
     features: ["10000 generations per month", "100000 tokens per month"],
     isCurrentPlan: false,
   },
   {
     name: "Enterprise",
+    type: "enterprise",
     description: "The enterprise plan",
     features: ["Unlimited generations"],
     isCurrentPlan: false,
   },
 ];
 
-export function Plans() {
+type PlansProps = {
+  currentPlan: "free" | "pro" | "enterprise";
+};
+
+export function Plans({ currentPlan }: PlansProps) {
   return (
     <div className="flex flex-row gap-4">
       {plans.map((plan) => (
-        <PlanItem key={plan.name} {...plan} />
+        <PlanItem
+          key={plan.name}
+          {...plan}
+          isCurrentPlan={plan.type === currentPlan}
+        />
       ))}
     </div>
   );

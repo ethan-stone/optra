@@ -16,7 +16,7 @@ export default async function Billing() {
     <div className="flex flex-col">
       <h1 className="text-2xl font-semibold">Billing</h1>
       <div className="flex w-full flex-col items-center justify-center pt-20">
-        <Plans />
+        <Plans currentPlan={workspace.billingInfo?.plan ?? "free"} />
       </div>
     </div>
   );
