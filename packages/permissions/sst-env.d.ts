@@ -22,14 +22,6 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "ClerkPublishableKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "ClerkSecretKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "DbUrl": {
       "type": "sst.sst.Secret"
       "value": string
@@ -75,6 +67,18 @@ declare module "sst" {
       "url": string
     }
     "StripeApiKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "StripeGenerationsProductId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "StripeProProductId": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "StripeVerificationsProductId": {
       "type": "sst.sst.Secret"
       "value": string
     }

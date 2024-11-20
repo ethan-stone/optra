@@ -14,8 +14,6 @@ const cluster = new sst.aws.Cluster("WebCluster", {
 cluster.addService("Web", {
   link: [
     secrets.DbUrl,
-    secrets.ClerkSecretKey,
-    secrets.ClerkPublishableKey,
     bucket,
     secrets.OptraApiId,
     secrets.OptraWorkspaceId,
@@ -24,6 +22,7 @@ cluster.addService("Web", {
     secrets.SupabaseUrl,
     secrets.SupabaseAnonKey,
     secrets.SupabaseJwtSecret,
+    secrets.StripeApiKey,
   ],
   public: {
     ports: [{ listen: "80/http", forward: "3000/http" }],

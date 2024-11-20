@@ -92,7 +92,7 @@ export async function invoiceWorkspace(
   console.log(`Added invoice item for pro plan. Invoice: ${invoice.id}`);
 
   // get token generations from the last month
-  const tokenGenerations = await ctx.tokenGenerationRepo.getForWorkspace({
+  const tokenGenerations = await ctx.tokenGenerationRepo.getTotals({
     month,
     year,
     workspaceId,
@@ -133,7 +133,7 @@ export async function invoiceWorkspace(
   }
 
   // invoice items for token verifications
-  const tokenVerifications = await ctx.tokenVerificationsRepo.getForWorkspace({
+  const tokenVerifications = await ctx.tokenVerificationsRepo.getTotals({
     month,
     year,
     workspaceId,

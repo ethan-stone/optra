@@ -24,8 +24,6 @@ FROM base AS builder
 
 # Add linked resources to the environment
 ARG SST_RESOURCE_DbUrl
-ARG SST_RESOURCE_ClerkSecretKey
-ARG SST_RESOURCE_ClerkPublishableKey
 ARG SST_RESOURCE_OptraApiId
 ARG SST_RESOURCE_OptraWorkspaceId
 ARG SST_RESOURCE_AWSAccessKeyId

@@ -18,7 +18,6 @@ export const env = createEnv({
     AWS_MESSAGE_QUEUE_ARN: z.string(),
     OPTRA_WORKSPACE_ID: z.string(),
     OPTRA_API_ID: z.string(),
-    CLERK_SECRET_KEY: z.string(),
     DATABASE_URL: z
       .string()
       .url()
@@ -39,7 +38,6 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
     NEXT_PUBLIC_SUPABASE_URL: z.string(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
@@ -52,8 +50,6 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: Resource.DbUrl.value,
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: Resource.ClerkPublishableKey.value,
-    CLERK_SECRET_KEY: Resource.ClerkSecretKey.value,
     AWS_ACCESS_KEY_ID: Resource.AWSAccessKeyId.value,
     AWS_SECRET_ACCESS_KEY: Resource.AWSSecretAccessKey.value,
     AWS_KMS_KEY_ARN: process.env.AWS_KMS_KEY_ARN,

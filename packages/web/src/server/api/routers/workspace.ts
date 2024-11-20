@@ -10,6 +10,8 @@ import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
 import { setActiveWorkspaceId } from "@/server/data/users";
 import { TRPCError } from "@trpc/server";
+import { Resource } from "sst";
+import Stripe from "stripe";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -89,4 +91,14 @@ export const workspaceRouter = createTRPCRouter({
 
       return { success: true };
     }),
+  createCheckoutSession: protectedProcedure.mutation(async ({ ctx }) => {
+    const stripe = new Stripe(Resource.StripeApiKey.value);
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing`,
+      line_items: [{}],
+    });
+  }),
 });
