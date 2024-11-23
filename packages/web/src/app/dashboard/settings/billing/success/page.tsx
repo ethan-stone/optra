@@ -2,7 +2,9 @@ import {
   addBillingInfo,
   getWorkspaceByTenantId,
 } from "@/server/data/workspaces";
+import { Logger, loggerConfig } from "@/server/logger";
 import { getTenantId } from "@/utils/auth";
+import { uid } from "@optra/core/uid";
 import { redirect } from "next/navigation";
 import { Resource } from "sst";
 import Stripe from "stripe";
@@ -15,6 +17,12 @@ type Props = {
 };
 
 export default async function Page({ searchParams }: Props) {
+  const logger = new Logger({
+    ...loggerConfig,
+    requestId: uid("req"),
+    namespace: "/dashboard/settings/billing/success",
+  });
+
   // If session_id or plan is not provided it means the user directly went to this page
   // rather than going through the checkout flow.
   // So we redirect them to the billing page.
@@ -32,12 +40,22 @@ export default async function Page({ searchParams }: Props) {
 
   // If the plan is not pro we redirect them to the billing page.
   if (searchParams.plan !== "pro") {
+    logger.info("Workspace tried to subscribe to a non-pro plan", {
+      workspaceId: workspace.id,
+    });
     return redirect("/dashboard/settings/billing");
   }
 
   if (workspace.billingInfo) {
+    logger.info("Workspace alrady has a billing info", {
+      workspaceId: workspace.id,
+    });
     return redirect("/dashboard/settings/billing");
   }
+
+  logger.info("Workspace is subscribing to pro plan. Processing...", {
+    workspaceId: workspace.id,
+  });
 
   const stripe = new Stripe(Resource.StripeApiKey.value);
 
@@ -46,10 +64,18 @@ export default async function Page({ searchParams }: Props) {
   );
 
   if (!session) {
+    logger.error("Stripe session not found", {
+      workspaceId: workspace.id,
+      sessionId: searchParams.session_id,
+    });
     return <div>Stripe session {searchParams.session_id} not found</div>;
   }
 
   if (!session.customer) {
+    logger.error("Stripe session has no customer", {
+      workspaceId: workspace.id,
+      sessionId: searchParams.session_id,
+    });
     return <div>Stripe session {searchParams.session_id} has no customer</div>;
   }
 
@@ -59,16 +85,28 @@ export default async function Page({ searchParams }: Props) {
   ]);
 
   if (customer.deleted) {
+    logger.error("Stripe customer is deleted", {
+      workspaceId: workspace.id,
+      customerId: session.customer as string,
+    });
     return <div>Stripe customer {session.customer as string} is deleted</div>;
   }
 
   if (!setupIntent) {
+    logger.error("Stripe setup intent not found", {
+      workspaceId: workspace.id,
+      sessionId: searchParams.session_id,
+    });
     return (
       <div>Stripe setup intent {session.setup_intent as string} not found</div>
     );
   }
 
   if (setupIntent.status !== "succeeded") {
+    logger.error("Stripe setup intent is not succeeded", {
+      workspaceId: workspace.id,
+      sessionId: searchParams.session_id,
+    });
     return (
       <div>
         Stripe setup intent {session.setup_intent as string} is not succeeded
@@ -79,6 +117,10 @@ export default async function Page({ searchParams }: Props) {
   const paymentMethodId = setupIntent.payment_method as string;
 
   if (!paymentMethodId) {
+    logger.error("Stripe setup intent has no payment method", {
+      workspaceId: workspace.id,
+      sessionId: searchParams.session_id,
+    });
     return (
       <div>
         Stripe setup intent {session.setup_intent as string} has no payment
@@ -86,6 +128,13 @@ export default async function Page({ searchParams }: Props) {
       </div>
     );
   }
+
+  logger.info(
+    "All validations passed. Updating customer and adding billing info...",
+    {
+      workspaceId: workspace.id,
+    },
+  );
 
   await stripe.customers.update(session.customer as string, {
     invoice_settings: {

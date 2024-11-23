@@ -2,7 +2,7 @@ import { Api } from '@optra/core/apis';
 import { Client } from '@optra/core/clients';
 import { Workspace } from '@optra/core/workspaces';
 
-import { Logger } from '@/logger';
+import { ILogger } from '@/logger';
 
 type CacheRecord<Value> = {
 	value: Value;
@@ -47,7 +47,7 @@ export interface Cache<Namespaces extends Record<string, unknown>> {
 	set<Namespace extends keyof Namespaces>(namespace: Namespace, key: string, value: Namespaces[Namespace]): Promise<void>;
 	delete<Namespace extends keyof Namespaces>(namespace: Namespace, key: string): Promise<void>;
 	fetchOrPopulate<Namespace extends keyof Namespaces>(
-		ctx: { logger: Logger },
+		ctx: { logger: ILogger },
 		namespace: Namespace,
 		key: string,
 		populate: (key: string) => Promise<Namespaces[Namespace]>,
@@ -94,7 +94,7 @@ export class InMemoryCache<Namespaces extends Record<string, unknown>> implement
 	}
 
 	async fetchOrPopulate<Namespace extends keyof Namespaces>(
-		ctx: { logger: Logger },
+		ctx: { logger: ILogger },
 		namespace: Namespace,
 		key: string,
 		populate: (key: string) => Promise<Namespaces[Namespace]>,

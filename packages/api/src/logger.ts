@@ -24,7 +24,7 @@ const MetricFields = z.discriminatedUnion('name', [
 
 type MetricFields = z.infer<typeof MetricFields>;
 
-export interface Logger {
+export interface ILogger {
 	info(message: string, fields?: Fields): void;
 	warn(message: string, fields?: Fields): void;
 	error(message: string, fields?: Fields): void;
@@ -47,7 +47,7 @@ export type LoggerOptions =
 			requestId: string;
 	  };
 
-export class Logger implements Logger {
+export class Logger implements ILogger {
 	private opts: LoggerOptions;
 	public readonly defaultFields: Fields = {};
 

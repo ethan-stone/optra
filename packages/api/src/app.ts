@@ -2,7 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { prettyJSON } from 'hono/pretty-json';
 import { LambdaEvent } from 'hono/aws-lambda';
 import { handleError, handleZodError } from './errors';
-import { Logger } from './logger';
+import { ILogger } from './logger';
 import { Db } from './db';
 import { KeyManagementService } from '@optra/core/key-management';
 import { Cache, CacheNamespaces } from './cache';
@@ -26,7 +26,7 @@ export type HonoEnv = {
 	};
 	Variables: {
 		reqId: string;
-		logger: Logger;
+		logger: ILogger;
 		root: Root;
 	};
 };

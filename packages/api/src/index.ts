@@ -4,7 +4,7 @@ import { envSchema } from '@/env';
 import { v1GetOAuthToken } from '@/v1/get-oauth-token';
 import { v1CreateApi } from '@/v1/create-api';
 import { uid } from '@/uid';
-import { Logger } from '@/logger';
+import { Logger, type ILogger } from '@/logger';
 import { v1CreateClient } from '@/v1/create-client';
 import { v1VerifyToken } from '@/v1/verify-token';
 import { v1GetClient } from '@/v1/get-client';
@@ -74,7 +74,7 @@ app.use('*', async (c, next) => {
 			tokenService: root.tokenService,
 		});
 
-		let logger: Logger;
+		let logger: ILogger;
 
 		logger = new Logger({
 			env: parsedEnv.ENVIRONMENT,
