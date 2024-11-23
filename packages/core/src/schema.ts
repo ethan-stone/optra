@@ -141,7 +141,7 @@ export const users = pgTable("users", {
 // otherwise it would be very difficult to test and bootstrap
 export const workspaceBillingInfo = pgTable("workspace_billing_info", {
   id: text("id").primaryKey(),
-  workspaceId: text("workspace_id").notNull(),
+  workspaceId: text("workspace_id").notNull().unique(),
   plan: text("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
   customerId: text("customer_id").notNull(),
   subscriptions: json("subscription").$type<Subscriptions>(),

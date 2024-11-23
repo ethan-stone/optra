@@ -10,7 +10,7 @@ type Prefix =
   | "api"
   | "csk"
   | "ws"
-  | "wm"
+  | "wsm"
   | "req"
   | "client_scope"
   | "api_scope"

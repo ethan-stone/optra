@@ -5,6 +5,7 @@ import {
   createWorkspace,
   getAccessibleWorkspaces,
   getWorkspaceById,
+  getWorkspaceByTenantId,
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
@@ -12,6 +13,7 @@ import { setActiveWorkspaceId } from "@/server/data/users";
 import { TRPCError } from "@trpc/server";
 import { Resource } from "sst";
 import Stripe from "stripe";
+import { createClient } from "@/server/supabase/server-client";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -94,11 +96,48 @@ export const workspaceRouter = createTRPCRouter({
   createCheckoutSession: protectedProcedure.mutation(async ({ ctx }) => {
     const stripe = new Stripe(Resource.StripeApiKey.value);
 
+    const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+    if (!workspace)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Workspace not found",
+      });
+
+    if (workspace.billingInfo) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Workspace already has a billing info",
+      });
+    }
+
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) throw new TRPCError({ code: "UNAUTHORIZED" });
+
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing/success`,
+      mode: "setup",
+      customer_email: user.email,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing/success?session_id={CHECKOUT_SESSION_ID}&plan=${"pro"}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing`,
-      line_items: [{}],
+      billing_address_collection: "auto",
+      currency: "usd",
+      customer_creation: "always",
+      client_reference_id: workspace.id,
     });
+
+    if (!session.url)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create checkout session",
+      });
+
+    return {
+      url: session.url,
+    };
   }),
 });

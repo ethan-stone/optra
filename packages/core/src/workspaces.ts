@@ -2,6 +2,7 @@ import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 import { and, eq } from "drizzle-orm";
 import { uid } from "./uid";
+import { Resource } from "sst";
 
 export type WorkspaceBillingInfo =
   typeof schema.workspaceBillingInfo.$inferSelect;
@@ -28,12 +29,47 @@ export type AddMemberResult =
         | "workspace_not_found";
     };
 
+export type AddBillingInfoParams = Omit<
+  typeof schema.workspaceBillingInfo.$inferInsert,
+  "id" | "subscriptions"
+>;
+
+// TODO: edit this with final pricing
+const proSubscription: schema.Subscriptions = {
+  plan: {
+    tier: "pro",
+    productId: Resource.StripeProProductId.value,
+    cents: "1000",
+  },
+  tokens: {
+    productId: Resource.StripeGenerationsProductId.value,
+    pricing: [
+      {
+        minUnits: 1,
+        maxUnits: null,
+        centsPerUnit: "10",
+      },
+    ],
+  },
+  verifications: {
+    productId: Resource.StripeVerificationsProductId.value,
+    pricing: [
+      {
+        minUnits: 1,
+        maxUnits: null,
+        centsPerUnit: "10",
+      },
+    ],
+  },
+};
+
 export interface WorkspaceRepo {
   create(params: CreateWorkspaceParams): Promise<{ id: string }>;
   getById(id: string): Promise<Workspace | null>;
   getBillableWorkspaces(): Promise<WorkspaceBillingInfo[]>;
   getByTenantId(tenantId: string): Promise<Workspace | null>;
   addMember(workspaceId: string, userId: string): Promise<AddMemberResult>;
+  addBillingInfo(billingInfo: AddBillingInfoParams): Promise<void>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -116,7 +152,7 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
 
     const now = new Date();
 
-    const memberId = uid("wm");
+    const memberId = uid("wsm");
 
     await this.db.insert(schema.workspaceMembers).values({
       id: memberId,
@@ -143,5 +179,13 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
     return personalWorkspace
       ? [personalWorkspace, ...paidWorkspaces.map((p) => p.workspace)]
       : paidWorkspaces.map((p) => p.workspace);
+  }
+
+  async addBillingInfo(billingInfo: AddBillingInfoParams) {
+    await this.db.insert(schema.workspaceBillingInfo).values({
+      id: uid(),
+      ...billingInfo,
+      subscriptions: proSubscription,
+    });
   }
 }

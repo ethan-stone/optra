@@ -27,6 +27,11 @@ export default async function SettingsPageLayout(props: SettingsPageProps) {
       href: `/dashboard/settings/billing`,
       segment: "billing",
     },
+    {
+      name: "Workspace Settings",
+      href: `/dashboard/settings/workspace-settings`,
+      segment: "workspace-settings",
+    },
   ];
 
   return (

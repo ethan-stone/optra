@@ -1,6 +1,7 @@
 import { env } from "@/env";
 import { getDrizzle } from "@optra/core/drizzle";
 import {
+  type AddBillingInfoParams,
   type CreateWorkspaceParams,
   DrizzleWorkspaceRepo,
 } from "@optra/core/workspaces";
@@ -37,4 +38,9 @@ export async function addMemberToWorkspace(
 export async function getAccessibleWorkspaces(userId: string) {
   const workspaces = await getWorkspaceRepo();
   return workspaces.getAccessibleWorkspaces(userId);
+}
+
+export async function addBillingInfo(billingInfo: AddBillingInfoParams) {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.addBillingInfo(billingInfo);
 }

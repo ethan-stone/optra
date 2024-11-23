@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 
 type PlanItemProps = {
   name: string;
@@ -14,6 +18,7 @@ type PlanItemProps = {
   description: string;
   features: string[];
   isCurrentPlan: boolean;
+  hasBillingInfo: boolean;
 };
 
 function PlanItem({
@@ -21,7 +26,24 @@ function PlanItem({
   description,
   features,
   isCurrentPlan,
+  hasBillingInfo,
 }: PlanItemProps) {
+  const router = useRouter();
+
+  const createCheckoutSession =
+    api.workspaces.createCheckoutSession.useMutation();
+
+  async function choosePlan() {
+    if (!hasBillingInfo) {
+      const session = await createCheckoutSession.mutateAsync();
+      if (session) {
+        router.push(session.url);
+      }
+    } else {
+      // TODO: Call mutation to change plan
+    }
+  }
+
   return (
     <Card
       className={`flex w-full min-w-80 max-w-96 flex-col justify-between border ${
@@ -42,6 +64,7 @@ function PlanItem({
       </CardContent>
       <CardFooter>
         <Button
+          onClick={choosePlan}
           className={`w-full border ${
             !isCurrentPlan
               ? "border-stone-900 bg-white text-stone-900 hover:bg-stone-900 hover:text-stone-50"
@@ -62,6 +85,7 @@ const plans: PlanItemProps[] = [
     description: "The free plan",
     features: ["1000 generations per month", "10000 tokens per month"],
     isCurrentPlan: true,
+    hasBillingInfo: false,
   },
   {
     name: "Pro",
@@ -69,6 +93,7 @@ const plans: PlanItemProps[] = [
     description: "The pro plan",
     features: ["10000 generations per month", "100000 tokens per month"],
     isCurrentPlan: false,
+    hasBillingInfo: false,
   },
   {
     name: "Enterprise",
@@ -76,14 +101,16 @@ const plans: PlanItemProps[] = [
     description: "The enterprise plan",
     features: ["Unlimited generations"],
     isCurrentPlan: false,
+    hasBillingInfo: false,
   },
 ];
 
 type PlansProps = {
   currentPlan: "free" | "pro" | "enterprise";
+  hasBillingInfo: boolean; // If true the workspace has already entered billing info. So if they change plans it can be done immediately instead of directing to a setup stripe checkout session.
 };
 
-export function Plans({ currentPlan }: PlansProps) {
+export function Plans({ currentPlan, hasBillingInfo }: PlansProps) {
   return (
     <div className="flex flex-row gap-4">
       {plans.map((plan) => (
@@ -91,6 +118,7 @@ export function Plans({ currentPlan }: PlansProps) {
           key={plan.name}
           {...plan}
           isCurrentPlan={plan.type === currentPlan}
+          hasBillingInfo={hasBillingInfo}
         />
       ))}
     </div>
