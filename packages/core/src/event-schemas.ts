@@ -38,24 +38,21 @@ export const InvoiceWorkspaceEvent = z.object({
 
 export type InvoiceWorkspaceEvent = z.infer<typeof InvoiceWorkspaceEvent>;
 
-export const TokenGeneratedEvent = z.object({
-  eventType: z.literal("token.generated"),
+export const ChangePlanEvent = z.object({
+  eventType: z.literal("workspace.change_plan"),
   payload: z.object({
-    clientId: z.string(),
     workspaceId: z.string(),
-    apiId: z.string(),
-    timestamp: z.number(),
   }),
   timestamp: z.number(),
 });
 
-export type TokenGeneratedEvent = z.infer<typeof TokenGeneratedEvent>;
+export type ChangePlanEvent = z.infer<typeof ChangePlanEvent>;
 
 export const EventSchemas = z.discriminatedUnion("eventType", [
   ApiSigningSecretExpiredScheduledEvent,
   ClientSecretExpiredScheduledEvent,
   InvoiceWorkspaceEvent,
-  TokenGeneratedEvent,
+  ChangePlanEvent,
 ]);
 
 export type EventSchemas = z.infer<typeof EventSchemas>;

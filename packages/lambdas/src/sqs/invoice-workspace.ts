@@ -197,15 +197,4 @@ export async function invoiceWorkspace(
   );
 
   console.log(`Checking if workspace requested a plan change.`);
-
-  if (billingInfo.requestedPlanChangeTo !== null) {
-    console.log(
-      `Workspace ${workspaceId} requested a plan change to ${billingInfo.requestedPlanChangeTo}.`
-    );
-
-    await ctx.workspaceRepo.changePlan(
-      workspaceId,
-      billingInfo.requestedPlanChangeTo
-    );
-  }
 }

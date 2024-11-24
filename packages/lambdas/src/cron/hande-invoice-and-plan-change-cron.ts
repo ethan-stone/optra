@@ -4,7 +4,10 @@ import {
   SendMessageBatchCommand,
   SendMessageBatchRequestEntry,
 } from "@aws-sdk/client-sqs";
-import { InvoiceWorkspaceEvent } from "@optra/core/event-schemas";
+import {
+  InvoiceWorkspaceEvent,
+  ChangePlanEvent,
+} from "@optra/core/event-schemas";
 import { Resource } from "sst";
 import { getDrizzle } from "@optra/core/drizzle";
 import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
@@ -33,7 +36,7 @@ export const handler: ScheduledHandler = async (event) => {
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1;
 
-  const messages: InvoiceWorkspaceEvent[] = [];
+  const messages: (InvoiceWorkspaceEvent | ChangePlanEvent)[] = [];
   const messagesThatFailedSchemaValidation: Record<string, unknown>[] = [];
 
   console.log(`Validating messages`);
@@ -46,7 +49,7 @@ export const handler: ScheduledHandler = async (event) => {
       continue;
     }
 
-    const msg: InvoiceWorkspaceEvent = {
+    const invoiceWorkspaceMsg: InvoiceWorkspaceEvent = {
       eventType: "workspace.invoice",
       payload: {
         month: month,
@@ -56,12 +59,34 @@ export const handler: ScheduledHandler = async (event) => {
       timestamp: Date.now(),
     };
 
-    const parseResult = InvoiceWorkspaceEvent.safeParse(msg);
+    const invoiceWorkspaceEventParseResult =
+      InvoiceWorkspaceEvent.safeParse(invoiceWorkspaceMsg);
 
-    if (parseResult.success) {
-      messages.push(parseResult.data);
+    if (invoiceWorkspaceEventParseResult.success) {
+      messages.push(invoiceWorkspaceEventParseResult.data);
     } else {
-      messagesThatFailedSchemaValidation.push(msg);
+      messagesThatFailedSchemaValidation.push(invoiceWorkspaceMsg);
+    }
+
+    // if the workspace has a requested plan change, we need to queue a change plan event
+    // this needs to be AFTER the invoice event
+    if (workspace.requestedPlanChangeTo) {
+      const changePlanMsg: ChangePlanEvent = {
+        eventType: "workspace.change_plan",
+        payload: {
+          workspaceId: workspace.workspaceId,
+        },
+        timestamp: Date.now(),
+      };
+
+      const changePlanEventParseResult =
+        ChangePlanEvent.safeParse(changePlanMsg);
+
+      if (changePlanEventParseResult.success) {
+        messages.push(changePlanEventParseResult.data);
+      } else {
+        messagesThatFailedSchemaValidation.push(changePlanMsg);
+      }
     }
   }
 

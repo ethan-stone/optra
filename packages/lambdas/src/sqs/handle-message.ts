@@ -11,6 +11,7 @@ import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
 import { DrizzleIdempotencyKeyRepo } from "@optra/core/idempotency-keys";
 import { DrizzleTokenGenerationRepo } from "@optra/core/token-generations";
 import { DrizzleTokenVerificationRepo } from "@optra/core/token-verifications";
+import { changePlan } from "./change-plan";
 export const handler: SQSHandler = async (event) => {
   const { db } = await getDrizzle(Resource.DbUrl.value);
 
@@ -98,6 +99,26 @@ export const handler: SQSHandler = async (event) => {
             tokenGenerationRepo,
             tokenVerificationsRepo,
           }
+        );
+      }
+
+      if (validatedResult.eventType === "workspace.change_plan") {
+        if (
+          await idempotencyKeyRepo.getByKey(validatedResult.payload.workspaceId)
+        ) {
+          console.log(
+            `Skipping change plan message ${record.messageId} because it was already processed`
+          );
+          continue;
+        }
+
+        idempotencyKey = record.messageId;
+
+        await changePlan(
+          {
+            workspaceId: validatedResult.payload.workspaceId,
+          },
+          { workspaceRepo }
         );
       }
 

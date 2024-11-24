@@ -95,9 +95,10 @@ if (!$dev) {
   );
 }
 
-new sst.aws.Cron("InvoiceCron", {
+new sst.aws.Cron("InvoiceAndPlanChangeCron", {
   job: {
-    handler: "packages/lambdas/src/cron/handle-invoice-cron.handler",
+    handler:
+      "packages/lambdas/src/cron/handle-invoice-and-plan-change-cron.handler",
     link: [messageQueue, secrets.DbUrl, secrets.OptraWorkspaceId],
     timeout: "15 minutes",
   },
