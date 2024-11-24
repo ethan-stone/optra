@@ -5,6 +5,7 @@ import {
 import { Logger, loggerConfig } from "@/server/logger";
 import { getTenantId } from "@/utils/auth";
 import { uid } from "@optra/core/uid";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Resource } from "sst";
 import Stripe from "stripe";
@@ -152,5 +153,22 @@ export default async function Page({ searchParams }: Props) {
     updatedAt: now,
   });
 
-  return <div>Success</div>;
+  logger.info("Billing info added", {
+    workspaceId: workspace.id,
+  });
+
+  return (
+    <div className="flex flex-grow flex-col items-center justify-center gap-4 pt-20">
+      <h1 className="text-2xl font-bold">
+        Successfully Subscribed to Pro Plan!
+      </h1>
+      <p className="text-sm text-gray-500">
+        You can now start using Optra Pro features. Click{" "}
+        <Link className="text-blue-500" href="/dashboard/settings/billing">
+          here
+        </Link>{" "}
+        to manage your billing info.
+      </p>
+    </div>
+  );
 }
