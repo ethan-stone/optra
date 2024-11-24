@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,29 +19,71 @@ type PlanItemProps = {
   description: string;
   features: string[];
   isCurrentPlan: boolean;
+  isNewRequestedPlan: boolean; // true if the user has requested a plan change to this plan
   hasBillingInfo: boolean;
 };
 
 function PlanItem({
   name,
+  type,
   description,
   features,
   isCurrentPlan,
+  isNewRequestedPlan,
   hasBillingInfo,
 }: PlanItemProps) {
   const router = useRouter();
 
+  const { toast } = useToast();
+
   const createCheckoutSession =
     api.workspaces.createCheckoutSession.useMutation();
 
+  const changePlan = api.workspaces.changePlan.useMutation();
+
+  const cancelPlanChange = api.workspaces.cancelPlanChange.useMutation();
+
   async function choosePlan() {
+    if (type === "enterprise") {
+      toast({
+        title: "Contact support",
+        description: "Please contact us to upgrade to the enterprise plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!hasBillingInfo) {
       const session = await createCheckoutSession.mutateAsync();
       if (session) {
         router.push(session.url);
       }
+    } else if (isNewRequestedPlan) {
+      await cancelPlanChange.mutateAsync();
+
+      toast({
+        title: "Plan change cancelled",
+        description: "Your plan change has been cancelled successfully.",
+      });
+
+      router.refresh();
     } else {
-      // TODO: Call mutation to change plan
+      const result = await changePlan.mutateAsync({ plan: type });
+
+      if (result.status === "plan_changed") {
+        toast({
+          title: "Plan changed",
+          description: "Your plan has been changed successfully.",
+        });
+      } else {
+        toast({
+          title: "Plan change requested",
+          description:
+            "Your plan change has been requested successfully. It will take effect on your next billing date.",
+        });
+      }
+
+      router.refresh();
     }
   }
 
@@ -63,54 +106,71 @@ function PlanItem({
         ))}
       </CardContent>
       <CardFooter>
-        <Button
-          onClick={choosePlan}
-          className={`w-full border ${
-            !isCurrentPlan
-              ? "border-stone-900 bg-white text-stone-900 hover:bg-stone-900 hover:text-stone-50"
-              : "border-stone-300 bg-stone-900 text-stone-50"
-          }`}
-        >
-          {isCurrentPlan ? "Current Plan" : "Choose"}
-        </Button>
+        {type === "enterprise" ? (
+          <Button
+            variant="outline"
+            className="w-full border border-stone-900 bg-white text-stone-900 hover:bg-stone-900 hover:text-stone-50"
+          >
+            Contact support
+          </Button>
+        ) : (
+          <Button
+            onClick={choosePlan}
+            className={`w-full border ${
+              isCurrentPlan
+                ? "border-stone-300 bg-stone-900 text-stone-50"
+                : isNewRequestedPlan
+                  ? "border-stone-300 bg-red-500 text-stone-50 hover:bg-red-700"
+                  : "border-stone-900 bg-white text-stone-900 hover:bg-stone-900 hover:text-stone-50"
+            }`}
+          >
+            {isCurrentPlan
+              ? "Current Plan"
+              : isNewRequestedPlan
+                ? "Cancel Plan Change"
+                : "Choose"}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
 }
 
-const plans: PlanItemProps[] = [
+const plans: Omit<
+  PlanItemProps,
+  "isCurrentPlan" | "isNewRequestedPlan" | "hasBillingInfo"
+>[] = [
   {
     name: "Free",
     type: "free",
     description: "The free plan",
     features: ["1000 generations per month", "10000 tokens per month"],
-    isCurrentPlan: true,
-    hasBillingInfo: false,
   },
   {
     name: "Pro",
     type: "pro",
     description: "The pro plan",
     features: ["10000 generations per month", "100000 tokens per month"],
-    isCurrentPlan: false,
-    hasBillingInfo: false,
   },
   {
     name: "Enterprise",
     type: "enterprise",
     description: "The enterprise plan",
     features: ["Unlimited generations"],
-    isCurrentPlan: false,
-    hasBillingInfo: false,
   },
 ];
 
 type PlansProps = {
   currentPlan: "free" | "pro" | "enterprise";
+  requestedPlanChangeTo: "free" | "pro" | null;
   hasBillingInfo: boolean; // If true the workspace has already entered billing info. So if they change plans it can be done immediately instead of directing to a setup stripe checkout session.
 };
 
-export function Plans({ currentPlan, hasBillingInfo }: PlansProps) {
+export function Plans({
+  currentPlan,
+  requestedPlanChangeTo,
+  hasBillingInfo,
+}: PlansProps) {
   return (
     <div className="flex flex-row gap-4">
       {plans.map((plan) => (
@@ -118,6 +178,7 @@ export function Plans({ currentPlan, hasBillingInfo }: PlansProps) {
           key={plan.name}
           {...plan}
           isCurrentPlan={plan.type === currentPlan}
+          isNewRequestedPlan={plan.type === requestedPlanChangeTo}
           hasBillingInfo={hasBillingInfo}
         />
       ))}

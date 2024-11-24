@@ -70,6 +70,9 @@ export interface WorkspaceRepo {
   getByTenantId(tenantId: string): Promise<Workspace | null>;
   addMember(workspaceId: string, userId: string): Promise<AddMemberResult>;
   addBillingInfo(billingInfo: AddBillingInfoParams): Promise<void>;
+  changePlan(workspaceId: string, plan: "pro" | "free"): Promise<void>;
+  requestPlanChange(workspaceId: string, plan: "pro" | "free"): Promise<void>;
+  cancelPlanChange(workspaceId: string): Promise<void>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -187,5 +190,34 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       ...billingInfo,
       subscriptions: proSubscription,
     });
+  }
+
+  async changePlan(workspaceId: string, plan: "pro" | "free") {
+    await this.db
+      .update(schema.workspaceBillingInfo)
+      .set({
+        plan,
+        planChangedAt: new Date(),
+        subscriptions: plan === "pro" ? proSubscription : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.workspaceBillingInfo.workspaceId, workspaceId));
+  }
+
+  async requestPlanChange(workspaceId: string, plan: "pro" | "free") {
+    await this.db
+      .update(schema.workspaceBillingInfo)
+      .set({
+        requestedPlanChangeAt: new Date(),
+        requestedPlanChangeTo: plan,
+      })
+      .where(eq(schema.workspaceBillingInfo.workspaceId, workspaceId));
+  }
+
+  async cancelPlanChange(workspaceId: string) {
+    await this.db
+      .update(schema.workspaceBillingInfo)
+      .set({ requestedPlanChangeAt: null, requestedPlanChangeTo: null })
+      .where(eq(schema.workspaceBillingInfo.workspaceId, workspaceId));
   }
 }

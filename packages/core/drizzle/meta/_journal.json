@@ -57,6 +57,13 @@
       "when": 1730605280228,
       "tag": "0007_dizzy_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1732472695792,
+      "tag": "0008_uneven_tattoo",
+      "breakpoints": true
     }
   ]
 }

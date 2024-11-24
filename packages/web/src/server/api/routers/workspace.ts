@@ -2,10 +2,13 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
   addMemberToWorkspace,
+  cancelPlanChange,
+  changePlan,
   createWorkspace,
   getAccessibleWorkspaces,
   getWorkspaceById,
   getWorkspaceByTenantId,
+  requestPlanChange,
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
@@ -139,5 +142,66 @@ export const workspaceRouter = createTRPCRouter({
     return {
       url: session.url,
     };
+  }),
+  changePlan: protectedProcedure
+    .input(z.object({ plan: z.enum(["free", "pro"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+      if (!workspace)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+
+      if (!workspace.billingInfo)
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Workspace must have billing info to change plan.",
+        });
+
+      const currentPlan = workspace.billingInfo.plan;
+
+      if (currentPlan === input.plan) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Workspace is already on this plan.",
+        });
+      }
+
+      // can upgrade from free to a paid plan immediately
+      // the monthly fee will be prorated for the remaining days of the month
+      if (currentPlan === "free" && input.plan === "pro") {
+        await changePlan(workspace.id, "pro");
+
+        return {
+          status: "plan_changed",
+        };
+      }
+
+      // if we're on a paid plan, pro or enterprise, we can request a plan change
+      // which will be applied on the next billing date
+      await requestPlanChange(workspace.id, input.plan);
+
+      return {
+        status: "plan_change_requested",
+      };
+    }),
+  cancelPlanChange: protectedProcedure.mutation(async ({ ctx }) => {
+    const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+    if (!workspace)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Workspace not found",
+      });
+
+    if (!workspace.billingInfo)
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "Workspace must have billing info to change plan.",
+      });
+
+    await cancelPlanChange(workspace.id);
   }),
 });

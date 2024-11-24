@@ -145,6 +145,14 @@ export const workspaceBillingInfo = pgTable("workspace_billing_info", {
   plan: text("plan", { enum: ["free", "pro", "enterprise"] }).notNull(),
   customerId: text("customer_id").notNull(),
   subscriptions: json("subscription").$type<Subscriptions>(),
+  requestedPlanChangeAt: timestamp("requested_plan_change_at", {
+    mode: "date",
+  }),
+  requestedPlanChangeTo: text("requested_plan_change_to", {
+    enum: ["free", "pro"],
+  }),
+  // any time the plan changes we update this timestamp
+  planChangedAt: timestamp("plan_changed_at", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });

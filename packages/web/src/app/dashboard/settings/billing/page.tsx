@@ -18,6 +18,9 @@ export default async function Billing() {
       <div className="flex w-full flex-col items-center justify-center pt-20">
         <Plans
           currentPlan={workspace.billingInfo?.plan ?? "free"}
+          requestedPlanChangeTo={
+            workspace.billingInfo?.requestedPlanChangeTo ?? null
+          }
           hasBillingInfo={!!workspace.billingInfo}
         />
       </div>

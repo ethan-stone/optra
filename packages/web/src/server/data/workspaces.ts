@@ -44,3 +44,21 @@ export async function addBillingInfo(billingInfo: AddBillingInfoParams) {
   const workspaces = await getWorkspaceRepo();
   return workspaces.addBillingInfo(billingInfo);
 }
+
+export async function changePlan(workspaceId: string, plan: "pro" | "free") {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.changePlan(workspaceId, plan);
+}
+
+export async function requestPlanChange(
+  workspaceId: string,
+  plan: "pro" | "free",
+) {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.requestPlanChange(workspaceId, plan);
+}
+
+export async function cancelPlanChange(workspaceId: string) {
+  const workspaces = await getWorkspaceRepo();
+  return workspaces.cancelPlanChange(workspaceId);
+}

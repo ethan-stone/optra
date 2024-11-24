@@ -149,6 +149,7 @@ export default async function Page({ searchParams }: Props) {
     workspaceId: workspace.id,
     plan: "pro",
     customerId: session.customer as string,
+    planChangedAt: now,
     createdAt: now,
     updatedAt: now,
   });
