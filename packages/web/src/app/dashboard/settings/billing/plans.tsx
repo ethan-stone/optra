@@ -120,7 +120,7 @@ function PlanItem({
               isCurrentPlan
                 ? "border-stone-300 bg-stone-900 text-stone-50"
                 : isNewRequestedPlan
-                  ? "border-stone-300 bg-red-500 text-stone-50 hover:bg-red-700"
+                  ? "border-red-300 bg-red-500 text-stone-50 hover:bg-red-700"
                   : "border-stone-900 bg-white text-stone-900 hover:bg-stone-900 hover:text-stone-50"
             }`}
           >
