@@ -70,3 +70,41 @@ export function calculateTieredPrices(
 
   return tieredPrice;
 }
+
+export function calculateProratedPrice({
+  monthlyFee,
+  startDate: _startDate,
+  billingDate: _billingDate,
+}: {
+  monthlyFee: number;
+  startDate: Date;
+  billingDate: Date;
+}) {
+  const startDate = new Date(_startDate);
+  const billDate = new Date(_billingDate);
+
+  // Get the number of days in the month we're billing for
+  const daysInMonth = new Date(
+    billDate.getUTCFullYear(),
+    billDate.getUTCMonth() + 1,
+    0
+  ).getDate();
+
+  // If not billing for the first subscription month, return full fee
+  if (
+    startDate.getUTCMonth() !== billDate.getUTCMonth() ||
+    startDate.getUTCFullYear() !== billDate.getUTCFullYear()
+  ) {
+    return monthlyFee;
+  }
+
+  // Calculate the number of days to bill for
+  const daysToCharge = daysInMonth - (startDate.getUTCDate() - 1);
+
+  // Calculate prorated amount
+  const dailyRate = monthlyFee / daysInMonth;
+  const proratedAmount = dailyRate * daysToCharge;
+
+  // Round to 2 decimal places
+  return Math.round(proratedAmount * 100) / 100;
+}

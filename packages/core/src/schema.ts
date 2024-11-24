@@ -152,7 +152,7 @@ export const workspaceBillingInfo = pgTable("workspace_billing_info", {
     enum: ["free", "pro"],
   }),
   // any time the plan changes we update this timestamp
-  planChangedAt: timestamp("plan_changed_at", { mode: "date" }),
+  planChangedAt: timestamp("plan_changed_at", { mode: "date" }).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });

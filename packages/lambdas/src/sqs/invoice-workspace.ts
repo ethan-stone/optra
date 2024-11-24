@@ -1,8 +1,12 @@
 import { stripe } from "../utils/stripe";
-import { calculateTieredPrices } from "../utils/calculate-tiered-pricing";
+import {
+  calculateProratedPrice,
+  calculateTieredPrices,
+} from "../utils/calculate-tiered-pricing";
 import { WorkspaceRepo } from "@optra/core/workspaces";
 import { TokenGenerationRepo } from "@optra/core/token-generations";
 import { TokenVerificationRepo } from "@optra/core/token-verifications";
+import { isInPreviousMonth } from "src/utils/date-utils";
 
 export type InvoiceWorkspaceArgs = {
   workspaceId: string;
@@ -71,6 +75,22 @@ export async function invoiceWorkspace(
   }
 
   // fixed invoice item for the plan
+
+  const now = new Date(year, month - 1, 1);
+
+  const planStart = billingInfo.planChangedAt;
+
+  let planFee = billingInfo.subscriptions.plan.cents;
+
+  // if the plan change last month then we need to calculate the prorated amount
+  if (isInPreviousMonth(planStart, now)) {
+    planFee = calculateProratedPrice({
+      monthlyFee: parseFloat(billingInfo.subscriptions.plan.cents),
+      startDate: planStart,
+      billingDate: new Date(year, month - 1, 1),
+    }).toString();
+  }
+
   await stripe.invoiceItems.create(
     {
       invoice: invoice.id,
@@ -79,7 +99,7 @@ export async function invoiceWorkspace(
       price_data: {
         currency: "usd",
         product: billingInfo.subscriptions.plan.productId,
-        unit_amount_decimal: billingInfo.subscriptions.plan.cents,
+        unit_amount_decimal: planFee,
       },
       currency: "usd",
       description: "Pro Plan",
@@ -178,7 +198,7 @@ export async function invoiceWorkspace(
 
   console.log(`Checking if workspace requested a plan change.`);
 
-  if (billingInfo.requestedPlanChangeTo) {
+  if (billingInfo.requestedPlanChangeTo !== null) {
     console.log(
       `Workspace ${workspaceId} requested a plan change to ${billingInfo.requestedPlanChangeTo}.`
     );

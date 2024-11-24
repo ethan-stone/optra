@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { calculateTieredPrices } from "./calculate-tiered-pricing";
+import {
+  calculateProratedPrice,
+  calculateTieredPrices,
+} from "./calculate-tiered-pricing";
 
 describe("calculate-tiered-pricing validation tests", () => {
   it("should throw error if array length is 0", () => {
@@ -120,5 +123,37 @@ describe("calculate-tiered-pricing calculation tests", () => {
     expect(result.tiers.length).toBe(2);
     expect(result.tiers[0].quantity).toBe(100_000);
     expect(result.tiers[1].quantity).toBe(900_000);
+  });
+});
+
+describe("calculate-prorated-price tests", () => {
+  it("should calculate the prorated price correctly", () => {
+    const result = calculateProratedPrice({
+      monthlyFee: 100,
+      startDate: new Date("2024-03-10"), // Started on March 10th
+      billingDate: new Date("2024-03-01"), // Billing for March
+    });
+
+    expect(result).toBe(70.97);
+  });
+
+  it("should return full price if the billing date is not in the same month as the start date", () => {
+    const result = calculateProratedPrice({
+      monthlyFee: 100,
+      startDate: new Date("2024-03-10"),
+      billingDate: new Date("2024-04-01"),
+    });
+
+    expect(result).toBe(100);
+  });
+
+  it("should return full price if the billing date is the same month as the start date", () => {
+    const result = calculateProratedPrice({
+      monthlyFee: 100,
+      startDate: new Date("2024-03-01"),
+      billingDate: new Date("2024-03-01"),
+    });
+
+    expect(result).toBe(100);
   });
 });
