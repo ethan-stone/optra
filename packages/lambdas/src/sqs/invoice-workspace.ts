@@ -175,4 +175,17 @@ export async function invoiceWorkspace(
   console.log(
     `Created draft invoice ${invoice.id} for workspace ${workspaceId}`
   );
+
+  console.log(`Checking if workspace requested a plan change.`);
+
+  if (billingInfo.requestedPlanChangeTo) {
+    console.log(
+      `Workspace ${workspaceId} requested a plan change to ${billingInfo.requestedPlanChangeTo}.`
+    );
+
+    await ctx.workspaceRepo.changePlan(
+      workspaceId,
+      billingInfo.requestedPlanChangeTo
+    );
+  }
 }

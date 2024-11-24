@@ -200,6 +200,8 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
         planChangedAt: new Date(),
         subscriptions: plan === "pro" ? proSubscription : null,
         updatedAt: new Date(),
+        requestedPlanChangeAt: null,
+        requestedPlanChangeTo: null,
       })
       .where(eq(schema.workspaceBillingInfo.workspaceId, workspaceId));
   }
@@ -217,7 +219,10 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
   async cancelPlanChange(workspaceId: string) {
     await this.db
       .update(schema.workspaceBillingInfo)
-      .set({ requestedPlanChangeAt: null, requestedPlanChangeTo: null })
+      .set({
+        requestedPlanChangeAt: null,
+        requestedPlanChangeTo: null,
+      })
       .where(eq(schema.workspaceBillingInfo.workspaceId, workspaceId));
   }
 }
