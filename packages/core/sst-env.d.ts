@@ -13,14 +13,14 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
-    "Api": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
     "AxiomApiKey": {
       "type": "sst.sst.Secret"
       "value": string
+    }
+    "CoreApi": {
+      "name": string
+      "type": "sst.aws.Function"
+      "url": string
     }
     "DbUrl": {
       "type": "sst.sst.Secret"

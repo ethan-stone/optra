@@ -86,6 +86,9 @@ export class AWSEventScheduler implements Scheduler {
         DeadLetterConfig: {
           Arn: this.config.dlqArn,
         },
+        SqsParameters: {
+          MessageGroupId: params.payload.workspaceId,
+        },
       },
       FlexibleTimeWindow: { Mode: "OFF" },
       ActionAfterCompletion: "DELETE",

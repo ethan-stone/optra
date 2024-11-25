@@ -128,6 +128,7 @@ export function v1RotateClientSecret(app: App) {
 			at: expiresAt,
 			eventType: 'client.secret.expired',
 			payload: {
+				workspaceId: clientFromRequestParams.workspaceId,
 				clientId: clientFromRequestParams.id,
 				clientSecretId: currentSecret.id,
 			},

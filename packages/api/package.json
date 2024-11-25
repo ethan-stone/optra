@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"test:integration": "tsx ./integration_tests/bootstrap.ts && dotenv -e .env.test vitest",
+		"test:integration": "sst shell tsx ./integration_tests/bootstrap.ts && dotenv -e .env.test vitest",
 		"test:smoke": "k6 run load_tests/smoke.js"
 	},
 	"devDependencies": {

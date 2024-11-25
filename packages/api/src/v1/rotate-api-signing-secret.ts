@@ -134,6 +134,17 @@ export function v1RotateApiSigningSecret(app: App) {
 				expiresAt: expiresAt,
 			});
 
+			await scheduler.createOneTimeSchedule({
+				at: expiresAt,
+				eventType: 'api.signing_secret.expired',
+				payload: {
+					workspaceId: workspace.id,
+					apiId: api.id,
+					signingSecretId: currentSigningSecret.id,
+				},
+				timestamp: Date.now(),
+			});
+
 			return c.json(
 				{
 					id: nextSigningSecretId,
@@ -201,6 +212,7 @@ export function v1RotateApiSigningSecret(app: App) {
 				at: expiresAt,
 				eventType: 'api.signing_secret.expired',
 				payload: {
+					workspaceId: workspace.id,
 					apiId: api.id,
 					signingSecretId: currentSigningSecret.id,
 				},

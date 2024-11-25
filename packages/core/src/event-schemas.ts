@@ -3,6 +3,7 @@ import { z } from "zod";
 export const ApiSigningSecretExpiredScheduledEvent = z.object({
   eventType: z.literal("api.signing_secret.expired"),
   payload: z.object({
+    workspaceId: z.string(),
     apiId: z.string(),
     signingSecretId: z.string(),
   }),
@@ -16,6 +17,7 @@ export type ApiSigningSecretExpiredScheduledEvent = z.infer<
 export const ClientSecretExpiredScheduledEvent = z.object({
   eventType: z.literal("client.secret.expired"),
   payload: z.object({
+    workspaceId: z.string(),
     clientId: z.string(),
     clientSecretId: z.string(),
   }),

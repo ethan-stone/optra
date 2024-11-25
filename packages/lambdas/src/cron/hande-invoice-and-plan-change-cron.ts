@@ -96,11 +96,14 @@ export const handler: ScheduledHandler = async (event) => {
 
   const batches = chunkArray(messages, 10);
 
-  let failedMessages: string[] = [];
+  let failedMessages: { payload: string; groupId: string }[] = [];
 
   for (const batch of batches) {
     const batchFailedMessages = await sendBatch(
-      batch.map((msg) => JSON.stringify(msg)),
+      batch.map((msg) => ({
+        payload: JSON.stringify(msg),
+        groupId: msg.payload.workspaceId,
+      })),
       0
     );
     failedMessages = failedMessages.concat(batchFailedMessages);
@@ -142,13 +145,14 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 }
 
 async function sendBatch(
-  messages: string[],
+  messages: { payload: string; groupId: string }[],
   attempt: number
-): Promise<string[]> {
+): Promise<{ payload: string; groupId: string }[]> {
   const entries = messages.map<SendMessageBatchRequestEntry>(
     (message, index) => ({
       Id: index.toString(),
-      MessageBody: message,
+      MessageBody: message.payload,
+      MessageGroupId: message.groupId,
     })
   );
 

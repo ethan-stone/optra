@@ -5,7 +5,7 @@ import { messageQueue } from "./queue";
 import { schedulerDLQ, schedulerRole } from "./scheduler";
 import { secrets } from "./secrets";
 
-export const apiFn = new sst.aws.Function("Api", {
+export const apiFn = new sst.aws.Function("CoreApi", {
   handler: "packages/api/src/index.handler",
   logging: { retention: "1 week" },
   environment: {
@@ -23,6 +23,9 @@ export const apiFn = new sst.aws.Function("Api", {
     messageQueue,
     secrets.AWSAccessKeyId,
     secrets.AWSSecretAccessKey,
+    secrets.StripeProProductId,
+    secrets.StripeGenerationsProductId,
+    secrets.StripeVerificationsProductId,
   ],
   url: true,
   transform: !$dev && {
