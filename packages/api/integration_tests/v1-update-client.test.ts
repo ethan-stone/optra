@@ -20,7 +20,7 @@ describe('POST /v1/clients.updateClient', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
 			method: 'PATCH',
 			body: JSON.stringify({}), // missing required fields
 			headers: {
@@ -28,8 +28,6 @@ describe('POST /v1/clients.updateClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -41,7 +39,7 @@ describe('POST /v1/clients.updateClient', () => {
 	it('should respond with 400 BAD_REQUEST if metadata too large', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
 			method: 'PATCH',
 			body: JSON.stringify({
 				clientId,
@@ -52,8 +50,6 @@ describe('POST /v1/clients.updateClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -65,7 +61,7 @@ describe('POST /v1/clients.updateClient', () => {
 	it('should respond with 403 FORBIDDEN if not a non root client makes the request', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
 			method: 'PATCH',
 			body: JSON.stringify({
 				clientId,
@@ -75,8 +71,6 @@ describe('POST /v1/clients.updateClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(403);
@@ -88,7 +82,7 @@ describe('POST /v1/clients.updateClient', () => {
 	it('should return 404 NOT_FOUND if client does not exist', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
 			method: 'PATCH',
 			body: JSON.stringify({
 				clientId: 'non-existent-client-id',
@@ -98,8 +92,6 @@ describe('POST /v1/clients.updateClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -111,7 +103,7 @@ describe('POST /v1/clients.updateClient', () => {
 	it('should return 404 NOT_FOUND if root client making the request does not have access to client', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
 			method: 'PATCH',
 			body: JSON.stringify({
 				clientId,
@@ -121,8 +113,6 @@ describe('POST /v1/clients.updateClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -134,7 +124,7 @@ describe('POST /v1/clients.updateClient', () => {
 	it('should respond with 200 OK if valid request', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.updateClient`, {
 			method: 'PATCH',
 			body: JSON.stringify({
 				clientId,
@@ -145,8 +135,6 @@ describe('POST /v1/clients.updateClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 
 		expect(res.status).toBe(200);
 	});

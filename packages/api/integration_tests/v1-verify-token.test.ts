@@ -7,15 +7,13 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -43,7 +41,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -52,8 +50,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -64,7 +60,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	});
 
 	it('should respond with 200 OK with invalid if token is of an invalid format', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token: 'invalid',
@@ -74,7 +70,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -103,7 +98,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token: token + 'somerandomtexttomakeitinvalid',
@@ -112,8 +107,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -163,7 +156,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -172,8 +165,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -191,7 +182,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 		);
 
 		while (true) {
-			const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+			const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 				method: 'POST',
 				body: JSON.stringify({
 					token,
@@ -201,7 +192,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 				},
 			});
 
-			const res = await fetch(req);
 			const resJson = await res.json();
 
 			expect(res.status).toBe(200);
@@ -221,7 +211,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 200 OK with invalid if token is missing scopes', async () => {
 		const createClientToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const newClient = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -233,7 +223,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
 		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
@@ -252,7 +241,20 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const res = await fetch(req);
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+			method: 'POST',
+			body: JSON.stringify({
+				token,
+				requiredScopes: {
+					method: 'all',
+					names: ['example-scope'],
+				},
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -265,7 +267,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 200 OK with valid if token has all required scopes', async () => {
 		const createClientToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const newClient = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -278,12 +280,11 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
 		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -297,7 +298,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -308,7 +308,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 200 OK with valid if token has one of required scopes', async () => {
 		const createClientToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const newClient = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -321,12 +321,11 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
 		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -340,7 +339,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -351,7 +349,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 200 OK with valid if token is valid for rsa256 tokens', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -361,7 +359,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);
@@ -372,7 +369,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 	it('should respond with 200 OK with valid if token is valid for hsa256 tokens', async () => {
 		const rootToken = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const createApi = new Request(`${env.TEST_BASE_URL}/v1/apis.createApi`, {
+		const newApi = await fetch(`${env.TEST_BASE_URL}/v1/apis.createApi`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -384,9 +381,7 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const newApi = await fetch(createApi);
-
-		const createClient = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const newClient = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: generateRandomName(),
@@ -398,12 +393,11 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const newClient = await fetch(createClient);
 		const client = (await newClient.json()) as { clientId: string; clientSecret: string };
 
 		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
@@ -413,7 +407,6 @@ describe('POST /v1/tokens.verifyToken', () => {
 			},
 		});
 
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);

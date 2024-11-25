@@ -8,7 +8,7 @@ describe('POST /v1/apis.addScope', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -16,8 +16,6 @@ describe('POST /v1/apis.addScope', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -29,7 +27,7 @@ describe('POST /v1/apis.addScope', () => {
 	it('should respond with 404 NOT_FOUND if api does not exist', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: 'non-existent-api-id',
@@ -43,8 +41,6 @@ describe('POST /v1/apis.addScope', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -56,7 +52,7 @@ describe('POST /v1/apis.addScope', () => {
 	it('should respond with 404 NOT_FOUND if token does not have access to api', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -70,8 +66,6 @@ describe('POST /v1/apis.addScope', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -83,7 +77,7 @@ describe('POST /v1/apis.addScope', () => {
 	it('should respond with 409 CONFLICT if scope aleady exists', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -97,8 +91,6 @@ describe('POST /v1/apis.addScope', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(409);
@@ -110,7 +102,7 @@ describe('POST /v1/apis.addScope', () => {
 	it('should respond with 200 OK and create api scope', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',
 			body: JSON.stringify({
 				apiId: env.API_ID,
@@ -124,8 +116,6 @@ describe('POST /v1/apis.addScope', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);

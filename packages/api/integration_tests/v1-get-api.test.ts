@@ -21,15 +21,13 @@ describe('POST /v1/apis.getApi', () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		// missing query string param
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.getApi`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.getApi`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -44,15 +42,13 @@ describe('POST /v1/apis.getApi', () => {
 		const url = new URL(`${env.TEST_BASE_URL}/v1/apis.getApi`);
 		url.searchParams.set('apiId', 'does-not-exist');
 
-		const req = new Request(url, {
+		const res = await fetch(url, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -67,15 +63,13 @@ describe('POST /v1/apis.getApi', () => {
 		const url = new URL(`${env.TEST_BASE_URL}/v1/apis.getApi`);
 		url.searchParams.set('apiId', apiId);
 
-		const req = new Request(url, {
+		const res = await fetch(url, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(403);
@@ -90,15 +84,13 @@ describe('POST /v1/apis.getApi', () => {
 		const url = new URL(`${env.TEST_BASE_URL}/v1/apis.getApi`);
 		url.searchParams.set('apiId', apiId);
 
-		const req = new Request(url, {
+		const res = await fetch(url, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -113,15 +105,13 @@ describe('POST /v1/apis.getApi', () => {
 		const url = new URL(`${env.TEST_BASE_URL}/v1/apis.getApi`);
 		url.searchParams.set('apiId', apiId);
 
-		const req = new Request(url, {
+		const res = await fetch(url, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);

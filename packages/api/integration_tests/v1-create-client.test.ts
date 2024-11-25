@@ -8,7 +8,7 @@ describe('POST /v1/clients.createClient', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -16,8 +16,6 @@ describe('POST /v1/clients.createClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -29,7 +27,7 @@ describe('POST /v1/clients.createClient', () => {
 	it('should respond with 400 BAD_REQUEST if metadata too large', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
@@ -41,8 +39,6 @@ describe('POST /v1/clients.createClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -52,7 +48,7 @@ describe('POST /v1/clients.createClient', () => {
 	});
 
 	it('should respond with 401 BAD_JWT if authorization header missing', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
@@ -62,8 +58,6 @@ describe('POST /v1/clients.createClient', () => {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(401);
@@ -75,7 +69,7 @@ describe('POST /v1/clients.createClient', () => {
 	it('should respond with 403 FORBIDDEN if not root client', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
@@ -86,8 +80,6 @@ describe('POST /v1/clients.createClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(403);
@@ -99,7 +91,7 @@ describe('POST /v1/clients.createClient', () => {
 	it('should respond with 400 BAD_REQUEST if api does not exist', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
@@ -110,8 +102,6 @@ describe('POST /v1/clients.createClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -123,7 +113,7 @@ describe('POST /v1/clients.createClient', () => {
 	it('should respond with 400 BAD_REQUEST if api does not exist because root client does not have access to workspace', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
@@ -134,8 +124,6 @@ describe('POST /v1/clients.createClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -147,7 +135,7 @@ describe('POST /v1/clients.createClient', () => {
 	it('should respond with 200 OK if valid request', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: 'test',
@@ -161,8 +149,6 @@ describe('POST /v1/clients.createClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);

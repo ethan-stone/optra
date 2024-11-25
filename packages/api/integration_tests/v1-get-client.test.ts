@@ -8,14 +8,12 @@ describe('GET /v1/clients.getClient', () => {
 	it('should respond with 400 BAD_REQUEST if invalid query params', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -27,14 +25,12 @@ describe('GET /v1/clients.getClient', () => {
 	it('should respond with 404 NOT_FOUND if client does not exist', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${'fake client'}`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${'fake client'}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -46,14 +42,12 @@ describe('GET /v1/clients.getClient', () => {
 	it('should respond with 404 NOT_FOUND if client does not belong to root client workspace', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -65,14 +59,12 @@ describe('GET /v1/clients.getClient', () => {
 	it('should respond with 403 FORBIDDEN if request made with basic client', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(403);
@@ -84,14 +76,12 @@ describe('GET /v1/clients.getClient', () => {
 	it('should respond with 200 OK if client is found', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID}`, {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(200);

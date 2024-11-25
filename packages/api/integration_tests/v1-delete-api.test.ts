@@ -20,7 +20,7 @@ describe('POST /v1/apis.deleteApi', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -28,8 +28,6 @@ describe('POST /v1/apis.deleteApi', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -41,7 +39,7 @@ describe('POST /v1/apis.deleteApi', () => {
 	it('should respond with 404 NOT_FOUND if api does not exist because it actually does not exist', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: 'does-not-exist',
@@ -51,8 +49,6 @@ describe('POST /v1/apis.deleteApi', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -64,7 +60,7 @@ describe('POST /v1/apis.deleteApi', () => {
 	it('should respond with 404 NOT_FOUND if api does not exist because client does not have access', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: apiId,
@@ -74,8 +70,6 @@ describe('POST /v1/apis.deleteApi', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(404);
@@ -87,7 +81,7 @@ describe('POST /v1/apis.deleteApi', () => {
 	it('should respond with 200 OK if successfully deleted', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.deleteApi`, {
 			method: 'POST',
 			body: JSON.stringify({
 				id: apiId,
@@ -97,8 +91,6 @@ describe('POST /v1/apis.deleteApi', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 
 		expect(res.status).toBe(200);
 	});

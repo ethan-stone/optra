@@ -6,15 +6,13 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/clients.rotateSecret', () => {
 	it('should respond with 400 BAD_REQUEST if invalid body', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.rotateSecret`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.rotateSecret`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
 		expect(res.status).toBe(400);
@@ -26,16 +24,16 @@ describe('POST /v1/clients.rotateSecret', () => {
 	it('should respond with 200 OK using root client', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
-		const getClientReq = new Request(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID_FOR_ROTATING}`, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
+		const clientBefore = await (
+			await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID_FOR_ROTATING}`, {
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			})
+		).json();
 
-		const clientBefore = await (await fetch(getClientReq)).json();
-
-		const req = new Request(`${env.TEST_BASE_URL}/v1/clients.rotateSecret`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.rotateSecret`, {
 			method: 'POST',
 			body: JSON.stringify({
 				clientId: env.BASIC_CLIENT_ID_FOR_ROTATING,
@@ -46,11 +44,16 @@ describe('POST /v1/clients.rotateSecret', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = await res.json();
 
-		const clientAfter = await (await fetch(getClientReq)).json();
+		const clientAfter = await (
+			await fetch(`${env.TEST_BASE_URL}/v1/clients.getClient?clientId=${env.BASIC_CLIENT_ID_FOR_ROTATING}`, {
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			})
+		).json();
 
 		expect(res.status).toBe(200);
 		expect(resJson).toHaveProperty('id');

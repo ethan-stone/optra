@@ -6,7 +6,7 @@ const env = testEnvSchema.parse(process.env);
 
 describe('POST /v1/oauth/token', () => {
 	it('should get oauth token', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
 				grantType: 'client_credentials',
@@ -17,8 +17,6 @@ describe('POST /v1/oauth/token', () => {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 		const resJson = (await res.json()) as GetOAuthTokenRes;
 
 		expect(res.status).toBe(200);
@@ -28,7 +26,7 @@ describe('POST /v1/oauth/token', () => {
 	});
 
 	it('should respond with 400 BAD_REQUEST if request body is invalid', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({}), // missing fields
 			headers: {
@@ -36,13 +34,11 @@ describe('POST /v1/oauth/token', () => {
 			},
 		});
 
-		const res = await fetch(req);
-
 		expect(res.status).toBe(400);
 	});
 
 	it('should respond with 403 FORBIDDEN client is not found', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
 				grantType: 'client_credentials',
@@ -54,13 +50,11 @@ describe('POST /v1/oauth/token', () => {
 			},
 		});
 
-		const res = await fetch(req);
-
 		expect(res.status).toBe(403);
 	});
 
 	it('should respond with 403 FORBIDDEN if no secret matches', async () => {
-		const req = new Request(`${env.TEST_BASE_URL}/v1/oauth/token`, {
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/oauth/token`, {
 			method: 'POST',
 			body: JSON.stringify({
 				grantType: 'client_credentials',
@@ -71,8 +65,6 @@ describe('POST /v1/oauth/token', () => {
 				'Content-Type': 'application/json',
 			},
 		});
-
-		const res = await fetch(req);
 
 		expect(res.status).toBe(403);
 	});
