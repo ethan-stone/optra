@@ -152,3 +152,24 @@ export async function newApi(
 
   return { apiId };
 }
+
+export async function newApiScope(
+  db: {
+    apis: DrizzleApiRepo;
+  },
+  args: {
+    workspaceId: string;
+    apiId: string;
+    name: string;
+    description: string;
+  }
+) {
+  await db.apis.createScope({
+    apiId: args.apiId,
+    workspaceId: args.workspaceId,
+    name: args.name,
+    description: args.description,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+}

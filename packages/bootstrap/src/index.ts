@@ -6,25 +6,25 @@ import { DrizzleClientRepo } from "@optra/core/clients";
 import { DrizzleClientSecretRepo } from "@optra/core/client-secrets";
 import { DrizzleSigningSecretRepo } from "@optra/core/signing-secrets";
 import { AWSKeyManagementService } from "@optra/core/key-management";
-import { newApi } from "./apis";
+import { newApi, newApiScope } from "./apis";
 import { newClient } from "./clients";
 import { newWorkspace } from "./workspace";
 
 const defaultInternalWorkspaceScopes = [
   {
-    name: "workspace:read_api:*",
+    name: "api:read_api:*",
     description: "Able to read all APIs in the workspace",
   },
   {
-    name: "workspace:create_api:*",
+    name: "api:create_api:*",
     description: "Able to create APIs in the workspace",
   },
   {
-    name: "workspace:update_api:*",
+    name: "api:update_api:*",
     description: "Able to update all APIs in the workspace",
   },
   {
-    name: "workspace:delete_api:*",
+    name: "api:delete_api:*",
     description: "Able to delete all APIs in the workspace",
   },
   {
@@ -109,7 +109,25 @@ export async function bootstrap(
   );
   console.log(`Internal API created with ID: ${internalApiId}`);
 
+  console.log("Creating internal API scopes...");
+
+  for (const scope of defaultInternalWorkspaceScopes) {
+    await newApiScope(
+      {
+        apis: apis,
+      },
+      {
+        apiId: internalApiId,
+        workspaceId: internalWorkspaceId,
+        ...scope,
+      }
+    );
+  }
+
+  console.log("Internal API scopes created successfully.");
+
   console.log("Creating main workspace...");
+
   const { workspaceId, dataEncryptionKey } = await newWorkspace(
     {
       workspaces: workspaces,
