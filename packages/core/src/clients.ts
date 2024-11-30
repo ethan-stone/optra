@@ -9,7 +9,9 @@ export type CreateRootClientParams = Omit<
   typeof schema.clients.$inferInsert,
   "id" | "forWorkspaceId" | "currentClientSecretId" | "nextClientSecretId"
 > &
-  Required<Pick<typeof schema.clients.$inferInsert, "forWorkspaceId">>;
+  Required<Pick<typeof schema.clients.$inferInsert, "forWorkspaceId">> & {
+    apiScopes?: string[];
+  };
 export type CreateBasicClientParams = Omit<
   typeof schema.clients.$inferInsert,
   "id" | "forWorkspaceId" | "currentClientSecretId" | "nextClientSecretId"
@@ -120,6 +122,19 @@ export class DrizzleClientRepo implements ClientRepo {
         status: "active",
         createdAt: new Date(),
       });
+
+      if (params.apiScopes) {
+        for (const apiScope of params.apiScopes) {
+          await tx.insert(schema.clientScopes).values({
+            id: uid("client_scope"),
+            apiScopeId: apiScope,
+            clientId: clientId,
+            workspaceId: params.workspaceId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      }
     });
 
     return {

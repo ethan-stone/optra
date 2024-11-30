@@ -117,6 +117,7 @@ export async function createRootClient(args: CreateRootClientArgs) {
     name: args.name,
     clientIdPrefix: args.clientIdPrefix,
     clientSecretPrefix: args.clientSecretPrefix,
+    apiScopes: args.scopes,
     metadata: args.metadata,
     version: 1,
     rateLimitBucketSize: args.rateLimitBucketSize,
@@ -248,7 +249,11 @@ export async function rotateClientSecretForClient(
   await scheduler.createOneTimeSchedule({
     at: expiresAtLocal,
     eventType: "client.secret.expired",
-    payload: { clientId, clientSecretId: client.currentClientSecretId },
+    payload: {
+      workspaceId: client.workspaceId,
+      clientId,
+      clientSecretId: client.currentClientSecretId,
+    },
     timestamp: Date.now(),
   });
 

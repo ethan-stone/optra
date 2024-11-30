@@ -91,6 +91,48 @@ export async function getScopesForApi(apiId: string) {
   return apis.getScopesByApiId(apiId);
 }
 
+/**
+ * Rather than creating all the scopes for an API that are available to a root client when the API is created,
+ * we lazy load them when a root client is created or updated. This function handles that logic.
+ */
+export async function lazyLoadRootClientScopesForApi(
+  apiId: string,
+  scopes: { name: string; description: string }[],
+) {
+  const apis = await getApiRepo();
+
+  const existingScopes = await apis.getScopesByNameAndApiId(
+    apiId,
+    scopes.map((scope) => scope.name),
+  );
+
+  const nonExistingScopesNames: string[] = [];
+
+  for (const scope of scopes) {
+    if (
+      !existingScopes.find((existingScope) => existingScope.name === scope.name)
+    ) {
+      nonExistingScopesNames.push(scope.name);
+    }
+  }
+
+  const now = new Date();
+
+  const newScopes = await apis.createScopes(
+    nonExistingScopesNames.map((name) => ({
+      apiId,
+      name,
+      description:
+        scopes.find((scope) => scope.name === name)?.description ?? "",
+      workspaceId: apiId,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  );
+
+  return [...existingScopes, ...newScopes];
+}
+
 type UpdateApiByIdArgs = {
   tokenExpirationInSeconds: number;
   name: string;
@@ -241,6 +283,7 @@ export async function rotateSigningSecretForApi(
     at: expiresAtLocal,
     eventType: "api.signing_secret.expired",
     payload: {
+      workspaceId: api.workspaceId,
       apiId: args.apiId,
       signingSecretId: api.currentSigningSecretId,
     },

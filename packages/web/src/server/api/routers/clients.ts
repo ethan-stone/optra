@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import {
   getApiByWorkspaceIdAndApiId,
   getScopesForApi,
+  lazyLoadRootClientScopesForApi,
 } from "@/server/data/apis";
 import {
   getWorkspaceByTenantId,
@@ -45,6 +46,9 @@ export const clientsRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1),
+        scopes: z.array(
+          z.object({ name: z.string(), description: z.string() }),
+        ),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -83,6 +87,11 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
+      const scopes = await lazyLoadRootClientScopesForApi(
+        optraApi.id,
+        input.scopes,
+      );
+
       const client = await createRootClient({
         workspaceId: optraWorkspace.id,
         apiId: optraApi.id,
@@ -90,6 +99,7 @@ export const clientsRouter = createTRPCRouter({
         name: input.name,
         clientIdPrefix: "optra",
         clientSecretPrefix: "optra_sk",
+        scopes: scopes.map((scope) => scope.id),
         // rate limit for root clients is ~10 requests per second
         rateLimitBucketSize: 10,
         rateLimitRefillAmount: 10,

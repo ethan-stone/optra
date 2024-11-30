@@ -1,6 +1,6 @@
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, inArray } from "drizzle-orm";
 import { uid } from "./uid";
 
 export type Api = typeof schema.apis.$inferSelect & {
@@ -43,8 +43,13 @@ export interface ApiRepo {
   listByWorkspaceId(workspaceId: string): Promise<Api[]>;
   delete(id: string): Promise<void>;
   getScopesByApiId(apiId: string): Promise<ApiScope[]>;
+  getScopesByNameAndApiId(
+    apiId: string,
+    scopeNames: string[]
+  ): Promise<ApiScope[]>;
   getScopeById(id: string): Promise<ApiScope | null>;
   createScope(params: CreateApiScopeParams): Promise<{ id: string }>;
+  createScopes(params: CreateApiScopeParams[]): Promise<{ id: string }[]>;
   deleteScopeById(id: string): Promise<void>;
 }
 
@@ -173,6 +178,18 @@ export class DrizzleApiRepo implements ApiRepo {
     });
   }
 
+  async getScopesByNameAndApiId(
+    apiId: string,
+    scopeNames: string[]
+  ): Promise<ApiScope[]> {
+    return this.db.query.apiScopes.findMany({
+      where: and(
+        eq(schema.apiScopes.apiId, apiId),
+        inArray(schema.apiScopes.name, scopeNames)
+      ),
+    });
+  }
+
   async createScope(params: CreateApiScopeParams): Promise<{ id: string }> {
     const apiScopeId = uid("api_scope");
 
@@ -182,6 +199,15 @@ export class DrizzleApiRepo implements ApiRepo {
     });
 
     return { id: apiScopeId };
+  }
+
+  async createScopes(
+    params: CreateApiScopeParams[]
+  ): Promise<{ id: string }[]> {
+    return this.db
+      .insert(schema.apiScopes)
+      .values(params.map((p) => ({ ...p, id: uid("api_scope") })))
+      .returning({ id: schema.apiScopes.id });
   }
 
   async getScopeById(id: string): Promise<ApiScope | null> {

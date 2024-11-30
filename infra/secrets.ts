@@ -9,9 +9,9 @@ export const secrets = {
   AxiomApiKey: new sst.Secret("AxiomApiKey"),
   OptraWorkspaceId: new sst.Secret(
     "OptraWorkspaceId",
-    "ws_zYHEJqwnHeqaKH7zZjded"
+    "ws_QWXkVkdcXjZTqKTBGyX94"
   ),
-  OptraApiId: new sst.Secret("OptraApiId", "api_R7ZrP9BXDpHkHEFGY8rpE"),
+  OptraApiId: new sst.Secret("OptraApiId", "api_iZyhmhx6HLtaqdkq7qmQ7"),
   SupabaseUrl: new sst.Secret(
     "SupabaseUrl",
     "https://zkfacwibmxqkhnmgkviy.supabase.co"

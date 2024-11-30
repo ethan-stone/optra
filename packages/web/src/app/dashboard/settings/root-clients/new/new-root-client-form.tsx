@@ -62,6 +62,16 @@ export function NewRootClientForm(props: Props) {
       reset({
         rootClientName: "",
       });
+      setSelectedApiLevelScopes(
+        props.apis.reduce(
+          (acc, api) => {
+            acc[api.id] = {};
+            return acc;
+          },
+          {} as Record<string, RowSelectionState>,
+        ),
+      );
+      setSelectedWorkspaceLevelScopes({});
     },
     onError(err) {
       console.error(err);
@@ -70,8 +80,37 @@ export function NewRootClientForm(props: Props) {
   });
 
   const onSubmit: SubmitHandler<FormInput> = (data) => {
+    const selectedScopes: { name: string; description: string }[] = [];
+
+    for (const [apiId, scopes] of Object.entries(selectedApiLevelScopes)) {
+      for (const [scopeId, selected] of Object.entries(scopes)) {
+        if (selected) {
+          selectedScopes.push({
+            name: scopeId,
+            description:
+              apiLevelScopes(apiId).find((scope) => scope.name === scopeId)
+                ?.description ?? "",
+          });
+        }
+      }
+    }
+
+    for (const [scopeId, selected] of Object.entries(
+      selectedWorkspaceLevelScopes,
+    )) {
+      if (selected) {
+        selectedScopes.push({
+          name: scopeId,
+          description:
+            workspaceLevelScopes.find((scope) => scope.name === scopeId)
+              ?.description ?? "",
+        });
+      }
+    }
+
     createRootClient.mutate({
       name: data.rootClientName,
+      scopes: selectedScopes,
     });
   };
 
