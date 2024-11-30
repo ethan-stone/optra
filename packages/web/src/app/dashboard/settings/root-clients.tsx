@@ -41,13 +41,6 @@ function RootClientItem(props: { id: string; name: string }) {
         <div className="flex w-full flex-col justify-center gap-2 text-sm">
           <h4 className="w-fit leading-none">{props.name}</h4>
         </div>
-        <div className="flex w-2/3 flex-row items-center justify-start">
-          <div className="flex w-fit items-center gap-2">
-            <p className="rounded-md border border-stone-400 bg-stone-300 px-1 py-0.5 text-xs">
-              9 Tokens This Month
-            </p>
-          </div>
-        </div>
         <div className="flex flex-row items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
