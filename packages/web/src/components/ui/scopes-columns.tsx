@@ -35,6 +35,9 @@ export const columns: ColumnDef<Scope>[] = [
   {
     accessorKey: "name",
     header: "Name",
+    cell: ({ row }) => {
+      return <p className="font-mono text-sm">{row.original.name}</p>;
+    },
   },
   {
     accessorKey: "description",

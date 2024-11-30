@@ -13,6 +13,7 @@
     "@aws-sdk/client-kms": "^3.670.0",
     "@aws-sdk/client-s3": "^3.670.0",
     "@clerk/nextjs": "^4.31.5",
+    "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",

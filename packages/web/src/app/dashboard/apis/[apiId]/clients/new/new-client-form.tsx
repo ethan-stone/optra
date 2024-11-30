@@ -10,7 +10,7 @@ import { Copy } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDataTable } from "@/components/ui/data-table";
-import { columns } from "./columns";
+import { columns } from "@/components/ui/scopes-columns";
 import { Textarea } from "@/components/ui/textarea";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { type RowSelectionState } from "@tanstack/react-table";

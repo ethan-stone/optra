@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import { columns } from "./columns";
+import { columns } from "@/components/ui/scopes-columns";
 import { useState } from "react";
 import { type RowSelectionState } from "@tanstack/react-table";
 import { useToast } from "@/components/hooks/use-toast";

@@ -11,12 +11,28 @@ import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
+import { type RowSelectionState } from "@tanstack/react-table";
+import { ScopesTable } from "./scopes-table";
+import { apiLevelScopes, workspaceLevelScopes } from "../default-scopes";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 type FormInput = {
   rootClientName: string;
 };
 
-export function NewRootClientForm() {
+type Props = {
+  apis: {
+    id: string;
+    name: string;
+  }[];
+};
+
+export function NewRootClientForm(props: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
@@ -59,6 +75,21 @@ export function NewRootClientForm() {
     });
   };
 
+  const [selectedWorkspaceLevelScopes, setSelectedWorkspaceLevelScopes] =
+    useState<RowSelectionState>({});
+
+  const [selectedApiLevelScopes, setSelectedApiLevelScopes] = useState<
+    Record<string, RowSelectionState>
+  >(
+    props.apis.reduce(
+      (acc, api) => {
+        acc[api.id] = {};
+        return acc;
+      },
+      {} as Record<string, RowSelectionState>,
+    ),
+  );
+
   return (
     <Dialog
       open={isOpen}
@@ -87,6 +118,69 @@ export function NewRootClientForm() {
             <p className="text-sm text-red-500">A client name is required</p>
           )}
         </div>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold">Workspace Permissions</h2>
+          <p className="text-sm text-stone-500">
+            Permissions that apply to all APIs in the workspace.
+          </p>
+          <ScopesTable
+            scopes={workspaceLevelScopes.map((scope) => ({
+              ...scope,
+              id: scope.name,
+            }))}
+            onRowSelectionChange={(updaterOrValue) => {
+              if (typeof updaterOrValue === "function") {
+                const newState = updaterOrValue(selectedWorkspaceLevelScopes);
+                return setSelectedWorkspaceLevelScopes(newState);
+              }
+              setSelectedWorkspaceLevelScopes(updaterOrValue);
+            }}
+            rowSelection={selectedWorkspaceLevelScopes}
+          />
+        </div>
+        <Accordion type="multiple">
+          {props.apis.map((api) => {
+            return (
+              <AccordionItem value={api.id} key={api.id}>
+                <AccordionTrigger className="flex flex-row">
+                  <div className="flex flex-col items-start gap-1">
+                    <h2 className="text-sm font-semibold">
+                      API {api.name} Permissions
+                    </h2>
+                    <p className="text-sm font-normal text-stone-500">
+                      Permissions that apply to the API {api.name}.
+                    </p>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ScopesTable
+                    key={api.id}
+                    scopes={apiLevelScopes(api.id).map((scope) => ({
+                      ...scope,
+                      id: scope.name,
+                    }))}
+                    onRowSelectionChange={(updaterOrValue) => {
+                      if (typeof updaterOrValue === "function") {
+                        const newState = updaterOrValue(
+                          selectedApiLevelScopes[api.id] ?? {},
+                        );
+                        return setSelectedApiLevelScopes({
+                          ...selectedApiLevelScopes,
+                          [api.id]: newState,
+                        });
+                      }
+                      setSelectedApiLevelScopes({
+                        ...selectedApiLevelScopes,
+                        [api.id]: updaterOrValue,
+                      });
+                    }}
+                    rowSelection={selectedApiLevelScopes[api.id] ?? {}}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
         <Button
           type="submit"
           disabled={
