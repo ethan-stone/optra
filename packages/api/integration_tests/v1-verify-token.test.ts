@@ -227,27 +227,12 @@ describe('POST /v1/tokens.verifyToken', () => {
 
 		const token = await getOAuthToken(env.TEST_BASE_URL, client.clientId, client.clientSecret);
 
-		const req = new Request(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
-			method: 'POST',
-			body: JSON.stringify({
-				token,
-				requiredScopes: {
-					method: 'all',
-					names: ['example-scope'],
-				},
-			}),
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-
 		const res = await fetch(`${env.TEST_BASE_URL}/v1/tokens.verifyToken`, {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
-				requiredScopes: {
-					method: 'all',
-					names: ['example-scope'],
+				scopeQuery: {
+					and: ['example-scope'],
 				},
 			}),
 			headers: {
@@ -288,9 +273,8 @@ describe('POST /v1/tokens.verifyToken', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
-				requiredScopes: {
-					method: 'all',
-					names: ['example-scope', 'another-example-scope'],
+				scopeQuery: {
+					and: ['example-scope', 'another-example-scope'],
 				},
 			}),
 			headers: {
@@ -329,9 +313,8 @@ describe('POST /v1/tokens.verifyToken', () => {
 			method: 'POST',
 			body: JSON.stringify({
 				token,
-				requiredScopes: {
-					method: 'one',
-					names: ['example-scope', 'another-example-scope'],
+				scopeQuery: {
+					or: ['example-scope', 'another-example-scope'],
 				},
 			}),
 			headers: {

@@ -1,59 +1,49 @@
 import { describe, expect, it } from "vitest";
-import { PermissionQuery, RBAC } from ".";
+import { ScopeQuery, check } from ".";
 
 describe("RBAC permissions check tests", () => {
   it("should say valid: true for simple and check", () => {
-    const rbac = new RBAC();
-
-    const query: PermissionQuery = {
+    const query: ScopeQuery = {
       and: ["a", "b"],
     };
 
-    const result = rbac.check(query, ["a", "b"]);
+    const result = check(query, ["a", "b"]);
 
     expect(result.valid).toBe(true);
   });
 
   it("should say valid: false for simple and check", () => {
-    const rbac = new RBAC();
-
-    const query: PermissionQuery = {
+    const query: ScopeQuery = {
       and: ["a", "b"],
     };
 
-    const result = rbac.check(query, ["a"]);
+    const result = check(query, ["a"]);
 
     expect(result.valid).toBe(false);
   });
 
   it("should say valid: true for simple or check", () => {
-    const rbac = new RBAC();
-
-    const query: PermissionQuery = {
+    const query: ScopeQuery = {
       or: ["a", "b"],
     };
 
-    const result = rbac.check(query, ["a"]);
+    const result = check(query, ["a"]);
 
     expect(result.valid).toBe(true);
   });
 
   it("should say valid: false for simple or check", () => {
-    const rbac = new RBAC();
-
-    const query: PermissionQuery = {
+    const query: ScopeQuery = {
       or: ["a", "b"],
     };
 
-    const result = rbac.check(query, ["c"]);
+    const result = check(query, ["c"]);
 
     expect(result.valid).toBe(false);
   });
 
   it("should say handle complex and/or check", () => {
-    const rbac = new RBAC();
-
-    const query: PermissionQuery = {
+    const query: ScopeQuery = {
       or: [
         {
           and: [
@@ -76,13 +66,13 @@ describe("RBAC permissions check tests", () => {
       ],
     };
 
-    const result1 = rbac.check(query, ["a", "b", "c"]);
+    const result1 = check(query, ["a", "b", "c"]);
     expect(result1.valid).toBe(true);
 
-    const result2 = rbac.check(query, ["a", "b", "h"]);
+    const result2 = check(query, ["a", "b", "h"]);
     expect(result2.valid).toBe(false);
 
-    const result3 = rbac.check(query, ["a", "b", "e"]);
+    const result3 = check(query, ["a", "b", "e"]);
     expect(result3.valid).toBe(true);
   });
 });

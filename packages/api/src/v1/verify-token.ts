@@ -1,6 +1,7 @@
 import { App } from '@/app';
 import { ErrorReason, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
+import { scopeQuerySchema } from '@optra/permissions/index';
 
 const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
 	z.object({
@@ -34,15 +35,10 @@ const route = createRoute({
 				'application/json': {
 					schema: z.object({
 						token: z.string(),
-						requiredScopes: z
-							.object({
-								method: z.enum(['one', 'all']).openapi({
-									description:
-										'The method to use when checking scopes. "one" means that the token must have at least one of the scopes. "all" means that the token must have all of the scopes.',
-								}),
-								names: z.array(z.string()).openapi({ description: 'The names of the scopes to check for.' }),
-							})
-							.nullish(),
+						scopeQuery: scopeQuerySchema.nullish().openapi({
+							description:
+								'The scopes that the token must have. This is a query language for scopes that is more powerful than the simple scopes that are used in the OAuth2.0 spec.',
+						}),
 					}),
 				},
 			},
@@ -68,10 +64,10 @@ export function v1VerifyToken(app: App) {
 
 		logger.info(`Verifying token`);
 
-		const { token, requiredScopes } = c.req.valid('json');
+		const { token, scopeQuery } = c.req.valid('json');
 
 		const verifiedToken = await tokenService.verifyToken(token, c, {
-			requiredScopes,
+			scopeQuery: scopeQuery ?? undefined,
 		});
 
 		if (!verifiedToken.valid) {

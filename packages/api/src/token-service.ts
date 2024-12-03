@@ -9,6 +9,8 @@ import { Db } from './db';
 import { Client } from '@optra/core/clients';
 import { SigningSecret } from '@optra/core/signing-secrets';
 import { KeyManagementService } from '@optra/core/key-management';
+import { ScopeQuery, check } from '@optra/permissions/index';
+
 export type VerifyAuthHeaderResult =
 	| {
 			valid: true;
@@ -33,10 +35,7 @@ type VerifyTokenSuccess = {
 type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
 
 type VerifyTokenOptions = {
-	requiredScopes?: {
-		method: 'one' | 'all';
-		names: string[];
-	} | null;
+	scopeQuery?: ScopeQuery;
 };
 
 export interface TokenService {
@@ -308,61 +307,27 @@ export class TokenService implements TokenService {
 
 		const { client, algorithm } = data;
 
-		if (options?.requiredScopes) {
-			if (options.requiredScopes.method === 'one') {
-				const hasAtLeastOneScope = options.requiredScopes.names.some((name) => {
-					const scope = tokensScopes.find((scope) => scope === name);
+		if (options?.scopeQuery) {
+			const result = check(options.scopeQuery, tokensScopes);
 
-					return !!scope;
-				});
+			if (!result.valid) {
+				await this.logTokenVerification(
+					`Token verified for client ${client.id}`,
+					{
+						workspaceId: client.workspaceId,
+						clientId: client.id,
+						apiId: client.apiId,
+						timestamp: Date.now(),
+						deniedReason: 'MISSING_SCOPES',
+					},
+					ctx,
+				);
 
-				if (!hasAtLeastOneScope) {
-					await this.logTokenVerification(
-						`Token verified for client ${client.id}`,
-						{
-							workspaceId: client.workspaceId,
-							clientId: client.id,
-							apiId: client.apiId,
-							timestamp: Date.now(),
-							deniedReason: 'MISSING_SCOPES',
-						},
-						ctx,
-					);
-
-					return {
-						valid: false,
-						reason: 'MISSING_SCOPES',
-						message: 'Token is missing one or more required scopes.',
-					};
-				}
-			}
-
-			if (options.requiredScopes.method === 'all') {
-				const hasAllScopes = options.requiredScopes.names.every((name) => {
-					const scope = tokensScopes.find((scope) => scope === name);
-
-					return !!scope;
-				});
-
-				if (!hasAllScopes) {
-					await this.logTokenVerification(
-						`Token verified for client ${client.id}`,
-						{
-							workspaceId: client.workspaceId,
-							clientId: client.id,
-							apiId: client.apiId,
-							timestamp: Date.now(),
-							deniedReason: 'MISSING_SCOPES',
-						},
-						ctx,
-					);
-
-					return {
-						valid: false,
-						reason: 'MISSING_SCOPES',
-						message: 'Token is missing one or more required scopes.',
-					};
-				}
+				return {
+					valid: false,
+					reason: 'MISSING_SCOPES',
+					message: result.message,
+				};
 			}
 		}
 

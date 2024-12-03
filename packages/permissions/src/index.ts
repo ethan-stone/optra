@@ -1,75 +1,67 @@
 import { z } from "zod";
 
-export type PermissionQuery<Role extends string = string> =
+export type ScopeQuery<Role extends string = string> =
   | Role
   | {
-      and: PermissionQuery<Role>[];
+      and: ScopeQuery<Role>[];
       or?: never;
     }
   | {
       and?: never;
-      or: PermissionQuery<Role>[];
+      or: ScopeQuery<Role>[];
     };
 
-export const permissionsQuerySchema: z.ZodType<PermissionQuery> = z.union([
+export const scopeQuerySchema: z.ZodType<ScopeQuery> = z.union([
+  z.string(),
   z.object({
-    and: z.array(z.lazy(() => permissionsQuerySchema)),
+    and: z.array(z.lazy(() => scopeQuerySchema)),
   }),
   z.object({
-    or: z.array(z.lazy(() => permissionsQuerySchema)),
+    or: z.array(z.lazy(() => scopeQuerySchema)),
   }),
 ]);
 
-export class RBAC {
-  public check(
-    q: PermissionQuery,
-    roles: string[]
-  ): { valid: true } | { valid: false; message: string } {
-    return this._check(q, roles);
-  }
-
-  private _check(
-    query: PermissionQuery,
-    roles: string[]
-  ): { valid: true } | { valid: false; message: string } {
-    if (typeof query === "string") {
-      // Check if the role is in the list of roles
-      if (roles.includes(query)) {
-        return { valid: true };
-      }
-      return {
-        valid: false,
-        message: `Provided list of roles does not contain the role "${query}"`,
-      };
-    }
-
-    if (query.and) {
-      const results = query.and.map((q) => this._check(q, roles));
-      for (const r of results) {
-        if (!r.valid) {
-          return r;
-        }
-      }
+export function check(
+  query: ScopeQuery,
+  scopes: string[]
+): { valid: true } | { valid: false; message: string } {
+  if (typeof query === "string") {
+    // Check if the scope is in the list of scopes
+    if (scopes.includes(query)) {
       return { valid: true };
     }
-
-    if (query.or) {
-      for (const q of query.or) {
-        const r = this._check(q, roles);
-        if (r.valid) {
-          return r;
-        }
-      }
-      return {
-        valid: false,
-        message:
-          "Permission check failed because at least one necessary role is missing.",
-      };
-    }
-
     return {
       valid: false,
-      message: "Reached end of permission check without a match",
+      message: `Scope list of scopes does not contain the scope "${query}"`,
     };
   }
+
+  if (query.and) {
+    const results = query.and.map((q) => check(q, scopes));
+    for (const r of results) {
+      if (!r.valid) {
+        return r;
+      }
+    }
+    return { valid: true };
+  }
+
+  if (query.or) {
+    for (const q of query.or) {
+      const r = check(q, scopes);
+      if (r.valid) {
+        return r;
+      }
+    }
+    return {
+      valid: false,
+      message:
+        "Scope check failed because at least one necessary scope is missing.",
+    };
+  }
+
+  return {
+    valid: false,
+    message: "Reached end of scope check without a match",
+  };
 }
