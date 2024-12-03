@@ -200,10 +200,10 @@ export async function getRootClientsForWorkspace(workspaceId: string) {
   return clients.listRootForWorkspace(workspaceId);
 }
 
-export async function updateClientById(id: string, name: string) {
+export async function updateClientById(id: string, args: { name?: string }) {
   const clients = await getClientRepo();
 
-  await clients.update(id, { name });
+  await clients.update(id, args);
 }
 
 export async function setClientScopes(

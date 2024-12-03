@@ -53,7 +53,7 @@ export function NewRootClientForm(props: Props) {
     },
   });
 
-  const createRootClient = api.clients.createRootClient.useMutation({
+  const createRootClient = api.rootClients.create.useMutation({
     onSuccess(data) {
       setClientId(data.clientId);
       setClientSecret(data.clientSecret);

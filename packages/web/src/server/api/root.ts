@@ -4,6 +4,7 @@ import { apisRouter } from "@/server/api/routers/apis";
 import { authRouter } from "@/server/api/routers/auth";
 import { workspaceRouter } from "@/server/api/routers/workspace";
 import { analyticsRouter } from "@/server/api/routers/analytics";
+import { rootClientsRouter } from "@/server/api/routers/root-clients";
 /**
  * This is the primary router for your server.
  *
@@ -11,6 +12,7 @@ import { analyticsRouter } from "@/server/api/routers/analytics";
  */
 export const appRouter = createTRPCRouter({
   clients: clientsRouter,
+  rootClients: rootClientsRouter,
   apis: apisRouter,
   auth: authRouter,
   workspaces: workspaceRouter,

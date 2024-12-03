@@ -14,6 +14,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
 import { Copy } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -25,7 +26,7 @@ function RootClientItem(props: { id: string; name: string }) {
 
   const { toast } = useToast();
 
-  const deleteRootClient = api.clients.deleteRootClient.useMutation({
+  const deleteRootClient = api.rootClients.delete.useMutation({
     onSuccess() {
       router.refresh();
     },
@@ -38,9 +39,12 @@ function RootClientItem(props: { id: string; name: string }) {
   return (
     <div className="m-1 rounded-sm hover:bg-stone-100">
       <div className="flex flex-row items-center justify-between px-4 py-3">
-        <div className="flex w-full flex-col justify-center gap-2 text-sm">
+        <Link
+          href={`/dashboard/settings/root-clients/${props.id}`}
+          className="flex w-full flex-col justify-center gap-2 text-sm"
+        >
           <h4 className="w-fit leading-none">{props.name}</h4>
-        </div>
+        </Link>
         <div className="flex flex-row items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

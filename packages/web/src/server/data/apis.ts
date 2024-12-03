@@ -94,15 +94,21 @@ export async function getScopesForApi(apiId: string) {
 /**
  * Rather than creating all the scopes for an API that are available to a root client when the API is created,
  * we lazy load them when a root client is created or updated. This function handles that logic.
+ *
+ * This apiId provided should be the internal Optra API ID. Then the scope names provided should be in the
+ * format of "api:<scope_name>:<api_id>".
+ *
+ * We have a unique index on API ID and scope name, so we should not have any collisions.
  */
-export async function lazyLoadRootClientScopesForApi(
-  apiId: string,
+export async function lazyLoadRootClientScopes(
+  internalApiId: string,
+  internalWorkspaceId: string,
   scopes: { name: string; description: string }[],
 ) {
   const apis = await getApiRepo();
 
   const existingScopes = await apis.getScopesByNameAndApiId(
-    apiId,
+    internalApiId,
     scopes.map((scope) => scope.name),
   );
 
@@ -116,21 +122,51 @@ export async function lazyLoadRootClientScopesForApi(
     }
   }
 
+  // If all the scopes already exist, we can return early
+  if (nonExistingScopesNames.length === 0) {
+    return existingScopes;
+  }
+
   const now = new Date();
 
   const newScopes = await apis.createScopes(
     nonExistingScopesNames.map((name) => ({
-      apiId,
+      apiId: internalApiId,
       name,
       description:
         scopes.find((scope) => scope.name === name)?.description ?? "",
-      workspaceId: apiId,
+      workspaceId: internalWorkspaceId,
       createdAt: now,
       updatedAt: now,
     })),
   );
 
   return [...existingScopes, ...newScopes];
+}
+
+/**
+ * This returns the scopes that have actually been created for a root client
+ * for a given API.
+ *
+ * This internalApiId provided should be the internal Optra API ID. Then the scope names provided should be in the
+ * format of "api:<scope_name>:<api_id>".
+ *
+ * @param internalApiId
+ * @param scopes
+ * @returns
+ */
+export async function getRootClientScopes(
+  internalApiId: string,
+  scopes: { name: string }[],
+) {
+  const apis = await getApiRepo();
+
+  const existingScopes = await apis.getScopesByNameAndApiId(
+    internalApiId,
+    scopes.map((scope) => scope.name),
+  );
+
+  return existingScopes;
 }
 
 type UpdateApiByIdArgs = {

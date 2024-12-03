@@ -1,20 +1,14 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { env } from "@/env";
 import { TRPCError } from "@trpc/server";
 
 import {
   getApiByWorkspaceIdAndApiId,
   getScopesForApi,
-  lazyLoadRootClientScopesForApi,
 } from "@/server/data/apis";
-import {
-  getWorkspaceByTenantId,
-  getWorkspaceById,
-} from "@/server/data/workspaces";
+import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import {
   createBasicClient,
-  createRootClient,
   deleteClientById,
   getClientByWorkspaceIdAndClientId,
   setClientScopes,
@@ -42,143 +36,6 @@ function getStringSizeInBytes(str: string): number {
 }
 
 export const clientsRouter = createTRPCRouter({
-  createRootClient: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().min(1),
-        scopes: z.array(
-          z.object({ name: z.string(), description: z.string() }),
-        ),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const optraWorkspace = await getWorkspaceById(env.OPTRA_WORKSPACE_ID);
-
-      if (!optraWorkspace) {
-        console.error(`Optra workspace not found for tenant ${ctx.tenant.id}`);
-        // throw internal server error because this means something
-        // is very wrong with the configuration
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-        });
-      }
-
-      const optraApi = await getApiByWorkspaceIdAndApiId(
-        optraWorkspace.id,
-        env.OPTRA_API_ID,
-      );
-
-      if (!optraApi) {
-        console.error(`Optra API not found`);
-        // throw internal server error because this means something
-        // is very wrong with the configuration
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-        });
-      }
-
-      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
-
-      if (!workspace) {
-        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Workspace not found",
-        });
-      }
-
-      const scopes = await lazyLoadRootClientScopesForApi(
-        optraApi.id,
-        input.scopes,
-      );
-
-      const client = await createRootClient({
-        workspaceId: optraWorkspace.id,
-        apiId: optraApi.id,
-        forWorkspaceId: workspace.id,
-        name: input.name,
-        clientIdPrefix: "optra",
-        clientSecretPrefix: "optra_sk",
-        scopes: scopes.map((scope) => scope.id),
-        // rate limit for root clients is ~10 requests per second
-        rateLimitBucketSize: 10,
-        rateLimitRefillAmount: 10,
-        rateLimitRefillInterval: 1000,
-      });
-
-      return {
-        clientId: client.clientId,
-        clientSecret: client.clientSecret,
-      };
-    }),
-  deleteRootClient: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const optraWorkspace = await getWorkspaceById(env.OPTRA_WORKSPACE_ID);
-
-      if (!optraWorkspace) {
-        console.error(`Optra workspace not found for tenant ${ctx.tenant.id}`);
-        // throw internal server error because this means something
-        // is very wrong with the configuration
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-        });
-      }
-      const optraApi = await getApiByWorkspaceIdAndApiId(
-        optraWorkspace.id,
-        env.OPTRA_API_ID,
-      );
-
-      if (!optraApi) {
-        console.error(`Optra API not found`);
-        // throw internal server error because this means something
-        // is very wrong with the configuration
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-        });
-      }
-
-      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
-
-      if (!workspace) {
-        console.error(`Workspace not found for tenant ${ctx.tenant.id}`);
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Workspace not found",
-        });
-      }
-
-      const client = await getClientByWorkspaceIdAndClientId(
-        optraWorkspace.id,
-        input.id,
-      );
-
-      if (!client) {
-        console.warn(
-          `Client with id ${input.id} does not exist or is not a part of workspace ${workspace.id}`,
-        );
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Could not found the client.",
-        });
-      }
-
-      if (client.forWorkspaceId !== workspace.id) {
-        console.warn(
-          `Client with id ${input.id} does not exist or is not a part of workspace ${workspace.id}`,
-        );
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Could not found the client.",
-        });
-      }
-
-      await deleteClientById(input.id);
-    }),
   createClient: protectedProcedure
     .input(
       z.object({
@@ -305,7 +162,7 @@ export const clientsRouter = createTRPCRouter({
         });
       }
 
-      await updateClientById(input.id, input.name);
+      await updateClientById(input.id, { name: input.name });
 
       return null;
     }),
