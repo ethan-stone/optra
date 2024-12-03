@@ -159,6 +159,7 @@ export function EditRootClientForm(props: Props) {
       </form>
       <Separator className="mb-5 mt-5" />
       <h1 className="mb-3 text-xl font-semibold">Permissions</h1>
+      <h2 className="text-sm font-semibold">Workspace Permissions</h2>
       <p className="mb-3 text-sm text-stone-500">
         Select the scopes that the client has access to.
       </p>
