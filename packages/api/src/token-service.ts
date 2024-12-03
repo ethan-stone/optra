@@ -9,7 +9,7 @@ import { Db } from './db';
 import { Client } from '@optra/core/clients';
 import { SigningSecret } from '@optra/core/signing-secrets';
 import { KeyManagementService } from '@optra/core/key-management';
-import { ScopeQuery, check } from '@optra/permissions/index';
+import { ScopeQuery, check } from '@optra/scopes/index';
 
 export type VerifyAuthHeaderResult =
 	| {

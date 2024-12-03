@@ -1,7 +1,7 @@
 import { App } from '@/app';
 import { ErrorReason, errorResponseSchemas } from '@/errors';
 import { createRoute, z } from '@hono/zod-openapi';
-import { scopeQuerySchema } from '@optra/permissions/index';
+import { scopeQuerySchema } from '@optra/scopes/index';
 
 const verifyTokenResponseSchema = z.discriminatedUnion('valid', [
 	z.object({
