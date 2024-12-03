@@ -235,8 +235,6 @@ export const rootClientsRouter = createTRPCRouter({
         input.scopes,
       );
 
-      console.log(scopes);
-
       await setClientScopes(
         rootClient.id,
         env.OPTRA_WORKSPACE_ID,
