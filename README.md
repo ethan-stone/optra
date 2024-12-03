@@ -10,16 +10,17 @@
 - `docs`: Mintifly docs for the API reference and guides.
 - `default-route`: Under the hood we use a cloudfront distributino to route requests to the correct origin. This is the origin that cloudfront routes to by default.
 
-## Production Checklist
+## TODO
 
 - [ ] Nice homepage.
 - [x] Viewable metrics for tokens issued per API.
-- [ ] Viewable metrics for tokens issued per client.
+- [x] Viewable metrics for tokens issued per client.
 - [x] Set scopes API route.
 - [ ] Onboarding flow when new sign up.
-- [ ] Internal scopes for `api`.
+- [x] Internal scopes for `api`.
 - [ ] Use internal scopes to authorize `api` requests.
 - [ ] Setup better logging for `web`.
+- [ ] Ability to client secrets for root clients.
 - [x] Migrate to Supabase for auth instead of Clerk for less services.
 - [ ] Billing management page.
 - [ ] User management page.
