@@ -110,7 +110,22 @@ export function v1CreateClient(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const api = await db.apis.getById(apiId);
+
+		if (api === null) {
+			logger.info(`Api with id ${apiId} does not exist`);
+			throw new HTTPException({
+				message: `Api ${apiId} not found`,
+				reason: 'BAD_REQUEST',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:create_client:*', `api:create_client:${apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason ${verifiedToken.reason}`);
@@ -120,17 +135,7 @@ export function v1CreateClient(app: App) {
 			});
 		}
 
-		if (!verifiedToken.client.forWorkspaceId) {
-			logger.info(`Client with id ${verifiedToken.client.id} is not a root client. Can not create apis.`);
-			throw new HTTPException({
-				reason: 'FORBIDDEN',
-				message: 'This route can only be used by root clients',
-			});
-		}
-
-		const api = await db.apis.getById(apiId);
-
-		if (!api || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
+		if (api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace.`);
 			throw new HTTPException({
 				reason: 'BAD_REQUEST',
