@@ -17,7 +17,7 @@ export function generateRandomName() {
 }
 
 export async function getOAuthToken(baseUrl: string, clientId: string, clientSecret: string): Promise<string> {
-	const req = new Request(`${baseUrl}/v1/oauth/token`, {
+	const res = await fetch(`${baseUrl}/v1/oauth/token`, {
 		method: 'POST',
 		body: JSON.stringify({
 			grantType: 'client_credentials',
@@ -28,8 +28,6 @@ export async function getOAuthToken(baseUrl: string, clientId: string, clientSec
 			'Content-Type': 'application/json',
 		},
 	});
-
-	const res = await fetch(req);
 
 	if (res.status !== 200) {
 		throw new Error(`Failed to get oauth token. Optra-Request-Id: ${res.headers.get('Optra-Request-Id')}`);
@@ -45,11 +43,11 @@ export async function createApi(
 	token: string,
 	args: {
 		algorithm: 'hsa256' | 'rsa256';
-	}
+	},
 ): Promise<{ id: string; name: string }> {
 	const name = generateRandomName();
 
-	const req = new Request(`${baseUrl}/v1/apis.createApi`, {
+	const res = await fetch(`${baseUrl}/v1/apis.createApi`, {
 		method: 'POST',
 		body: JSON.stringify({
 			name,
@@ -60,8 +58,6 @@ export async function createApi(
 			Authorization: `Bearer ${token}`,
 		},
 	});
-
-	const res = await fetch(req);
 
 	if (res.status !== 200) {
 		throw new Error(`Failed to create client. Optra-Request-Id: ${res.headers.get('Optra-Request-Id')}`);
@@ -77,9 +73,9 @@ export async function createClient(
 	token: string,
 	args: {
 		apiId: string;
-	}
+	},
 ): Promise<{ clientId: string; clientSecret: string }> {
-	const req = new Request(`${baseUrl}/v1/clients.createClient`, {
+	const res = await fetch(`${baseUrl}/v1/clients.createClient`, {
 		method: 'POST',
 		body: JSON.stringify({
 			name: generateRandomName(),
@@ -90,8 +86,6 @@ export async function createClient(
 			Authorization: `Bearer ${token}`,
 		},
 	});
-
-	const res = await fetch(req);
 
 	if (res.status !== 200) {
 		throw new Error(`Failed to create client. Optra-Request-Id: ${res.headers.get('Optra-Request-Id')}`);

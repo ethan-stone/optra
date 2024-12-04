@@ -65,6 +65,7 @@ describe('GET /v1/clients.getClient', () => {
 				Authorization: `Bearer ${token}`,
 			},
 		});
+
 		const resJson = await res.json();
 
 		expect(res.status).toBe(403);

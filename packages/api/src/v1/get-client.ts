@@ -55,7 +55,22 @@ export function v1GetClient(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const client = await db.clients.getById(clientId);
+
+		if (client === null) {
+			logger.info(`Client with id ${clientId} does not exist`);
+			throw new HTTPException({
+				reason: 'NOT_FOUND',
+				message: 'The client that you are trying to get does not exist',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			scopeQuery: {
+				or: ['api:read_client:*', `api:read_client:${client.apiId}`],
+			},
+			mustBeRootClient: true,
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason ${verifiedToken.reason}`);
@@ -73,9 +88,7 @@ export function v1GetClient(app: App) {
 			});
 		}
 
-		const client = await db.clients.getById(clientId);
-
-		if (client === null || client.workspaceId !== verifiedToken.client.forWorkspaceId) {
+		if (client.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Client with id ${clientId} does not exist or does not belong to the root clients workspace.`);
 			throw new HTTPException({
 				reason: 'NOT_FOUND',

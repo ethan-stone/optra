@@ -233,6 +233,7 @@ export const InvalidReason = {
 	SECRET_EXPIRED: 'SECRET_EXPIRED',
 	VERSION_MISMATCH: 'VERSION_MISMATCH',
 	INVALID_CLIENT: 'INVALID_CLIENT',
+	FORBIDDEN: 'FORBIDDEN', // The only case we return FORBIDDEN is when the token is not from a root client.
 } as const;
 
 /**

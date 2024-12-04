@@ -36,6 +36,7 @@ type VerifyTokenResult = VerifyTokenFailed | VerifyTokenSuccess;
 
 type VerifyTokenOptions = {
 	scopeQuery?: ScopeQuery;
+	mustBeRootClient?: boolean;
 };
 
 export interface TokenService {
@@ -101,7 +102,6 @@ export class TokenService implements TokenService {
 		const cache = this.cache;
 		const keyManagementService = this.keyManagementService;
 		const tokenBuckets = this.tokenBuckets;
-		const storage = this.storage;
 
 		let decoded: ReturnType<typeof decode>;
 
@@ -306,6 +306,14 @@ export class TokenService implements TokenService {
 		}
 
 		const { client, algorithm } = data;
+
+		if (options?.mustBeRootClient && !client.forWorkspaceId) {
+			return {
+				valid: false,
+				message: 'This token is not allowed to be used to access this resource.',
+				reason: 'FORBIDDEN',
+			};
+		}
 
 		if (options?.scopeQuery) {
 			const result = check(options.scopeQuery, tokensScopes);

@@ -111,8 +111,10 @@ export async function bootstrap(
 
   console.log("Creating internal API scopes...");
 
+  const workspaceLevelApiScopeIds: string[] = [];
+
   for (const scope of defaultInternalWorkspaceScopes) {
-    await newApiScope(
+    const apiScope = await newApiScope(
       {
         apis: apis,
       },
@@ -122,6 +124,7 @@ export async function bootstrap(
         ...scope,
       }
     );
+    workspaceLevelApiScopeIds.push(apiScope.id);
   }
 
   console.log("Internal API scopes created successfully.");
@@ -156,6 +159,7 @@ export async function bootstrap(
         apiId: internalApiId,
         workspaceId: internalWorkspaceId,
         forWorkspaceId: workspaceId,
+        apiScopeIds: workspaceLevelApiScopeIds,
       }
     );
   console.log(`Root client created with ID: ${rootClientId}`);
@@ -173,6 +177,7 @@ export async function bootstrap(
       apiId: internalApiId,
       workspaceId: internalWorkspaceId,
       forWorkspaceId: otherWorkspaceId,
+      apiScopeIds: workspaceLevelApiScopeIds,
     }
   );
   console.log(`Other root client created with ID: ${otherRootClientId}`);

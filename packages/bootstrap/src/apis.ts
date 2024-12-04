@@ -164,7 +164,7 @@ export async function newApiScope(
     description: string;
   }
 ) {
-  await db.apis.createScope({
+  return await db.apis.createScope({
     apiId: args.apiId,
     workspaceId: args.workspaceId,
     name: args.name,

@@ -14,6 +14,7 @@ export async function newClient(
     rateLimitBucketSize?: number;
     rateLimitRefillAmount?: number;
     rateLimitRefillInterval?: number;
+    apiScopeIds?: string[];
   }
 ) {
   let clientId: string;
@@ -29,6 +30,7 @@ export async function newClient(
       rateLimitBucketSize: args.rateLimitBucketSize ?? 1000,
       rateLimitRefillAmount: args.rateLimitRefillAmount ?? 10,
       rateLimitRefillInterval: args.rateLimitRefillInterval ?? 10,
+      apiScopes: args.apiScopeIds ?? [],
       metadata: generateJsonObject(10),
       createdAt: new Date(),
       updatedAt: new Date(),
