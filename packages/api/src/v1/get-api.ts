@@ -48,7 +48,22 @@ export function v1GetApi(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const api = await db.apis.getById(apiId);
+
+		if (api === null) {
+			logger.info(`Api with id ${apiId} does not exist`);
+			throw new HTTPException({
+				reason: 'NOT_FOUND',
+				message: `Api ${apiId} not found`,
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			scopeQuery: {
+				or: ['api:read_api:*', `api:read_api:${apiId}`],
+			},
+			mustBeRootClient: true,
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason ${verifiedToken.reason}`);
@@ -66,9 +81,7 @@ export function v1GetApi(app: App) {
 			});
 		}
 
-		const api = await db.apis.getById(apiId);
-
-		if (api === null || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
+		if (api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace.`);
 			throw new HTTPException({
 				reason: 'NOT_FOUND',
