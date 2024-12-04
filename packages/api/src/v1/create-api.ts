@@ -94,7 +94,12 @@ export function v1CreateApi(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:create_api:*'],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
