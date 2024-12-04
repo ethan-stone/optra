@@ -56,7 +56,24 @@ export function v1AddClientScope(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const { clientId, scopeName } = c.req.valid('json');
+
+		const client = await db.clients.getById(clientId);
+
+		if (client === null) {
+			logger.info(`Client with id ${clientId} does not exist`);
+			throw new HTTPException({
+				message: `Client ${clientId} not found`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:update_client:*', `api:update_client:${client.apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason: ${verifiedToken.reason}`);
@@ -66,11 +83,7 @@ export function v1AddClientScope(app: App) {
 			});
 		}
 
-		const { clientId, scopeName } = c.req.valid('json');
-
-		const client = await db.clients.getById(clientId);
-
-		if (!client || verifiedToken.client.forWorkspaceId !== client.workspaceId) {
+		if (verifiedToken.client.forWorkspaceId !== client.workspaceId) {
 			logger.info(`Could not find client ${clientId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
 			throw new HTTPException({
 				message: `Could not find client ${clientId}`,
