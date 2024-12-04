@@ -49,8 +49,33 @@ describe('POST /v1/apis.addScope', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should respond with 404 NOT_FOUND if token does not have access to api', async () => {
+	it('should respond with 403 FORBIDDEN if not root client', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+
+		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
+			method: 'POST',
+			body: JSON.stringify({
+				apiId: env.API_ID,
+				scope: {
+					name: 'test-scope',
+					description: 'test-scope-description',
+				},
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		const resJson = await res.json();
+
+		expect(res.status).toBe(403);
+		expect(resJson).toHaveProperty('reason');
+		expect((resJson as any).reason).toBe('FORBIDDEN');
+		expect(resJson).toHaveProperty('message');
+	});
+
+	it('should respond with 404 NOT_FOUND if token does not have access to api', async () => {
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
 		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.addScope`, {
 			method: 'POST',

@@ -54,7 +54,24 @@ export function v1AddApiScope(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const { apiId, scope } = c.req.valid('json');
+
+		const api = await db.apis.getById(apiId);
+
+		if (api === null) {
+			logger.info(`Api with id ${apiId} does not exist`);
+			throw new HTTPException({
+				reason: 'NOT_FOUND',
+				message: `Api ${apiId} not found`,
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:update_api:*', `api:update_api:${apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason: ${verifiedToken.reason}`);
@@ -64,11 +81,7 @@ export function v1AddApiScope(app: App) {
 			});
 		}
 
-		const { apiId, scope } = c.req.valid('json');
-
-		const api = await db.apis.getById(apiId);
-
-		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
+		if (verifiedToken.client.forWorkspaceId !== api.workspaceId) {
 			logger.info(`Could not find api ${apiId} or client ${verifiedToken.client.id} is not allowed to modify it.`);
 			throw new HTTPException({
 				message: `Could not find api ${apiId}`,
