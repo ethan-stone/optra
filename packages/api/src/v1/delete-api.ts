@@ -55,7 +55,21 @@ export function v1DeleteApi(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const api = await db.apis.getById(id);
+
+		if (api === null) {
+			logger.info(`Api with id ${id} does not exist`);
+			throw new HTTPException({
+				message: `Api with id ${id} does not exist.`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			scopeQuery: {
+				or: ['api:delete_api:*', `api:delete_api:${id}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
@@ -65,9 +79,7 @@ export function v1DeleteApi(app: App) {
 			});
 		}
 
-		const api = await db.apis.getById(id);
-
-		if (!api || api.workspaceId !== verifiedToken.client.forWorkspaceId) {
+		if (api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${id} does not exist or client ${verifiedToken.client.id} is not allowed to delete it.`);
 			throw new HTTPException({
 				message: `Api with id ${id} does not exist.`,
