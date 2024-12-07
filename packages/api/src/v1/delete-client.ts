@@ -49,7 +49,21 @@ export function v1DeleteClient(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const client = await db.clients.getById(id);
+
+		if (client === null) {
+			logger.info(`Client with id ${id} does not exist`);
+			throw new HTTPException({
+				message: `Client with id ${id} does not exist.`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			scopeQuery: {
+				or: ['api:delete_client:*', `api:delete_client:${id}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is invalid. Reason: ${verifiedToken.reason}`);
@@ -59,9 +73,7 @@ export function v1DeleteClient(app: App) {
 			});
 		}
 
-		const client = await db.clients.getById(id);
-
-		if (!client || client.workspaceId !== verifiedToken.client.forWorkspaceId) {
+		if (client.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Client with id ${id} does not exist or client ${verifiedToken.client.id} does not have permission to modify it.`);
 			throw new HTTPException({
 				reason: 'NOT_FOUND',
