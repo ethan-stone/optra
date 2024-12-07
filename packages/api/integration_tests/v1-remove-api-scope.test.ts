@@ -47,7 +47,7 @@ describe('POST /v1/apis.removeScope', () => {
 	});
 
 	it('should respond with 404 NOT_FOUND if token does not have access to api', async () => {
-		const token = await getOAuthToken(env.TEST_BASE_URL, env.BASIC_CLIENT_ID, env.BASIC_CLIENT_SECRET);
+		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
 		const res = await fetch(`${env.TEST_BASE_URL}/v1/apis.removeScope`, {
 			method: 'POST',
