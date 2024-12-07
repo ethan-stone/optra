@@ -88,7 +88,7 @@ describe('POST /v1/clients.createClient', () => {
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should respond with 400 BAD_REQUEST if api does not exist', async () => {
+	it('should respond with 404 NOT_FOUND if api does not exist', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.ROOT_CLIENT_ID, env.ROOT_CLIENT_SECRET);
 
 		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
@@ -104,13 +104,13 @@ describe('POST /v1/clients.createClient', () => {
 		});
 		const resJson = await res.json();
 
-		expect(res.status).toBe(400);
+		expect(res.status).toBe(404);
 		expect(resJson).toHaveProperty('reason');
-		expect((resJson as any).reason).toBe('BAD_REQUEST');
+		expect((resJson as any).reason).toBe('NOT_FOUND');
 		expect(resJson).toHaveProperty('message');
 	});
 
-	it('should respond with 400 BAD_REQUEST if api does not exist because root client does not have access to workspace', async () => {
+	it('should respond with 404 NOT_FOUND if api does not exist because root client does not have access to workspace', async () => {
 		const token = await getOAuthToken(env.TEST_BASE_URL, env.OTHER_ROOT_CLIENT_ID, env.OTHER_ROOT_CLIENT_SECRET);
 
 		const res = await fetch(`${env.TEST_BASE_URL}/v1/clients.createClient`, {
@@ -126,9 +126,9 @@ describe('POST /v1/clients.createClient', () => {
 		});
 		const resJson = await res.json();
 
-		expect(res.status).toBe(400);
+		expect(res.status).toBe(404);
 		expect(resJson).toHaveProperty('reason');
-		expect((resJson as any).reason).toBe('BAD_REQUEST');
+		expect((resJson as any).reason).toBe('NOT_FOUND');
 		expect(resJson).toHaveProperty('message');
 	});
 

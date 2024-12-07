@@ -116,7 +116,7 @@ export function v1CreateClient(app: App) {
 			logger.info(`Api with id ${apiId} does not exist`);
 			throw new HTTPException({
 				message: `Api ${apiId} not found`,
-				reason: 'BAD_REQUEST',
+				reason: 'NOT_FOUND',
 			});
 		}
 
@@ -138,7 +138,7 @@ export function v1CreateClient(app: App) {
 		if (api.workspaceId !== verifiedToken.client.forWorkspaceId) {
 			logger.info(`Api with id ${apiId} does not exist or does not belong to the root clients workspace.`);
 			throw new HTTPException({
-				reason: 'BAD_REQUEST',
+				reason: 'NOT_FOUND',
 				message: 'The api that you are trying to create a client for does not exist',
 			});
 		}
