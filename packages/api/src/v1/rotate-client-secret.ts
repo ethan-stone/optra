@@ -57,7 +57,25 @@ export function v1RotateClientSecret(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const { clientId, expiresIn: providedExpiresIn } = c.req.valid('json');
+
+		// this is the client of which we are rotating the secret
+		const clientFromRequestParams = await db.clients.getById(clientId);
+
+		if (clientFromRequestParams === null) {
+			logger.info(`Client with id ${clientId} does not exist`);
+			throw new HTTPException({
+				message: `Client with id ${clientId} does not exist.`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:update_client:*', `api:update_client:${clientFromRequestParams.apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason: ${verifiedToken.reason}`);
@@ -66,8 +84,6 @@ export function v1RotateClientSecret(app: App) {
 				reason: verifiedToken.reason,
 			});
 		}
-
-		const { clientId, expiresIn: providedExpiresIn } = c.req.valid('json');
 
 		const clientFromToken = await db.clients.getById(verifiedToken.client.id);
 
@@ -79,15 +95,7 @@ export function v1RotateClientSecret(app: App) {
 			});
 		}
 
-		// this is the client of which we are rotating the secret
-		const clientFromRequestParams = await db.clients.getById(clientId);
-
-		// root clients can rotate secrets for any client in their workspace
-		// non-root clients can only rotate secrets for themselves
-		if (
-			!clientFromRequestParams ||
-			(clientFromToken.forWorkspaceId !== clientFromRequestParams.workspaceId && clientFromToken.id !== clientFromRequestParams.id)
-		) {
+		if (clientFromToken.forWorkspaceId !== clientFromRequestParams.workspaceId) {
 			logger.info(`Client ${clientId} does not exist or client ${clientFromToken} is not allowed to rotate secrets for client ${clientId}`);
 			throw new HTTPException({
 				message: `Client ${verifiedToken.client.id} is not allowed to rotate secrets for client ${clientId}`,

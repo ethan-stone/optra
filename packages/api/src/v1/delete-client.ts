@@ -60,6 +60,7 @@ export function v1DeleteClient(app: App) {
 		}
 
 		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
 			scopeQuery: {
 				or: ['api:delete_client:*', `api:delete_client:${id}`],
 			},

@@ -55,7 +55,24 @@ export function v1SetClientScopes(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const { clientId, scopeNames } = c.req.valid('json');
+
+		const client = await db.clients.getById(clientId);
+
+		if (client === null) {
+			logger.info(`Client with id ${clientId} does not exist`);
+			throw new HTTPException({
+				message: `Client with id ${clientId} does not exist.`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:update_client:*', `api:update_client:${client.apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason: ${verifiedToken.reason}`);
@@ -65,11 +82,7 @@ export function v1SetClientScopes(app: App) {
 			});
 		}
 
-		const { clientId, scopeNames } = c.req.valid('json');
-
-		const client = await db.clients.getById(clientId);
-
-		if (!client || verifiedToken.client.forWorkspaceId !== client.workspaceId) {
+		if (verifiedToken.client.forWorkspaceId !== client.workspaceId) {
 			logger.info(`Client ${clientId} does not exist or is not a part of workspace ${verifiedToken.client.forWorkspaceId}`);
 			throw new HTTPException({
 				message: `Client ${clientId} does not exist or is not a part of workspace ${verifiedToken.client.forWorkspaceId}`,

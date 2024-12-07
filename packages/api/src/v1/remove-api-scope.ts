@@ -64,6 +64,7 @@ export function v1RemoveApiScope(app: App) {
 		}
 
 		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
 			scopeQuery: {
 				or: ['api:update_api:*', `api:update_api:${apiId}`],
 			},

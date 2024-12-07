@@ -89,7 +89,22 @@ export function v1UpdateClient(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const clientToUpdate = await db.clients.getById(clientId);
+
+		if (clientToUpdate === null) {
+			logger.info(`Client with id ${clientId} does not exist`);
+			throw new HTTPException({
+				message: `Client with id ${clientId} does not exist.`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:update_client:*', `api:update_client:${clientToUpdate.apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason ${verifiedToken.reason}`);
@@ -107,9 +122,7 @@ export function v1UpdateClient(app: App) {
 			});
 		}
 
-		const clientToUpdate = await db.clients.getById(clientId);
-
-		if (!clientToUpdate || verifiedToken.client.forWorkspaceId !== clientToUpdate.workspaceId) {
+		if (verifiedToken.client.forWorkspaceId !== clientToUpdate.workspaceId) {
 			logger.info(`Client with id ${clientId} does not exist or client ${verifiedToken.client.id} does not have access to it`);
 			throw new HTTPException({
 				reason: 'NOT_FOUND',

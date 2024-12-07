@@ -56,7 +56,24 @@ export function v1RotateApiSigningSecret(app: App) {
 			});
 		}
 
-		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c);
+		const { apiId, expiresIn: providedExpiresIn } = c.req.valid('json');
+
+		const api = await db.apis.getById(apiId);
+
+		if (api === null) {
+			logger.info(`Api with id ${apiId} does not exist`);
+			throw new HTTPException({
+				message: `Api with id ${apiId} does not exist.`,
+				reason: 'NOT_FOUND',
+			});
+		}
+
+		const verifiedToken = await tokenService.verifyToken(verifiedAuthHeader.token, c, {
+			mustBeRootClient: true,
+			scopeQuery: {
+				or: ['api:update_api:*', `api:update_api:${apiId}`],
+			},
+		});
 
 		if (!verifiedToken.valid) {
 			logger.info(`Token is not valid. Reason: ${verifiedToken.reason}`);
@@ -73,11 +90,7 @@ export function v1RotateApiSigningSecret(app: App) {
 			});
 		}
 
-		const { apiId, expiresIn: providedExpiresIn } = c.req.valid('json');
-
-		const api = await db.apis.getById(apiId);
-
-		if (!api || verifiedToken.client.forWorkspaceId !== api.workspaceId) {
+		if (verifiedToken.client.forWorkspaceId !== api.workspaceId) {
 			logger.info(`Api ${apiId} does not exist or client ${verifiedToken.client.id} is not allowed to modify it.`);
 			throw new HTTPException({
 				message: `Api ${apiId} does not exist`,
