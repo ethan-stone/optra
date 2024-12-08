@@ -1,11 +1,11 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { Resource } from "sst";
 
-export const createClient = async () => {
+export const createServerClient = async () => {
   const cookieStore = cookies();
 
-  return createServerClient(
+  return createSupabaseServerClient(
     Resource.SupabaseUrl.value,
     Resource.SupabaseAnonKey.value,
     {

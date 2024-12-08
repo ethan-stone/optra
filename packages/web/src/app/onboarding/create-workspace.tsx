@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { createClient } from "@/utils/supabase";
+import { createBrowserClient } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
 import { type SubmitHandler, useForm } from "react-hook-form";
 
@@ -14,7 +14,7 @@ type FormInput = {
 export function CreateWorkspace() {
   const { register, handleSubmit } = useForm<FormInput>();
 
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const createWorkspace = api.workspaces.createPaidWorkspace.useMutation();
 

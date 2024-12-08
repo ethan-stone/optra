@@ -22,6 +22,7 @@ cluster.addService("Web", {
     secrets.SupabaseUrl,
     secrets.SupabaseAnonKey,
     secrets.SupabaseJwtSecret,
+    secrets.SupabaseSecretKey,
     secrets.StripeApiKey,
     secrets.StripeProProductId,
     secrets.StripeGenerationsProductId,

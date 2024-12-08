@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { createClient } from "@/utils/supabase";
+import { createBrowserClient } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -17,7 +17,7 @@ type Props = {
 };
 
 export function ConfirmOtpForm({ email, type }: Props) {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const { register, handleSubmit } = useForm<FormInput>();
 

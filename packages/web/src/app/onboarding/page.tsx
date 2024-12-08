@@ -5,10 +5,10 @@ import {
   getWorkspaceByTenantId,
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
-import { createClient } from "@/server/supabase/server-client";
+import { createServerClient } from "@/server/supabase/server-client";
 
 export default async function Onboarding() {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },

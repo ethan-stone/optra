@@ -1,4 +1,4 @@
-import { createClient } from "@/server/supabase/server-client";
+import { createServerClient } from "@/server/supabase/server-client";
 import { verify } from "jsonwebtoken";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -11,7 +11,7 @@ export type User = _User & {
 };
 
 export async function getTenantId() {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },
@@ -43,7 +43,7 @@ export async function getTenantId() {
 }
 
 export async function getUser() {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },

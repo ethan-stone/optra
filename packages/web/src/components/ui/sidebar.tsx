@@ -16,7 +16,7 @@ import {
 } from "./dropdown-menu";
 import { Spinner } from "../icons/spinner";
 import { useUser } from "../hooks/use-user";
-import { createClient } from "@/utils/supabase";
+import { createBrowserClient } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { ScrollArea } from "./scroll-area";
@@ -33,7 +33,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ links, isCollapsed }: SidebarProps) {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   const user = useUser();
 

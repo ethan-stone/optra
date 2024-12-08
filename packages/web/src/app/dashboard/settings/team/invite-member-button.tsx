@@ -14,57 +14,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/trpc/react";
-import { PlusIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { type SubmitHandler, useForm, Controller } from "react-hook-form";
+import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 
-type FormInput = {
-  apiName: string;
-  algorithm: "rsa256" | "hsa256";
+type InviteMemberFormInput = {
+  email: string;
+  role: "admin" | "developer" | "viewer";
 };
 
-export function CreateApi() {
+export function InviteMemberButton() {
   const [isOpen, setIsOpen] = useState(false);
 
   const { toast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    control,
-  } = useForm<FormInput>();
-
-  const createApi = api.apis.createApi.useMutation({
+  const inviteMember = api.workspaces.inviteMember.useMutation({
     onSuccess() {
       setIsOpen(false);
-      router.refresh();
-      reset({});
+      reset();
       toast({
-        title: "API Created",
-        description: "API created successfully",
-      });
-    },
-    onError(err) {
-      console.error(err);
-      toast({
-        title: "Error",
-        description: err.message,
-        variant: "destructive",
+        title: "Member Invited",
+        description: "Member invited successfully",
       });
     },
   });
 
-  const onSubmit: SubmitHandler<FormInput> = (data) => {
-    createApi.mutate({
-      name: data.apiName,
-      algorithm: data.algorithm,
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    control,
+  } = useForm<InviteMemberFormInput>();
 
-  const router = useRouter();
+  const onSubmit: SubmitHandler<InviteMemberFormInput> = (data) => {
+    inviteMember.mutate(data);
+  };
 
   return (
     <>
@@ -75,14 +59,12 @@ export function CreateApi() {
         }}
       >
         <Button
-          className="py-0 pl-2 text-xs"
           onClick={() => {
             reset();
             setIsOpen(true);
           }}
         >
-          <PlusIcon className="mr-1 h-4 w-4" />
-          Create API
+          Invite Member
         </Button>
         <DialogContent>
           <form
@@ -90,7 +72,7 @@ export function CreateApi() {
             onSubmit={handleSubmit(onSubmit)}
           >
             <DialogTitle className="text-2xl font-semibold">
-              Create API
+              Invite Member
             </DialogTitle>
             <div className="flex flex-col gap-1">
               <h2 className="text-sm font-semibold">Name</h2>
@@ -98,11 +80,11 @@ export function CreateApi() {
                 A human-readable name for the API.
               </p>
               <Input
-                {...register("apiName", { required: true })}
-                placeholder="API Name"
+                {...register("email", { required: true })}
+                placeholder="Email"
               />
-              {errors.apiName !== undefined && (
-                <p className="text-sm text-red-500">API Name is required</p>
+              {errors.email !== undefined && (
+                <p className="text-sm text-red-500">Email is required</p>
               )}
             </div>
             <div className="flex flex-col gap-1">
@@ -113,33 +95,43 @@ export function CreateApi() {
               </p>
               <Controller
                 control={control}
-                name="algorithm"
+                name="role"
                 rules={{
                   required: true,
                   validate(data) {
-                    return data === "rsa256" || data === "hsa256";
+                    return (
+                      data === "admin" ||
+                      data === "developer" ||
+                      data === "viewer"
+                    );
                   },
                 }}
                 render={({ field }) => {
                   return (
                     <Select onValueChange={field.onChange} {...field}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a signing algorithm" />
+                        <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Signing Algorithm</SelectLabel>
+                          <SelectLabel>Role</SelectLabel>
                           <SelectItem
                             className="hover:cursor-pointer"
-                            value="rsa256"
+                            value="admin"
                           >
-                            RSA256 Asymmetric Key
+                            Admin
                           </SelectItem>
                           <SelectItem
                             className="hover:cursor-pointer"
-                            value="hsa256"
+                            value="developer"
                           >
-                            HS256 Symmetric Key
+                            Developer
+                          </SelectItem>
+                          <SelectItem
+                            className="hover:cursor-pointer"
+                            value="viewer"
+                          >
+                            Viewer
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>
@@ -147,16 +139,16 @@ export function CreateApi() {
                   );
                 }}
               />
-              {errors.algorithm !== undefined && (
-                <p className="text-sm text-red-500">Must select an algorithm</p>
+              {errors.role !== undefined && (
+                <p className="text-sm text-red-500">Must select a role</p>
               )}
             </div>
             <Button
               type="submit"
               className="mb-6 mt-2"
-              disabled={createApi.isLoading}
+              disabled={inviteMember.isLoading}
             >
-              {createApi.isLoading ? "Creating..." : "Create API"}
+              {inviteMember.isLoading ? "Inviting..." : "Invite Member"}
             </Button>
           </form>
         </DialogContent>

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase";
+import { createBrowserClient } from "@/utils/supabase";
 import { type User as _User } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { jwtDecode } from "jwt-decode";
@@ -10,7 +10,7 @@ export type User = _User & {
 };
 
 export function useUser() {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
 
   return useQuery({
     queryKey: ["user"],

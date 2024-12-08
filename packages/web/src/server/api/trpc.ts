@@ -11,7 +11,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { type NextRequest } from "next/server";
-import { createClient } from "../supabase/server-client";
+import { createServerClient } from "../supabase/server-client";
 import { verify } from "jsonwebtoken";
 import { Resource } from "sst";
 import { z } from "zod";
@@ -29,7 +29,7 @@ import { z } from "zod";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (req: NextRequest) => {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },

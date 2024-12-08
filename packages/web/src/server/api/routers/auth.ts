@@ -1,4 +1,4 @@
-import { createClient } from "@/server/supabase/server-client";
+import { createServerClient } from "@/server/supabase/server-client";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -7,7 +7,7 @@ export const authRouter = createTRPCRouter({
   signIn: publicProcedure
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ input }) => {
-      const supabase = await createClient();
+      const supabase = await createServerClient();
 
       const { error } = await supabase.auth.signInWithOtp({
         email: input.email,
@@ -24,7 +24,7 @@ export const authRouter = createTRPCRouter({
       }
     }),
   confirmOtp: publicProcedure
-    .input(z.object({ email: z.string().email(), otp: z.string() }))
+    .input(z.object({ email: z.string(), otp: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const { data, error } = await ctx.supabase.auth.verifyOtp({
         email: input.email,

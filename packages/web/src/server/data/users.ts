@@ -1,5 +1,5 @@
 import { getDrizzle } from "@optra/core/drizzle";
-import { DrizzleUserRepo } from "@optra/core/users";
+import { DrizzleUserRepo, type CreateUserParams } from "@optra/core/users";
 import { env } from "@/env";
 
 async function getUserRepo() {
@@ -13,4 +13,9 @@ export async function setActiveWorkspaceId(
 ) {
   const userRepo = await getUserRepo();
   await userRepo.setActiveWorkspaceId(userId, workspaceId);
+}
+
+export async function createUser(user: CreateUserParams) {
+  const userRepo = await getUserRepo();
+  await userRepo.create(user);
 }

@@ -12,11 +12,12 @@ import {
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
-import { setActiveWorkspaceId } from "@/server/data/users";
+import { createUser, setActiveWorkspaceId } from "@/server/data/users";
 import { TRPCError } from "@trpc/server";
 import { Resource } from "sst";
 import Stripe from "stripe";
-import { createClient } from "@/server/supabase/server-client";
+import { createServerClient } from "@/server/supabase/server-client";
+import { createAdminClient } from "@/server/supabase/admin-client";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -114,7 +115,7 @@ export const workspaceRouter = createTRPCRouter({
       });
     }
 
-    const supabase = await createClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -204,4 +205,53 @@ export const workspaceRouter = createTRPCRouter({
 
     await cancelPlanChange(workspace.id);
   }),
+  inviteMember: protectedProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+
+      if (!workspace)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workspace not found",
+        });
+
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can invite members",
+        });
+      }
+
+      const supabase = await createAdminClient();
+
+      const { data, error } = await supabase.auth.admin.inviteUserByEmail(
+        input.email,
+        {
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+        },
+      );
+
+      if (error) {
+        console.error(error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to invite member.",
+        });
+      }
+
+      const newUser = data.user;
+
+      const now = new Date();
+
+      await createUser({
+        id: newUser.id,
+        email: newUser.email!,
+        activeWorkspaceId: workspace.tenantId,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await addMemberToWorkspace(workspace.id, newUser.id);
+      await setActiveWorkspaceId(newUser.id, workspace.tenantId);
+    }),
 });

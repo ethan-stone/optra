@@ -21,6 +21,7 @@ export class DrizzleUserRepo implements UserRepo {
 
     return {
       ...params,
+      role: params.role ?? "admin",
       activeWorkspaceId: params.activeWorkspaceId ?? null,
     };
   }

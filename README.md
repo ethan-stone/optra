@@ -30,3 +30,4 @@
 - [ ] Setup some sort of incident tracker. Maybe incident.io.
 - [ ] Be able to record usage of a client.
 - [ ] Remove defaulting to admin role. It defaults to admin for now just to make it easier to test/develope.
+- [ ] Make sure all email recommendations are setup.
