@@ -18,11 +18,12 @@
 - [x] Set scopes API route.
 - [ ] Onboarding flow when new sign up.
 - [x] Internal scopes for `api`.
-- [ ] Use internal scopes to authorize `api` requests.
+- [x] Use internal scopes to authorize `api` requests.
 - [ ] Setup better logging for `web`.
-- [ ] Ability to client secrets for root clients.
+- [ ] Ability to rotate client secrets for root clients.
 - [x] Migrate to Supabase for auth instead of Clerk for less services.
 - [ ] Billing management page.
+- [ ] Invoice history page.
 - [ ] User management page.
 - [ ] Have documentation, guides, API reference, and examples.
 - [ ] Complete Stripe (or LemonSqueezy, need to check it out) integration with handling of payment fails.
