@@ -40,6 +40,7 @@ export const createTRPCContext = async (req: NextRequest) => {
   } = await supabase.auth.getSession();
 
   let activeWorkspaceId: string | null = null;
+  let role: "admin" | "developer" | "viewer" | null = null;
 
   if (session) {
     const decoded = verify(
@@ -50,16 +51,18 @@ export const createTRPCContext = async (req: NextRequest) => {
     const parsedDecoded = z
       .object({
         active_workspace_id: z.string().nullable(),
+        role: z.enum(["admin", "developer", "viewer"]),
       })
       .parse(decoded);
 
     activeWorkspaceId = parsedDecoded.active_workspace_id;
+    role = parsedDecoded.role;
   }
 
   return {
     req,
     supabase,
-    user: user ? { id: user.id } : null,
+    user: user && role ? { id: user.id, role } : null,
     tenant: activeWorkspaceId
       ? { id: activeWorkspaceId }
       : user

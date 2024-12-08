@@ -133,6 +133,9 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull(),
   activeWorkspaceId: text("active_workspace_id"), // this is the current workspace the user is logged into.
+  role: text("role", { enum: ["admin", "developer", "viewer"] })
+    .notNull()
+    .default("admin"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });

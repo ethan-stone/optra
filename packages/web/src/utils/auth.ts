@@ -26,6 +26,7 @@ export async function getTenantId() {
     const parsedDecoded = z
       .object({
         active_workspace_id: z.string().nullable(),
+        role: z.enum(["admin", "developer", "viewer"]),
       })
       .parse(decoded);
 

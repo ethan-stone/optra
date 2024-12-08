@@ -87,6 +87,7 @@ export async function handler(
         claims: {
           ...claims,
           active_workspace_id: user.activeWorkspaceId,
+          role: user.role,
         },
       }),
       statusCode: 200,

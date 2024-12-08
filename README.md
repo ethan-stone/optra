@@ -29,3 +29,4 @@
 - [ ] Complete Stripe (or LemonSqueezy, need to check it out) integration with handling of payment fails.
 - [ ] Setup some sort of incident tracker. Maybe incident.io.
 - [ ] Be able to record usage of a client.
+- [ ] Remove defaulting to admin role. It defaults to admin for now just to make it easier to test/develope.
