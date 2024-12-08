@@ -11,6 +11,10 @@ export type Workspace = typeof schema.workspaces.$inferSelect & {
   billingInfo: WorkspaceBillingInfo;
 };
 
+export type WorkspaceMember = typeof schema.workspaceMembers.$inferSelect & {
+  user: typeof schema.users.$inferSelect;
+};
+
 export type CreateWorkspaceParams = Omit<
   typeof schema.workspaces.$inferInsert,
   "id"
@@ -69,6 +73,7 @@ export interface WorkspaceRepo {
   getBillableWorkspaces(): Promise<WorkspaceBillingInfo[]>;
   getByTenantId(tenantId: string): Promise<Workspace | null>;
   addMember(workspaceId: string, userId: string): Promise<AddMemberResult>;
+  getMembers(workspaceId: string): Promise<WorkspaceMember[]>;
   addBillingInfo(billingInfo: AddBillingInfoParams): Promise<void>;
   changePlan(workspaceId: string, plan: "pro" | "free"): Promise<void>;
   requestPlanChange(workspaceId: string, plan: "pro" | "free"): Promise<void>;
@@ -166,6 +171,15 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
     });
 
     return { success: true, memberId: memberId };
+  }
+
+  async getMembers(workspaceId: string): Promise<WorkspaceMember[]> {
+    return this.db.query.workspaceMembers.findMany({
+      where: eq(schema.workspaceMembers.workspaceId, workspaceId),
+      with: {
+        user: true,
+      },
+    });
   }
 
   async getAccessibleWorkspaces(userId: string): Promise<Workspace[]> {

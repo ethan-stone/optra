@@ -11,7 +11,7 @@ export default async function Clients(props: PageProps) {
   const clients = await getClientsByApi(props.params.apiId);
 
   return (
-    <div>
+    <div className="flex flex-col">
       <div className="mb-6 flex flex-row items-center justify-between">
         <h2 className="text-2xl font-semibold">Clients</h2>
         <CreateClientButton />
