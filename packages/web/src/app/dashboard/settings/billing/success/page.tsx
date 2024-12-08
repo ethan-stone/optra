@@ -3,7 +3,7 @@ import {
   getWorkspaceByTenantId,
 } from "@/server/data/workspaces";
 import { Logger, loggerConfig } from "@/server/logger";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { uid } from "@optra/core/uid";
 import Link from "next/link";
 import { redirect } from "next/navigation";

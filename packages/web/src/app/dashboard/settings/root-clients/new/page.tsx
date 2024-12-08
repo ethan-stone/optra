@@ -1,6 +1,6 @@
 import { getApisForWorkspace } from "@/server/data/apis";
 import { NewRootClientForm } from "./new-root-client-form";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { redirect } from "next/navigation";
 

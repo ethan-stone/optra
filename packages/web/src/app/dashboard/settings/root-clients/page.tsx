@@ -1,4 +1,4 @@
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { notFound } from "next/navigation";
 import { RootClients } from "../root-clients";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";

@@ -1,6 +1,6 @@
 import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { notFound } from "next/navigation";
 import { SettingsForm } from "./settings-form";
 import { Separator } from "@/components/ui/separator";

@@ -1,4 +1,4 @@
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { redirect } from "next/navigation";
 import { Apis } from "./apis";
 import { CreateApi } from "./create-api";

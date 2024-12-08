@@ -1,7 +1,7 @@
 import { Tabs } from "@/components/ui/navbar";
 import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { notFound, redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
 import { CopyApiId } from "./copy-api-id";

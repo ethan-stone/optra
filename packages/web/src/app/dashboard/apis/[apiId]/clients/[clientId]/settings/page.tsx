@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
 import { getClientByWorkspaceIdAndClientId } from "@/server/data/clients";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { EditClientForm } from "./edit-client-form";
 import { getApiByWorkspaceIdAndApiId } from "@/server/data/apis";
 import { ClientSecrets } from "./client-secrets";

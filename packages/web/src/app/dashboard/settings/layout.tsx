@@ -1,6 +1,6 @@
 import { Tabs } from "@/components/ui/navbar";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { redirect } from "next/navigation";
 import { type PropsWithChildren } from "react";
 

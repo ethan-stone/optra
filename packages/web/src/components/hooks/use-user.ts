@@ -6,6 +6,7 @@ import { z } from "zod";
 
 export type User = _User & {
   activeWorkspaceId: string | null;
+  role: "admin" | "developer" | "viewer";
 };
 
 export function useUser() {
@@ -29,12 +30,14 @@ export function useUser() {
       const jwtData = z
         .object({
           active_workspace_id: z.string().nullable(),
+          role: z.enum(["admin", "developer", "viewer"]),
         })
         .parse(jwt);
 
       const user: User = {
         ..._user,
         activeWorkspaceId: jwtData.active_workspace_id ?? null,
+        role: jwtData.role,
       };
 
       return { user };

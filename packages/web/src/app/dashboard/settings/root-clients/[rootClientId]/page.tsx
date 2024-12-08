@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { getClientByWorkspaceIdAndClientId } from "@/server/data/clients";
 import { getWorkspaceByTenantId } from "@/server/data/workspaces";
-import { getTenantId } from "@/utils/auth";
+import { getTenantId } from "@/server/auth/utils";
 import { notFound, redirect } from "next/navigation";
 import { EditRootClientForm } from "./edit-root-client-form";
 import {
