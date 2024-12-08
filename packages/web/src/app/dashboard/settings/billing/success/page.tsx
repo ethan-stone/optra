@@ -2,9 +2,8 @@ import {
   addBillingInfo,
   getWorkspaceByTenantId,
 } from "@/server/data/workspaces";
-import { Logger, loggerConfig } from "@/server/logger";
+import { newLogger } from "@/server/logger";
 import { getTenantId } from "@/server/auth/utils";
-import { uid } from "@optra/core/uid";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Resource } from "sst";
@@ -18,9 +17,7 @@ type Props = {
 };
 
 export default async function Page({ searchParams }: Props) {
-  const logger = new Logger({
-    ...loggerConfig,
-    requestId: uid("req"),
+  const logger = newLogger({
     namespace: "/dashboard/settings/billing/success",
   });
 

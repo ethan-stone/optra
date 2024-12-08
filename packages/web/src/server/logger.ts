@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { uid } from "@optra/core/uid";
 
 export type Fields = Record<string, unknown>;
 
@@ -93,3 +94,13 @@ export const loggerConfig: Omit<LoggerOptions, "requestId" | "namespace"> = {
   service: "web",
   dataset: "optra-web",
 };
+
+export function newLogger(
+  opts: Omit<LoggerOptions, "env" | "dataset" | "service" | "requestId">,
+  defaultFields: Fields = {},
+) {
+  return new Logger(
+    { ...loggerConfig, ...opts, requestId: uid("req") },
+    defaultFields,
+  );
+}
