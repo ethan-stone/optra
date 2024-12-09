@@ -228,7 +228,7 @@ export const workspaceRouter = createTRPCRouter({
       const { data, error } = await supabase.auth.admin.inviteUserByEmail(
         input.email,
         {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/sign-in`,
         },
       );
 
