@@ -16,7 +16,7 @@ type Props = {
   type: "sign-in" | "sign-up";
 };
 
-export function ConfirmOtpForm({ email, type }: Props) {
+export function ConfirmOtpForm({ email }: Props) {
   const supabase = createBrowserClient();
 
   const { register, handleSubmit } = useForm<FormInput>();
@@ -26,28 +26,22 @@ export function ConfirmOtpForm({ email, type }: Props) {
   const router = useRouter();
 
   const onSubmit = async (data: FormInput) => {
-    confirmOtp.mutate(
-      { email, otp: data.otp },
-      {
-        onSuccess: (data) => {
-          supabase.auth
-            .setSession({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token,
-            })
-            .then(() => {
-              if (type === "sign-up") {
-                router.replace("/onboarding");
-              } else {
-                router.replace("/dashboard");
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        },
-      },
-    );
+    const { session } = await confirmOtp.mutateAsync({
+      email,
+      otp: data.otp,
+    });
+
+    await supabase.auth
+      .setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      })
+      .then(() => {
+        router.replace("/dashboard");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   return (

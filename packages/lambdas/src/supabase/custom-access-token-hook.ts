@@ -1,5 +1,7 @@
 import { getDrizzle } from "@optra/core/drizzle";
 import { DrizzleUserRepo } from "@optra/core/users";
+import { DrizzleWorkspaceRepo } from "@optra/core/workspaces";
+import { AWSKeyManagementService } from "@optra/core/key-management";
 import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { Resource } from "sst";
 import { Webhook } from "standardwebhooks";
@@ -10,6 +12,14 @@ export async function handler(
 ): Promise<APIGatewayProxyResultV2> {
   const { db } = await getDrizzle(Resource.DbUrl.value);
   const userRepo = new DrizzleUserRepo(db);
+  const workspaceRepo = new DrizzleWorkspaceRepo(db);
+  const keyManagementService = new AWSKeyManagementService(
+    db,
+    process.env.AWS_KMS_KEY_ARN!,
+    "us-east-1",
+    Resource.AWSAccessKeyId.value,
+    Resource.AWSSecretAccessKey.value
+  );
 
   const payload = event.body;
 
@@ -73,6 +83,25 @@ export async function handler(
       });
 
       console.log(`created user ${user_id}`);
+    }
+
+    const personalWorkspace = await workspaceRepo.getByTenantId(user.id);
+
+    if (!personalWorkspace) {
+      console.log(`creating personal workspace for user ${user_id}`);
+
+      const dek = await keyManagementService.createDataKey();
+
+      const now = new Date();
+
+      await workspaceRepo.create({
+        name: "Personal",
+        tenantId: user.id,
+        type: "free",
+        dataEncryptionKeyId: dek.keyId,
+        createdAt: now,
+        updatedAt: now,
+      });
     }
 
     console.log(
