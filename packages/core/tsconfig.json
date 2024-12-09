@@ -16,6 +16,7 @@
     "skipLibCheck": true,
     "strict": true,
     "downlevelIteration": true,
+    "jsx": "preserve",
     "paths": {
       "@optra/core/*": ["../core/src/*"],
       "@optra/events/*": ["../events/src/*"]

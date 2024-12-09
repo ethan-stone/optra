@@ -140,6 +140,18 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
 
+export const workspaceInvites = pgTable("workspace_invites", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
+  email: text("email").notNull(),
+  status: text("status", { enum: ["pending", "accepted", "rejected"] })
+    .notNull()
+    .default("pending"),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(), // all invites will expire after 7 dayss
+  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+});
+
 // separate table for billing to decouple billing from the rest of the workspace
 // otherwise it would be very difficult to test and bootstrap
 export const workspaceBillingInfo = pgTable("workspace_billing_info", {
