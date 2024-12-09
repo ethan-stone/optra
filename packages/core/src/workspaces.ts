@@ -78,6 +78,7 @@ export interface WorkspaceRepo {
   changePlan(workspaceId: string, plan: "pro" | "free"): Promise<void>;
   requestPlanChange(workspaceId: string, plan: "pro" | "free"): Promise<void>;
   cancelPlanChange(workspaceId: string): Promise<void>;
+  createInvite(workspaceId: string, email: string): Promise<{ id: string }>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -181,6 +182,26 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       },
       orderBy: (table, { desc }) => [desc(table.createdAt)],
     });
+  }
+
+  async createInvite(
+    workspaceId: string,
+    email: string
+  ): Promise<{ id: string }> {
+    const inviteId = uid("wsi");
+
+    const now = new Date();
+
+    await this.db.insert(schema.workspaceInvites).values({
+      id: inviteId,
+      workspaceId,
+      email,
+      expiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return { id: inviteId };
   }
 
   async getAccessibleWorkspaces(userId: string): Promise<Workspace[]> {

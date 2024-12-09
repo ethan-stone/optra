@@ -62,7 +62,10 @@ export const createTRPCContext = async (req: NextRequest) => {
   return {
     req,
     supabase,
-    user: user && role ? { id: user.id, role } : null,
+    user:
+      user && role && user.email
+        ? { id: user.id, role, email: user.email }
+        : null,
     tenant: activeWorkspaceId
       ? { id: activeWorkspaceId }
       : user

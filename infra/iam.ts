@@ -30,6 +30,11 @@ export const apiPolicy = new aws.iam.Policy("ApiPolicy", {
           Action: ["scheduler:CreateSchedule", "iam:PassRole"],
           Resource: "*",
         },
+        {
+          Effect: "Allow",
+          Action: ["ses:SendEmail"],
+          Resource: "*",
+        },
       ],
     })
   ),

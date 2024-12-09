@@ -5,6 +5,7 @@ import {
   cancelPlanChange,
   changePlan,
   createWorkspace,
+  createWorkspaceInvite,
   getAccessibleWorkspaces,
   getWorkspaceById,
   getWorkspaceByTenantId,
@@ -12,12 +13,13 @@ import {
 } from "@/server/data/workspaces";
 import { getKeyManagementService } from "@/server/key-management";
 import { uid } from "@optra/core/uid";
-import { createUser, setActiveWorkspaceId } from "@/server/data/users";
+import { setActiveWorkspaceId } from "@/server/data/users";
 import { TRPCError } from "@trpc/server";
 import { Resource } from "sst";
 import Stripe from "stripe";
 import { createServerClient } from "@/server/supabase/server-client";
-import { createAdminClient } from "@/server/supabase/admin-client";
+import { getEmailService } from "@/server/email";
+import { renderMemberInviteEmail } from "@optra/core/email";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -209,6 +211,7 @@ export const workspaceRouter = createTRPCRouter({
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ ctx, input }) => {
       const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
+      const emailService = await getEmailService();
 
       if (!workspace)
         throw new TRPCError({
@@ -223,35 +226,18 @@ export const workspaceRouter = createTRPCRouter({
         });
       }
 
-      const supabase = await createAdminClient();
+      const invite = await createWorkspaceInvite(workspace.id, input.email);
 
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail(
-        input.email,
-        {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/sign-in`,
-        },
-      );
-
-      if (error) {
-        console.error(error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to invite member.",
-        });
-      }
-
-      const newUser = data.user;
-
-      const now = new Date();
-
-      await createUser({
-        id: newUser.id,
-        email: newUser.email!,
-        activeWorkspaceId: workspace.tenantId,
-        createdAt: now,
-        updatedAt: now,
+      const content = await renderMemberInviteEmail({
+        workspaceName: workspace.name,
+        inviteLink: `${process.env.NEXT_PUBLIC_APP_URL}/invites/${invite.id}/accept`,
+        invitedByEmail: ctx.user.email,
       });
-      await addMemberToWorkspace(workspace.id, newUser.id);
-      await setActiveWorkspaceId(newUser.id, workspace.tenantId);
+
+      await emailService.sendEmail({
+        to: [input.email],
+        subject: `You've been invited to join ${workspace.name} on Optra`,
+        body: content,
+      });
     }),
 });

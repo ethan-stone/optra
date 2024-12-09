@@ -2,21 +2,18 @@ import {
   Body,
   Button,
   Container,
-  Column,
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
-  Row,
   Section,
   Text,
   Tailwind,
 } from "@react-email/components";
 import * as React from "react";
 
-interface MemberInvite {
+export interface MemberInviteProps {
   invitedByEmail: string;
   workspaceName: string;
   inviteLink: string;
@@ -26,7 +23,7 @@ export const MemberInvite = ({
   workspaceName,
   invitedByEmail,
   inviteLink,
-}: MemberInvite) => {
+}: MemberInviteProps) => {
   const previewText = `You've been invited to join ${workspaceName} on Optra`;
 
   return (
@@ -78,6 +75,6 @@ MemberInvite.PreviewProps = {
   invitedByEmail: "alan.turing@example.com",
   workspaceName: "Enigma",
   inviteLink: "https://phractal.xyz/invites/1234567890/accept",
-} as MemberInvite;
+} as MemberInviteProps;
 
 export default MemberInvite;

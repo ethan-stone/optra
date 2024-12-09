@@ -11,6 +11,7 @@ type Prefix =
   | "csk"
   | "ws"
   | "wsm"
+  | "wsi"
   | "req"
   | "client_scope"
   | "api_scope"
