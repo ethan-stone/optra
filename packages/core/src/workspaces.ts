@@ -179,6 +179,7 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       with: {
         user: true,
       },
+      orderBy: (table, { desc }) => [desc(table.createdAt)],
     });
   }
 
