@@ -78,7 +78,10 @@ export interface WorkspaceRepo {
   changePlan(workspaceId: string, plan: "pro" | "free"): Promise<void>;
   requestPlanChange(workspaceId: string, plan: "pro" | "free"): Promise<void>;
   cancelPlanChange(workspaceId: string): Promise<void>;
-  createInvite(workspaceId: string, email: string): Promise<{ id: string }>;
+  createInvite(
+    workspaceId: string,
+    email: string
+  ): Promise<{ id: string; slug: string }>;
 }
 
 export class DrizzleWorkspaceRepo implements WorkspaceRepo {
@@ -187,8 +190,9 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
   async createInvite(
     workspaceId: string,
     email: string
-  ): Promise<{ id: string }> {
+  ): Promise<{ id: string; slug: string }> {
     const inviteId = uid("wsi");
+    const slug = uid().slice(0, 8);
 
     const now = new Date();
 
@@ -196,12 +200,14 @@ export class DrizzleWorkspaceRepo implements WorkspaceRepo {
       id: inviteId,
       workspaceId,
       email,
+      slug,
+      status: "pending",
       expiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
       createdAt: now,
       updatedAt: now,
     });
 
-    return { id: inviteId };
+    return { id: inviteId, slug };
   }
 
   async getAccessibleWorkspaces(userId: string): Promise<Workspace[]> {

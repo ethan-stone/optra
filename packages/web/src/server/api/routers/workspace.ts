@@ -230,7 +230,7 @@ export const workspaceRouter = createTRPCRouter({
 
       const content = await renderMemberInviteEmail({
         workspaceName: workspace.name,
-        inviteLink: `${process.env.NEXT_PUBLIC_APP_URL}/invites/${invite.id}/accept`,
+        inviteLink: `${process.env.NEXT_PUBLIC_APP_URL}/invites/${invite.slug}/accept`,
         invitedByEmail: ctx.user.email,
       });
 
