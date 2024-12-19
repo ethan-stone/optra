@@ -45,6 +45,10 @@ export const updateSession = async (request: NextRequest) => {
       "/sign-up",
       "/confirm-otp",
       "/auth/callback",
+      // /invites page is still authenticated, but we need the path params to
+      // redirect to the sign-up/sign-in page and that is easier to get in
+      // the page instead of the middleware
+      "/invites",
       "/api/trpc/auth.signIn",
       "/api/trpc/auth.confirmOtp",
     ];
