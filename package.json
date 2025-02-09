@@ -16,12 +16,12 @@
     "@types/aws-lambda": "8.10.141",
     "aws-cdk-lib": "2.124.0",
     "constructs": "10.3.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.3"
   },
   "workspaces": [
     "packages/*"
   ],
   "dependencies": {
-    "sst": "^3.2.12"
+    "sst": "^3.8.2"
   }
 }
