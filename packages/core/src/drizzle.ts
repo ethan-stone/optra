@@ -7,7 +7,7 @@ let db: PostgresJsDatabase<typeof schema> | undefined = undefined;
 
 export async function getDrizzle(dbUrl: string) {
   if (!client) {
-    client = postgres(dbUrl, { max: 1, prepare: false });
+    client = postgres(dbUrl, { max: 10, prepare: false });
   }
 
   if (!db) {

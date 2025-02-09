@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
-  addMemberToWorkspace,
   cancelPlanChange,
   changePlan,
   createWorkspace,
@@ -17,7 +16,6 @@ import { setActiveWorkspaceId } from "@/server/data/users";
 import { TRPCError } from "@trpc/server";
 import { Resource } from "sst";
 import Stripe from "stripe";
-import { createServerClient } from "@/server/supabase/server-client";
 import { getEmailService } from "@/server/email";
 import { renderMemberInviteEmail } from "@optra/core/email";
 
@@ -36,33 +34,25 @@ export const workspaceRouter = createTRPCRouter({
 
       const tenantId = uid();
 
+      const org = await ctx.clerk.organizations.createOrganization({
+        name: input.name,
+        createdBy: ctx.user.id,
+      });
+
       const workspace = await createWorkspace({
         name: input.name,
-        tenantId,
+        tenantId: org.id,
         type: "paid",
         dataEncryptionKeyId: dek.keyId,
         createdAt: now,
         updatedAt: now,
       });
 
-      const addMemberResult = await addMemberToWorkspace(
-        workspace.id,
-        ctx.user.id,
-      );
-
-      if (!addMemberResult.success)
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to add member",
-        });
-
-      await setActiveWorkspaceId(ctx.user.id, tenantId);
-
       console.log(`active workspace id for user ${ctx.user.id} is ${tenantId}`);
 
       return {
         workspaceId: workspace.id,
-        memberId: addMemberResult.memberId,
+        tenantId: org.id,
       };
     }),
   getAccessibleWorkspaces: protectedProcedure.query(async ({ ctx }) => {
@@ -117,17 +107,9 @@ export const workspaceRouter = createTRPCRouter({
       });
     }
 
-    const supabase = await createServerClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) throw new TRPCError({ code: "UNAUTHORIZED" });
-
     const session = await stripe.checkout.sessions.create({
       mode: "setup",
-      customer_email: user.email,
+      customer_email: ctx.user.email,
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing/success?session_id={CHECKOUT_SESSION_ID}&plan=${"pro"}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings/billing`,
       billing_address_collection: "auto",

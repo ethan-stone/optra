@@ -19,14 +19,11 @@ cluster.addService("Web", {
     secrets.OptraWorkspaceId,
     secrets.AWSAccessKeyId,
     secrets.AWSSecretAccessKey,
-    secrets.SupabaseUrl,
-    secrets.SupabaseAnonKey,
-    secrets.SupabaseJwtSecret,
-    secrets.SupabaseSecretKey,
     secrets.StripeApiKey,
     secrets.StripeProProductId,
     secrets.StripeGenerationsProductId,
     secrets.StripeVerificationsProductId,
+    secrets.ClerkSecretKey,
   ],
   public: {
     ports: [{ listen: "80/http", forward: "3000/http" }],
@@ -45,11 +42,12 @@ cluster.addService("Web", {
     AWS_SCHEDULER_ROLE_ARN: schedulerRole.arn,
     AWS_SCHEDULER_FAILED_DLQ_ARN: schedulerDLQ.arn,
     AWS_MESSAGE_QUEUE_ARN: messageQueue.arn,
-    NEXT_PUBLIC_SUPABASE_URL: secrets.SupabaseUrl.value,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: secrets.SupabaseAnonKey.value,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: secrets.ClerkPublishableKey.value,
     NEXT_PUBLIC_JWKS_BUCKET_URL: `https://${bucket.name}.s3.amazonaws.com`,
     NEXT_PUBLIC_APP_URL: $dev
       ? "http://localhost:3000"
       : "https://phractal.xyz",
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: "/sign-up",
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: "/sign-in",
   },
 });

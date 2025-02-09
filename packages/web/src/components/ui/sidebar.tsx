@@ -16,10 +16,9 @@ import {
 } from "./dropdown-menu";
 import { Spinner } from "../icons/spinner";
 import { useUser } from "../hooks/use-user";
-import { createBrowserClient } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
-import { api } from "@/trpc/react";
 import { ScrollArea } from "./scroll-area";
+import { useClerk, useOrganizationList } from "@clerk/nextjs";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -33,37 +32,40 @@ interface SidebarProps {
 }
 
 export function Sidebar({ links, isCollapsed }: SidebarProps) {
-  const supabase = createBrowserClient();
+  const router = useRouter();
+
+  const clerk = useClerk();
 
   const user = useUser();
 
-  const accessibleWorkspaces =
-    api.workspaces.getAccessibleWorkspaces.useQuery();
+  const organizationsList = useOrganizationList({
+    userMemberships: {
+      infinite: true,
+      pageSize: 100,
+    },
+  });
 
-  const changeActiveWorkspace =
-    api.workspaces.changeActiveWorkspace.useMutation();
+  async function changeWorkspace(organizationId: string | null) {
+    console.log("changing workspace to", organizationId);
+    if (!organizationsList.setActive) {
+      return;
+    }
 
-  const refreshSession = api.auth.refreshSession.useMutation();
-
-  async function changeWorkspace(workspaceId: string | null) {
-    await changeActiveWorkspace.mutateAsync({ workspaceId });
-    const newSession = await refreshSession.mutateAsync();
-
-    await supabase.auth.setSession({
-      access_token: newSession.access_token,
-      refresh_token: newSession.refresh_token,
-    });
-
-    router.replace("/dashboard");
-    router.refresh();
-    await accessibleWorkspaces.refetch();
-    await user.refetch();
+    try {
+      await organizationsList.setActive({
+        organization: organizationId,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      console.log("refreshing");
+      router.replace("/dashboard");
+      router.refresh();
+    }
   }
 
-  const router = useRouter();
-
-  const currentWorkspace = accessibleWorkspaces.data?.find(
-    (w) => w.tenantId === user.data?.user?.activeWorkspaceId,
+  const currentWorkspace = organizationsList.userMemberships.data?.find(
+    (o) => o.organization.id === user?.user?.activeOrganizationId,
   );
 
   return (
@@ -74,10 +76,10 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button className="m-2 flex flex-row justify-between rounded-md bg-white text-black hover:bg-muted">
-            {!user.data || !accessibleWorkspaces.data ? (
+            {!user.isLoaded || !organizationsList.userMemberships.data ? (
               <Spinner />
             ) : (
-              (currentWorkspace?.name ?? "Personal Workspace")
+              (currentWorkspace?.organization.name ?? "Personal Workspace")
             )}
             <ChevronsUpDownIcon className="h-3 w-3" />
           </Button>
@@ -101,16 +103,16 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
           </DropdownMenuLabel>
           <DropdownMenuGroup>
             <ScrollArea className="h-96">
-              {accessibleWorkspaces.data
-                ?.filter((w) => w.tenantId !== user.data?.user?.id)
-                .map((workspace) => (
+              {organizationsList.userMemberships.data
+                ?.filter((o) => o.organization.id !== user.user?.id)
+                .map((o) => (
                   <DropdownMenuItem
-                    key={workspace.tenantId}
+                    key={o.organization.id}
                     className="flex items-center justify-between hover:cursor-pointer"
-                    onClick={() => changeWorkspace(workspace.id)}
+                    onClick={() => changeWorkspace(o.organization.id)}
                   >
-                    {workspace.name}
-                    {workspace.tenantId === currentWorkspace?.tenantId ? (
+                    {o.organization.name}
+                    {o.organization.id === currentWorkspace?.organization.id ? (
                       <Check className="h-4 w-4" />
                     ) : null}
                   </DropdownMenuItem>
@@ -133,7 +135,7 @@ export function Sidebar({ links, isCollapsed }: SidebarProps) {
             <DropdownMenuItem
               className="flex items-center text-red-600 hover:cursor-pointer"
               onClick={async () => {
-                await supabase.auth.signOut();
+                await clerk.signOut();
                 router.refresh();
               }}
             >

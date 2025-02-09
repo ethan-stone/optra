@@ -17,6 +17,14 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "ClerkPublishableKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "ClerkSecretKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "CoreApi": {
       "name": string
       "type": "sst.aws.Function"
@@ -80,31 +88,6 @@ declare module "sst" {
       "value": string
     }
     "StripeVerificationsProductId": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "SupabaseAnonKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "SupabaseCustomAccessTokenHook": {
-      "name": string
-      "type": "sst.aws.Function"
-      "url": string
-    }
-    "SupabaseJwtSecret": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "SupabaseSecretKey": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "SupabaseUrl": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "SupabaseWebhookSecret": {
       "type": "sst.sst.Secret"
       "value": string
     }

@@ -11,10 +11,8 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { type NextRequest } from "next/server";
-import { createServerClient } from "../supabase/server-client";
-import { verify } from "jsonwebtoken";
-import { Resource } from "sst";
-import { z } from "zod";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { getUser } from "../auth/utils";
 
 /**
  * 1. CONTEXT
@@ -29,48 +27,18 @@ import { z } from "zod";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (req: NextRequest) => {
-  const supabase = await createServerClient();
+  const { userId, orgId } = await auth();
+  const user = await getUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const clerk = await clerkClient();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  let activeWorkspaceId: string | null = null;
-  let role: "admin" | "developer" | "viewer" | null = null;
-
-  if (session) {
-    const decoded = verify(
-      session.access_token,
-      Resource.SupabaseJwtSecret.value,
-    );
-
-    const parsedDecoded = z
-      .object({
-        active_workspace_id: z.string().nullable(),
-        role: z.enum(["admin", "developer", "viewer"]),
-      })
-      .parse(decoded);
-
-    activeWorkspaceId = parsedDecoded.active_workspace_id;
-    role = parsedDecoded.role;
-  }
-
+  // TODO pull role from publicMetadata on clerk
   return {
     req,
-    supabase,
+    clerk,
     user:
-      user && role && user.email
-        ? { id: user.id, role, email: user.email }
-        : null,
-    tenant: activeWorkspaceId
-      ? { id: activeWorkspaceId }
-      : user
-        ? { id: user.id }
-        : null,
+      user && userId ? { id: userId, role: "admin", email: user.email } : null,
+    tenant: orgId ? { id: orgId } : userId ? { id: userId } : null,
   };
 };
 
@@ -118,7 +86,7 @@ export const createTRPCRouter = t.router;
  */
 export const publicProcedure = t.procedure;
 
-export const auth = t.middleware(({ next, ctx }) => {
+export const withAuth = t.middleware(({ next, ctx }) => {
   if (!ctx.user?.id) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -133,4 +101,4 @@ export const auth = t.middleware(({ next, ctx }) => {
   });
 });
 
-export const protectedProcedure = publicProcedure.use(auth);
+export const protectedProcedure = publicProcedure.use(withAuth);

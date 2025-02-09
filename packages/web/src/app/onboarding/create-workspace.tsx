@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { createBrowserClient } from "@/utils/supabase";
+import { useOrganizationList } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { type SubmitHandler, useForm } from "react-hook-form";
 
@@ -14,33 +14,27 @@ type FormInput = {
 export function CreateWorkspace() {
   const { register, handleSubmit } = useForm<FormInput>();
 
-  const supabase = createBrowserClient();
+  const { setActive } = useOrganizationList();
 
   const createWorkspace = api.workspaces.createPaidWorkspace.useMutation();
-
-  const refreshSession = api.auth.refreshSession.useMutation();
 
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FormInput> = (data) => {
     createWorkspace.mutate(data, {
-      onSuccess() {
-        refreshSession.mutate(undefined, {
-          onSuccess(data) {
-            supabase.auth
-              .setSession({
-                access_token: data.access_token,
-                refresh_token: data.refresh_token,
-              })
-              .then(() => {
-                router.replace("/dashboard");
-                router.refresh();
-              })
-              .catch((error) => {
-                console.error(error);
-              });
-          },
+      async onSuccess(result) {
+        console.log("onSuccess", result);
+
+        if (!setActive) {
+          throw new Error("setActive is not defined");
+        }
+
+        await setActive({
+          organization: result.tenantId,
         });
+
+        router.replace("/dashboard");
+        router.refresh();
       },
     });
   };

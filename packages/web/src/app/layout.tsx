@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { Inter } from "next/font/google";
-
+import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -24,8 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-        <Toaster />
+        <ClerkProvider>
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <Toaster />
+        </ClerkProvider>
       </body>
     </html>
   );

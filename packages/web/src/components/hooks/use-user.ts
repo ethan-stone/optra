@@ -1,46 +1,28 @@
-import { createBrowserClient } from "@/utils/supabase";
-import { type User as _User } from "@supabase/supabase-js";
-import { useQuery } from "@tanstack/react-query";
-import { jwtDecode } from "jwt-decode";
-import { z } from "zod";
+import { useUser as useClerkUser, useOrganization } from "@clerk/nextjs";
 
-export type User = _User & {
-  activeWorkspaceId: string | null;
+export type User = {
+  id: string;
+  email: string;
+  activeOrganizationId: string | null;
   role: "admin" | "developer" | "viewer";
 };
 
 export function useUser() {
-  const supabase = createBrowserClient();
+  const { user, isLoaded } = useClerkUser();
+  const { organization } = useOrganization();
 
-  return useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const {
-        data: { user: _user },
-      } = await supabase.auth.getUser();
+  const email = user?.primaryEmailAddress?.emailAddress;
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!_user || !session) return null;
-
-      const jwt = jwtDecode(session.access_token);
-
-      const jwtData = z
-        .object({
-          active_workspace_id: z.string().nullable(),
-          role: z.enum(["admin", "developer", "viewer"]),
-        })
-        .parse(jwt);
-
-      const user: User = {
-        ..._user,
-        activeWorkspaceId: jwtData.active_workspace_id ?? null,
-        role: jwtData.role,
-      };
-
-      return { user };
-    },
-  });
+  return {
+    isLoaded,
+    user:
+      user && email
+        ? {
+            id: user.id,
+            email,
+            activeOrganizationId: organization?.id ?? null,
+            role: "admin",
+          }
+        : null,
+  };
 }

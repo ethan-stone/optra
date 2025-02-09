@@ -108,53 +108,6 @@ new sst.aws.Cron("InvoiceAndPlanChangeCron", {
   schedule: "cron(0 12 1 * ? *)",
 });
 
-const supabaseCustomAccessTokenHook = new sst.aws.Function(
-  "SupabaseCustomAccessTokenHook",
-  {
-    handler: "packages/lambdas/src/supabase/custom-access-token-hook.handler",
-    environment: {
-      AWS_KMS_KEY_ARN: kmsKey.arn,
-    },
-    link: [
-      secrets.DbUrl,
-      secrets.SupabaseWebhookSecret,
-      secrets.AWSAccessKeyId,
-      secrets.AWSSecretAccessKey,
-      // these are not used by the lambda but it's a dependency of using the worksapce repo which this does use.
-      secrets.StripeProProductId,
-      secrets.StripeGenerationsProductId,
-      secrets.StripeVerificationsProductId,
-    ],
-    url: true,
-    transform: !$dev && {
-      role: {
-        inlinePolicies: [
-          {
-            name: "KMSAccess",
-            policy: JSON.stringify({
-              Version: "2012-10-17",
-              Statement: [
-                {
-                  Effect: "Allow",
-                  Action: [
-                    "kms:Encrypt",
-                    "kms:Decrypt",
-                    "kms:ReEncrypt*",
-                    "kms:GenerateDataKey*",
-                    "kms:DescribeKey",
-                  ],
-                  Resource: "*",
-                },
-              ],
-            }),
-          },
-        ],
-      },
-    },
-  }
-);
-
 export const outputs = {
   ApiUrl: apiFn.url,
-  SupabaseCustomAccessTokenHookUrl: supabaseCustomAccessTokenHook.url,
 };

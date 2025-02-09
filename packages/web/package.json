@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-kms": "^3.670.0",
     "@aws-sdk/client-s3": "^3.670.0",
-    "@clerk/nextjs": "^4.31.5",
+    "@clerk/nextjs": "^6.11.1",
     "@radix-ui/react-accordion": "^1.2.1",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -23,8 +23,6 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.1.3",
-    "@supabase/ssr": "^0.5.1",
-    "@supabase/supabase-js": "^2.46.1",
     "@t3-oss/env-nextjs": "^0.7.3",
     "@tanstack/react-query": "^4.36.1",
     "@tanstack/react-table": "^8.20.5",

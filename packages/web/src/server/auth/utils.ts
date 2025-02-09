@@ -1,77 +1,36 @@
-import { createServerClient } from "@/server/supabase/server-client";
-import { verify } from "jsonwebtoken";
 import { notFound } from "next/navigation";
-import { z } from "zod";
-import { Resource } from "sst";
-import { type User as _User } from "@supabase/supabase-js";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
-export type User = _User & {
+export type User = {
+  id: string;
+  email: string;
   activeWorkspaceId: string | null;
   role: "admin" | "developer" | "viewer";
 };
 
 export async function getTenantId() {
-  const supabase = await createServerClient();
+  const { userId, orgId } = await auth();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  let activeWorkspaceId: string | null = null;
-
-  if (session) {
-    const decoded = verify(
-      session.access_token,
-      Resource.SupabaseJwtSecret.value,
-    );
-
-    const parsedDecoded = z
-      .object({
-        active_workspace_id: z.string().nullable(),
-        role: z.enum(["admin", "developer", "viewer"]),
-      })
-      .parse(decoded);
-
-    activeWorkspaceId = parsedDecoded.active_workspace_id;
-  }
-
-  return activeWorkspaceId ?? user?.id ?? notFound();
+  return orgId ?? userId ?? notFound();
 }
 
-export async function getUser() {
-  const supabase = await createServerClient();
+export async function getUser(): Promise<User | null> {
+  const user = await currentUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { orgId } = await auth();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!user || !session) {
+  if (!user) {
     return null;
   }
 
-  const decoded = verify(
-    session.access_token,
-    Resource.SupabaseJwtSecret.value,
-  );
-
-  const parsedDecoded = z
-    .object({
-      active_workspace_id: z.string().nullable(),
-      role: z.enum(["admin", "developer", "viewer"]),
-    })
-    .parse(decoded);
+  if (!user.primaryEmailAddress?.emailAddress) {
+    return notFound();
+  }
 
   return {
-    ...user,
-    activeWorkspaceId: parsedDecoded.active_workspace_id,
-    role: parsedDecoded.role,
+    id: user.id,
+    email: user.primaryEmailAddress.emailAddress,
+    activeWorkspaceId: orgId ?? null,
+    role: user.publicMetadata.role as "admin" | "developer" | "viewer",
   };
 }
