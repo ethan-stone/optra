@@ -20,23 +20,19 @@ export function CreateWorkspace() {
 
   const router = useRouter();
 
-  const onSubmit: SubmitHandler<FormInput> = (data) => {
-    createWorkspace.mutate(data, {
-      async onSuccess(result) {
-        console.log("onSuccess", result);
+  const onSubmit: SubmitHandler<FormInput> = async (data) => {
+    const result = await createWorkspace.mutateAsync(data);
 
-        if (!setActive) {
-          throw new Error("setActive is not defined");
-        }
+    if (!setActive) {
+      throw new Error("setActive is not defined");
+    }
 
-        await setActive({
-          organization: result.tenantId,
-        });
-
-        router.replace("/dashboard");
-        router.refresh();
-      },
+    await setActive({
+      organization: result.tenantId,
     });
+
+    router.replace("/dashboard");
+    router.refresh();
   };
 
   return (

@@ -19,16 +19,14 @@ import { Controller, type SubmitHandler, useForm } from "react-hook-form";
 
 type InviteMemberFormInput = {
   email: string;
-  role: "admin" | "developer" | "viewer";
+  role: "org:admin" | "org:developer" | "org:member";
 };
 
 export function InviteMemberButton() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { toast } = useToast();
-
   const inviteMember = api.workspaces.inviteMember.useMutation({
-    onSuccess() {
+    onSuccess: () => {
       setIsOpen(false);
       reset();
       toast({
@@ -38,6 +36,8 @@ export function InviteMemberButton() {
     },
   });
 
+  const { toast } = useToast();
+
   const {
     register,
     handleSubmit,
@@ -46,8 +46,20 @@ export function InviteMemberButton() {
     control,
   } = useForm<InviteMemberFormInput>();
 
-  const onSubmit: SubmitHandler<InviteMemberFormInput> = (data) => {
-    inviteMember.mutate(data);
+  const onSubmit: SubmitHandler<InviteMemberFormInput> = async (data) => {
+    await inviteMember.mutateAsync({
+      email: data.email,
+      role: data.role,
+    });
+
+    setIsOpen(false);
+
+    reset();
+
+    toast({
+      title: "Member Invited",
+      description: "Member invited successfully",
+    });
   };
 
   return (
@@ -100,9 +112,9 @@ export function InviteMemberButton() {
                   required: true,
                   validate(data) {
                     return (
-                      data === "admin" ||
-                      data === "developer" ||
-                      data === "viewer"
+                      data === "org:admin" ||
+                      data === "org:developer" ||
+                      data === "org:member"
                     );
                   },
                 }}
@@ -117,19 +129,19 @@ export function InviteMemberButton() {
                           <SelectLabel>Role</SelectLabel>
                           <SelectItem
                             className="hover:cursor-pointer"
-                            value="admin"
+                            value="org:admin"
                           >
                             Admin
                           </SelectItem>
                           <SelectItem
                             className="hover:cursor-pointer"
-                            value="developer"
+                            value="org:developer"
                           >
                             Developer
                           </SelectItem>
                           <SelectItem
                             className="hover:cursor-pointer"
-                            value="viewer"
+                            value="org:member"
                           >
                             Viewer
                           </SelectItem>

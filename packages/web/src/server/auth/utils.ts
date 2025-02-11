@@ -5,7 +5,7 @@ export type User = {
   id: string;
   email: string;
   activeWorkspaceId: string | null;
-  role: "admin" | "developer" | "viewer";
+  role: "org:admin" | "org:developer" | "org:member" | null;
 };
 
 export async function getTenantId() {
@@ -17,7 +17,7 @@ export async function getTenantId() {
 export async function getUser(): Promise<User | null> {
   const user = await currentUser();
 
-  const { orgId } = await auth();
+  const { orgId, orgRole } = await auth();
 
   if (!user) {
     return null;
@@ -31,6 +31,6 @@ export async function getUser(): Promise<User | null> {
     id: user.id,
     email: user.primaryEmailAddress.emailAddress,
     activeWorkspaceId: orgId ?? null,
-    role: user.publicMetadata.role as "admin" | "developer" | "viewer",
+    role: orgRole as "org:admin" | "org:developer" | "org:member" | null,
   };
 }

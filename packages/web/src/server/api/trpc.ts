@@ -37,7 +37,9 @@ export const createTRPCContext = async (req: NextRequest) => {
     req,
     clerk,
     user:
-      user && userId ? { id: userId, role: "admin", email: user.email } : null,
+      user && userId
+        ? { id: userId, role: user.role, email: user.email }
+        : null,
     tenant: orgId ? { id: orgId } : userId ? { id: userId } : null,
   };
 };

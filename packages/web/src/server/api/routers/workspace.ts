@@ -4,7 +4,6 @@ import {
   cancelPlanChange,
   changePlan,
   createWorkspace,
-  createWorkspaceInvite,
   getAccessibleWorkspaces,
   getWorkspaceById,
   getWorkspaceByTenantId,
@@ -16,8 +15,6 @@ import { setActiveWorkspaceId } from "@/server/data/users";
 import { TRPCError } from "@trpc/server";
 import { Resource } from "sst";
 import Stripe from "stripe";
-import { getEmailService } from "@/server/email";
-import { renderMemberInviteEmail } from "@optra/core/email";
 
 export const workspaceRouter = createTRPCRouter({
   createPaidWorkspace: protectedProcedure
@@ -190,10 +187,14 @@ export const workspaceRouter = createTRPCRouter({
     await cancelPlanChange(workspace.id);
   }),
   inviteMember: protectedProcedure
-    .input(z.object({ email: z.string().email() }))
+    .input(
+      z.object({
+        email: z.string().email(),
+        role: z.enum(["org:admin", "org:developer", "org:member"]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const workspace = await getWorkspaceByTenantId(ctx.tenant.id);
-      const emailService = await getEmailService();
 
       if (!workspace)
         throw new TRPCError({
@@ -201,25 +202,19 @@ export const workspaceRouter = createTRPCRouter({
           message: "Workspace not found",
         });
 
-      if (ctx.user.role !== "admin") {
+      if (ctx.user.role !== "org:admin" && ctx.user.role !== "org:developer") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only admins can invite members",
         });
       }
 
-      const invite = await createWorkspaceInvite(workspace.id, input.email);
-
-      const content = await renderMemberInviteEmail({
-        workspaceName: workspace.name,
-        inviteLink: `${process.env.NEXT_PUBLIC_APP_URL}/invites/${invite.slug}/accept`,
-        invitedByEmail: ctx.user.email,
-      });
-
-      await emailService.sendEmail({
-        to: [input.email],
-        subject: `You've been invited to join ${workspace.name} on Optra`,
-        body: content,
+      await ctx.clerk.organizations.createOrganizationInvitation({
+        emailAddress: input.email,
+        organizationId: workspace.tenantId,
+        inviterUserId: ctx.user.id,
+        role: input.role,
+        redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/invites/accept`,
       });
     }),
 });
